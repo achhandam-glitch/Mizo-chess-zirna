@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mizo Chess zirna</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f3; margin: 0; padding: 10px;
+            display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
+        }
+        h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; font-size: 22px; }
+        .subtitle { font-size: 13px; color: #7f8c8d; margin-bottom: 10px; text-align: center; max-width: 400px; line-height: 1.4; }
+        
+        /* Timer CSS */
+        .timer-wrapper {
+            display: flex; justify-content: space-between; width: 100%; max-width: 400px; 
+            margin-bottom: 10px; font-weight: bold; font-size: 16px;
+        }
+        .timer-box {
+            padding: 6px 12px; border-radius: 6px; border: 2px solid #bdc3c7; 
+            min-width: 100px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #whiteTimer { background-color: #fff; color: #2c3e50; }
+        #blackTimer { background-color: #34495e; color: #fff; border-color: #2c3e50;}
+        .time-low { color: #e74c3c !important; animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0.5; } }
+
+        .board-wrapper { width: 100%; max-width: 400px; margin-bottom: 10px; }
+        #board { width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1); touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        
+        /* Move History CSS thar */
+        .move-history-wrapper {
+            width: 100%; max-width: 400px; background: #fff; border: 1px solid #bdc3c7; 
+            border-radius: 6px; padding: 10px; margin-bottom: 15px; 
+            max-height: 110px; overflow-y: auto; font-size: 16px; 
+            color: #34495e; text-align: left; line-height: 1.8; word-wrap: break-word;
+        }
+
+        .controls, .srs-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px; width: 100%; max-width: 400px; }
+        button {
+            padding: 10px; font-size: 14px; font-weight: bold; background-color: #2980b9;
+            color: white; border: none; border-radius: 6px; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: background 0.3s;
+            flex: 1 1 calc(50% - 10px); min-width: 120px;
+        }
+        button:hover { background-color: #2471a3; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .btn-green { background-color: #27ae60 !important; color: white !important;} 
+        .btn-red { background-color: #c0392b !important; color: white !important;} 
+        .btn-yellow { background-color: #f39c12; color: #fff;} 
+        .btn-gray { background-color: #34495e; color: #fff;} 
+        .btn-full { flex: 1 1 100%; }
+        .btn-blue { background-color: #2980b9; color: #fff;} 
+        .btn-purple { background-color: #8e44ad; color: #fff; } 
+        .btn-purple:hover { background-color: #732d91; }
+        .btn-teal { background-color: #16a085; color: #fff; }
+
+        .color-dropdown {
+            padding: 10px; font-size: 14px; border-radius: 6px; border: 1px solid #bdc3c7;
+            font-weight: bold; color: #2c3e50; flex: 1 1 calc(33% - 10px); min-width: 100px;
+        }
+        .highlight-square { background-color: #f1c40f !important; opacity: 0.7; }
+        
+        #status { 
+            font-size: 15px; font-weight: bold; margin-bottom: 8px; 
+            color: #c0392b; text-align: center; background: #fff;
+            padding: 10px; border-radius: 8px; width: 100%; max-width: 400px;
+        }
+
+        #openingDisplay {
+            font-size: 14px; font-weight: bold; color: #2980b9;
+            margin-bottom: 10px; text-align: center; width: 100%; max-width: 400px;
+            display: none; background: #d6eaf8; padding: 5px; border-radius: 5px;
+        }
+
+        #verseDisplay {
+            display: none; font-size: 14px; color: #145a32; background-color: #d5f5e3;
+            border-left: 5px solid #27ae60; padding: 12px; border-radius: 4px;
+            margin-bottom: 15px; width: 100%; max-width: 400px; text-align: center;
+            font-style: italic; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        #pgnContainer {
+            display: none; width: 100%; max-width: 400px; margin-bottom: 15px;
+            background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #bdc3c7;
+        }
+        #pgnText {
+            width: 100%; height: 120px; padding: 8px; font-size: 12px; font-family: monospace;
+            border: 1px solid #ccc; border-radius: 4px; resize: none; margin-bottom: 8px;
+        }
+
+        .footer-text { margin-top: 15px; font-size: 12px; color: #7f8c8d; text-align: center; font-style: italic; max-width: 400px; padding-bottom: 20px;}
+    </style>
+</head>
+<body>
+
+    <h2><u>CHESS : MIZOTE TAN </u></h2>
+    <div class="subtitle">Ngaihtuahna tichak a, hmathlir tha nei turin Chess khel rawh</div>
+    
+    <div id="status">Board a in-load mek...</div>
+    
+    <div id="openingDisplay"></div>
+    <div id="verseDisplay"></div>
+
+    <div class="timer-wrapper" id="timerContainer">
+        <div class="timer-box" id="whiteTimer">A Var: 10:00</div>
+        <div class="timer-box" id="blackTimer">A Dum: 10:00</div>
+    </div>
+
+    <div class="board-wrapper"><div id="board"></div></div>
+    
+    <!-- Move History -->
+    <div class="move-history-wrapper" id="moveHistoryBox">
+        <span style="color:#7f8c8d; font-style:italic;">Chet dan record hetah a lo lang ang...</span>
+    </div>
+    
+    <div id="pgnContainer">
+        <div style="font-size: 13px; font-weight: bold; color: #2c3e50; margin-bottom: 5px;">Hmun danga i khelhna PGN Paste rawh / Import rawh:</div>
+        <textarea id="pgnText" placeholder="Chess.com / Lichess PGN paste rawh..."></textarea>
+        <input type="file" id="pgnFileInput" accept=".pgn,.txt" style="display: none;">
+        <div style="display: flex; gap: 5px; margin-top: 5px;">
+            <button id="importPgnFileBtn" class="btn-purple" style="flex:1;">📁 File-in Import</button>
+            <button id="loadAndLearnPgnBtn" class="btn-green" style="flex:1;">🧠 Zirna-ah lut nghal rawh</button>
+        </div>
+    </div>
+
+    <div class="controls" id="gameControls">
+        <select id="colorSelect" class="color-dropdown">
+            <option value="w">Sa var</option>
+            <option value="b">Sa dum</option>
+        </select>
+        <select id="difficultySelect" class="color-dropdown">
+            <option value="5">Awl ber</option>
+            <option value="10">Awlsam</option>
+            <option value="15">Lai hawl</option>
+            <option value="20" selected>Har deuh</option>
+            <option value="human">I thian nen</option>
+        </select>
+        <select id="timeSelect" class="color-dropdown">
+            <option value="1">1 Min</option>
+            <option value="3">3 Mins</option>
+            <option value="5">5 Mins</option>
+            <option value="10" selected>10 Mins</option>
+            <option value="15">15 Mins</option>
+            <option value="30">30 Mins</option>
+            <option value="60">60 Mins</option>
+            <option value="90">90 Mins</option>
+        </select>
+
+        <button id="togglePgnBoxBtn" class="btn-teal btn-full" style="margin-top: 5px;">📥 Hmun danga khelhna PGN Import-na</button>
+        
+        <div id="actionButtons" style="display: none; width: 100%; gap: 8px;">
+            <button id="drawBtn" class="btn-gray" style="flex: 1 1 45%;">Inhneh tawk</button>
+            <button id="resignBtn" class="btn-red" style="flex: 1 1 45%;">Ka tlawm e</button>
+        </div>
+
+        <button id="learnMistakesBtn" class="btn-yellow btn-full" style="display: none; margin-top: 5px; font-size: 15px; padding: 12px;">I tihsual atangin zir rawh</button>
+        
+        <button id="showPgnBtn" class="btn-teal btn-full" style="display: none; margin-top: 5px;">📜 PGN Enna & Download</button>
+
+        <button id="playAgainBtn" class="btn-green btn-full" style="display: none; margin-top: 15px; font-size: 16px; padding: 12px;">A thar khel rawh</button>
+    </div>
+
+    <div class="srs-controls" id="srsControls" style="display: none;">
+        <div id="mcqContainer" style="display: flex; flex-wrap: wrap; width: 100%; gap: 8px; margin-bottom: 10px;"></div>
+        
+        <button id="showAnswerBtn" class="btn-yellow" style="flex: 1 1 45%;">Chhanna Enna</button>
+        <button id="nextMistakeBtn" class="btn-green" style="flex: 1 1 45%;">A dawt leh</button>
+        <button id="exitPracticeBtn" class="btn-red btn-full" style="margin-top: 5px;">Chhuahna</button>
+    </div>
+
+    <div class="footer-text">
+        <b>A buatsaihtu thuchah</b> : Ka hming chu Alan Lalchhandama a ni a. Hetiang hi ka lo suangtuah ve thin a,enchhinna(experiment) a ni tih min lo hriat sak dawn nia.Lo hmang tangkai ngei ang che
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            var board = null;
+            var game = new Chess();
+            var $status = $('#status');
+            var isPracticeMode = false;
+            var manuallyEnded = false; 
+            var isTwoPlayer = false; 
+            
+            var drawOfferPending = false;
+            var lastEngineScore = 0;
+            var lastEngineMate = null;
+            
+            var playerColor = 'w';
+            var selectedSquare = null; 
+
+            var mistakePositions = [];
+            var currentMistakeIndex = 0;
+            var savedGameHistory = []; 
+            var plyEvaluations = {}; 
+            
+            var practiceEngineState = 'none'; 
+            var practiceBestMove = null;
+            var mcqRawMoves = []; 
+            
+            var lessonCompleted = false;
+            var hasMadeMistakeInCurrent = false;
+            var autoAdvanceTimer = null;
+            
+            // Score tracking hmanruate
+            var sessionScore = 0;
+            var maxSessionScore = 0;
+            var attemptsInCurrentMistake = 0;
+
+            var whiteTime = 600; 
+            var blackTime = 600;
+            var timerInterval = null;
+
+            var finalStatusMsg = '';
+
+            var chessOpenings = {
+                "e4": "King's Pawn Game",
+                "e4 e5": "Open Game",
+                "e4 c5": "Sicilian Defense",
+                "e4 e6": "French Defense",
+                "e4 c6": "Caro-Kann Defense",
+                "e4 d6": "Pirc Defense",
+                "e4 Nf6": "Alekhine's Defense",
+                "d4": "Queen's Pawn Game",
+                "d4 d5": "Closed Game",
+                "d4 Nf6": "Indian Defense",
+                "d4 d5 c4": "Queen's Gambit",
+                "d4 d5 c4 e6": "Queen's Gambit Declined",
+                "d4 d5 c4 c6": "Slav Defense",
+                "d4 d5 c4 dxc4": "Queen's Gambit Accepted",
+                "d4 Nf6 c4 g6": "King's Indian / Grünfeld",
+                "d4 f5": "Dutch Defense",
+                "c4": "English Opening",
+                "Nf3": "Réti Opening",
+                "e4 e5 Nf3 Nc6 Bb5": "Ruy Lopez",
+                "e4 e5 Nf3 Nc6 Bc4": "Italian Game",
+                "e4 e5 Nf3 Nc6 Bc4 Bc5": "Giuoco Piano"
+            };
+
+            var bibleVerses = [
+                "Pathianin khawvel a hmangaih em em a, chutichuan a Fapa mal neih chhun a pe a, amah chu tupawh a ring apiang an boral loh va, chatuana nunna an neih zawk nan. (Johana 3:16)",
+                "Chutichuan, LALPA chu hnehchhiahna tuarte tan chuan kulhbing sang a lo ni ang a; Mangan hunahte chuan kulhbing sang a lo ni ang. (Sam 9:9)",
+                "LALPA chungah chuan lawm bawk rawh; Tichuan i thinlung duhzawngte chu a pe ang che. (Sam 37:4)",
+                "Engkimah lawmthu hril rawh u; chu chu nangmahni lam thuah Krista Isuaah chuan Pathian duhzawng a ni si a. (1 Thessalonika 5:18)",
+                "Ringtute tan chuan engkim a theih a ni. (Marka 9:23)"
+            ];
+
+            function showRandomVerse() {
+                var randomVerse = bibleVerses[Math.floor(Math.random() * bibleVerses.length)];
+                $('#verseDisplay').html('"' + randomVerse + '"').fadeIn(600);
+            }
+            function hideVerse() { $('#verseDisplay').hide(); }
+            
+            var blob = new Blob(["importScripts('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');"], {type: 'application/javascript'});
+            var stockfish = new Worker(URL.createObjectURL(blob));
+            stockfish.postMessage('uci');
+
+            function setEngineLevel() {
+                if (isPracticeMode) {
+                    stockfish.postMessage('setoption name Skill Level value 20');
+                    stockfish.postMessage('setoption name MultiPV value 4'); 
+                } else if (!isTwoPlayer) {
+                    stockfish.postMessage('setoption name MultiPV value 1'); 
+                    var level = parseInt($('#difficultySelect').val());
+                    stockfish.postMessage('setoption name Skill Level value ' + level);
+                }
+            }
+
+            $('#difficultySelect').on('change', function() { setEngineLevel(); });
+            
+            function formatTime(seconds) {
+                var m = Math.floor(seconds / 60);
+                var s = seconds % 60;
+                return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+            }
+
+            function updateTimerDisplay() {
+                var $wTimer = $('#whiteTimer');
+                var $bTimer = $('#blackTimer');
+                $wTimer.text('A Var: ' + formatTime(whiteTime));
+                $bTimer.text('A Dum: ' + formatTime(blackTime));
+                if(whiteTime <= 30) $wTimer.addClass('time-low'); else $wTimer.removeClass('time-low');
+                if(blackTime <= 30) $bTimer.addClass('time-low'); else $bTimer.removeClass('time-low');
+            }
+
+            function startTimer() {
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = setInterval(function() {
+                    if (game.game_over() || manuallyEnded || isPracticeMode) {
+                        clearInterval(timerInterval); return;
+                    }
+                    if (game.history().length === 0) return;
+
+                    if (game.turn() === 'w') {
+                        whiteTime--;
+                        if (whiteTime <= 0) { whiteTime = 0; timeOut('w'); }
+                    } else {
+                        blackTime--;
+                        if (blackTime <= 0) { blackTime = 0; timeOut('b'); }
+                    }
+                    updateTimerDisplay();
+                }, 1000);
+            }
+
+            function timeOut(color) {
+                clearInterval(timerInterval);
+                var loser = color === 'w' ? 'A Var' : 'A Dum';
+                var winner = color === 'w' ? 'A Dum' : 'A Var';
+                endGameWithMessage('Hun a tawp! ' + winner + ' a chak. Isuan a hmangaih che u.');
+            }
+
+            stockfish.onmessage = function(event) {
+                var line = event.data;
+                var currentScore = 0;
+                var hasScore = false;
+
+                if (line.indexOf('info') > -1) {
+                    var multipvMatch = line.match(/multipv (\d+)/);
+                    var pvMatch = line.match(/ pv (.*)$/);
+                    if (practiceEngineState === 'analyzing_base' && multipvMatch && pvMatch) {
+                        var rank = parseInt(multipvMatch[1]);
+                        var firstMove = pvMatch[1].trim().split(' ')[0];
+                        mcqRawMoves[rank - 1] = firstMove; 
+                    }
+
+                    if (line.indexOf('score') > -1) {
+                        var cpMatch = line.match(/score cp (-?\d+)/);
+                        var mateMatch = line.match(/score mate (-?\d+)/);
+                        if (cpMatch) { currentScore = parseInt(cpMatch[1]); hasScore = true; } 
+                        else if (mateMatch) { currentScore = parseInt(mateMatch[1]) * 10000; hasScore = true; }
+
+                        if (hasScore && practiceEngineState === 'none' && !manuallyEnded && !drawOfferPending) {
+                            lastEngineScore = currentScore; 
+                            lastEngineMate = mateMatch ? parseInt(mateMatch[1]) : null; 
+                            var sideToMove = game.turn(); 
+                            var whiteScore = (sideToMove === 'w') ? currentScore : -currentScore;
+                            plyEvaluations[game.history().length] = whiteScore;
+                        }
+                    }
+                }
+
+                if (line.indexOf('bestmove') > -1) {
+                    var match = line.match(/^bestmove ([a-h][1-8])([a-h][1-8])([qrbn])?/);
+                    
+                    if (isPracticeMode) {
+                        if (practiceEngineState === 'analyzing_base') {
+                            practiceBestMove = match ? (match[1] + match[2] + (match[3]||'')) : null;
+                            practiceEngineState = 'finished';
+                            
+                            var legalMoves = game.moves({verbose:true}).map(m => m.from + m.to + (m.promotion||''));
+                            var options = [];
+                            if (practiceBestMove) options.push(practiceBestMove);
+                            
+                            for (var i=0; i<mcqRawMoves.length; i++) {
+                                if (mcqRawMoves[i] && !options.includes(mcqRawMoves[i])) options.push(mcqRawMoves[i]);
+                            }
+                            
+                            while (options.length < 4 && options.length < legalMoves.length) {
+                                var rand = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+                                if (!options.includes(rand)) options.push(rand);
+                            }
+
+                            var mcqSanOptions = options.map(function(moveStr) {
+                                var temp = new Chess(game.fen());
+                                var from = moveStr.substring(0, 2);
+                                var to = moveStr.substring(2, 4);
+                                var prom = moveStr.length === 5 ? moveStr.substring(4, 5) : 'q';
+                                var m = temp.move({from: from, to: to, promotion: prom});
+                                return { raw: moveStr, san: m ? m.san : moveStr };
+                            });
+                            mcqSanOptions.sort(() => Math.random() - 0.5);
+
+                            var currentPos = mistakePositions[currentMistakeIndex];
+                            var qText = "";
+                            
+                            if (currentPos.mistakeType === "Tihsual pawi (Blunder)") {
+                                qText = "He position-ah hian tihsual pawi (blunder) i nei a, a aia chet tha ber (best move) engnge?";
+                            } else if (currentPos.mistakeType === "Tihsual (Mistake)") {
+                                qText = "He position-ah hian tihsual pangngai (mistake) i nei a, a aia chet tha ber (best move) engnge?";
+                            } else if (currentPos.mistakeType === "Dik lo hlek (Inaccuracy)") {
+                                qText = "He position-ah hian tih dik loh chhe te (small inaccuracies) a awm a, a aia chet tha ber (best move) engnge?";
+                            } else {
+                                var randQ = Math.random();
+                                if (randQ < 0.5) {
+                                    qText = (game.turn() === 'w') ? "A var chet a ni a, chet tha ber (best move) engnge?" : "A dum chet a ni a, chet tha ber (best move) engnge?";
+                                } else {
+                                    qText = "Khingpui te thil tum lo hmakhalhna chet (prophylactic move) engnge?";
+                                }
+                            }
+                            
+                            var mcqHtml = '';
+                            mcqSanOptions.forEach(function(opt) {
+                                mcqHtml += '<button class="mcq-btn btn-gray" data-raw="'+opt.raw+'" style="flex: 1 1 45%; font-size: 16px; padding: 12px;">'+opt.san+'</button>';
+                            });
+                            $('#mcqContainer').html(mcqHtml);
+
+                            var phaseHtml = "<span style='color:#8e44ad; font-size: 15px; display:block; margin-bottom:8px; font-weight: bold;'>🧠 ZIRNA: " + qText + "</span>";
+                            $status.html(phaseHtml + "A hnuai ami atang hian a dik ber thlang rawh le.");
+                            
+                        } 
+                        return; 
+                    }
+
+                    if (drawOfferPending) {
+                        drawOfferPending = false;
+                        var engineDeclines = false;
+                        if (lastEngineMate !== null && lastEngineMate < 0) engineDeclines = true;
+                        else if (lastEngineMate === null && lastEngineScore < -150) engineDeclines = true;
+                        
+                        if (engineDeclines) {
+                            $status.html("Khawl in a chak zawk tih a hria a, Draw a pawm lo! Chet chhunzawm rawh le.");
+                        } else {
+                            endGameWithMessage('Khawl in Inhneh tawk (Draw) a pawm e! Isuan a hmangaih che.');
+                        }
+                        return;
+                    }
+
+                    if (manuallyEnded) return;
+
+                    if (!isTwoPlayer && match) {
+                        game.move({ from: match[1], to: match[2], promotion: match[3] || 'q' });
+                        board.position(game.fen());
+                        updateStatus();
+                        updateMoveHistory(); 
+                    }
+                }
+            };
+
+            $(document).on('click', '.mcq-btn', function() {
+                if (lessonCompleted) return;
+                var chosenRaw = $(this).data('raw');
+                var isCorrect = (chosenRaw === practiceBestMove);
+                
+                attemptsInCurrentMistake++;
+
+                var currentPos = mistakePositions[currentMistakeIndex];
+                if (currentPos) {
+                    if (!currentPos.srsLevel) currentPos.srsLevel = 1;
+                    if (!currentPos.nextReviewTime) currentPos.nextReviewTime = Date.now();
+                }
+
+                if (isCorrect) {
+                    lessonCompleted = true;
+                    $('.mcq-btn').prop('disabled', true);
+                    $(this).removeClass('btn-gray').removeClass('btn-red').addClass('btn-green');
+
+                    if (attemptsInCurrentMistake === 1) {
+                        sessionScore += 10;
+                    } else if (attemptsInCurrentMistake === 2) {
+                        sessionScore += 5;
+                    }
+
+                    if (currentPos && !hasMadeMistakeInCurrent) {
+                        currentPos.srsLevel += 1;
+                        var intervalMultiplier = Math.pow(2, currentPos.srsLevel);
+                        currentPos.nextReviewTime = Date.now() + (intervalMultiplier * 3600 * 1000);
+                        try { localStorage.setItem('mizo_chess_srs_' + currentPos.fen, JSON.stringify(currentPos)); } catch(e) {}
+                    }
+
+                    $status.html("<span style='color:#27ae60; font-size: 16px;'><b>Dik lutuk!</b> Zirna dawtlehah kan insawn mek... <br>(Current Score: " + sessionScore + ")</span>");
+                    
+                    autoAdvanceTimer = setTimeout(function() {
+                        $('#nextMistakeBtn').click();
+                    }, 2000);
+
+                } else {
+                    $(this).removeClass('btn-gray').addClass('btn-red');
+                    $(this).prop('disabled', true);
+                    
+                    if (currentPos && !hasMadeMistakeInCurrent) {
+                        currentPos.srsLevel = Math.max(1, currentPos.srsLevel - 1);
+                        currentPos.nextReviewTime = Date.now() + (1800 * 1000);
+                        try { localStorage.setItem('mizo_chess_srs_' + currentPos.fen, JSON.stringify(currentPos)); } catch(e) {}
+                        hasMadeMistakeInCurrent = true;
+                    }
+
+                    $status.html("<span style='color:#c0392b;'><b>A dik lo:</b> Ti leh rawh! I beidawn chuan 'Chhanna Enna' kha hmet mai rawh.</span>");
+                }
+            });
+
+            $('#showAnswerBtn').on('click', function() {
+                if (isPracticeMode && practiceBestMove && !lessonCompleted) {
+                    lessonCompleted = true;
+                    sessionScore -= 5;
+                    if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
+
+                    var currentPos = mistakePositions[currentMistakeIndex];
+                    if (currentPos && !hasMadeMistakeInCurrent) {
+                        currentPos.srsLevel = Math.max(1, (currentPos.srsLevel || 1) - 1);
+                        currentPos.nextReviewTime = Date.now() + (1800 * 1000);
+                        try { localStorage.setItem('mizo_chess_srs_' + currentPos.fen, JSON.stringify(currentPos)); } catch(e) {}
+                        hasMadeMistakeInCurrent = true;
+                    }
+
+                    $('.mcq-btn').each(function() {
+                        if($(this).data('raw') === practiceBestMove) {
+                            $(this).removeClass('btn-gray').removeClass('btn-red').addClass('btn-green');
+                        }
+                    });
+                    
+                    var from = practiceBestMove.substring(0, 2);
+                    var to = practiceBestMove.substring(2, 4);
+                    var prom = practiceBestMove.length === 5 ? practiceBestMove.substring(4, 5) : 'q';
+                    
+                    if (game.fen() === mistakePositions[currentMistakeIndex].fen) {
+                        game.move({from: from, to: to, promotion: prom});
+                        board.position(game.fen());
+                    }
+                    
+                    $('.mcq-btn').prop('disabled', true);
+                    $status.html("<span style='color:#27ae60;'><b>Chhanna chu:</b> A hring rawnga inrin hi a ni e. <b>Chhan:</b> Hemi hmunhma ah hian attack leh defense a in-balancein, hmelma tan remchang awm miah loin hma a sawn tir a ni. Zir chian hnuah 'A dawt leh' hmet rawh. <br>(Current Score: " + sessionScore + ")</span>");
+                }
+            });
+
+            function onDragStart (source, piece) {
+                if (game.game_over() || manuallyEnded || drawOfferPending || isPracticeMode) return false;
+                if (isTwoPlayer) {
+                    if (piece.charAt(0) !== game.turn()) return false;
+                } else {
+                    if (piece.charAt(0) !== playerColor) return false;
+                }
+                removeHighlights();
+            }
+
+            function onDrop (source, target) {
+                var move = game.move({ from: source, to: target, promotion: 'q' });
+                if (move === null) return 'snapback';
+                
+                selectedSquare = null;
+                board.position(game.fen());
+                
+                updateStatus();
+                updateMoveHistory(); 
+                if (!isTwoPlayer) {
+                    window.setTimeout(makeEngineMove, 250);
+                } else {
+                    stockfish.postMessage('position fen ' + game.fen());
+                    stockfish.postMessage('go depth 8'); 
+                }
+            }
+
+            function onSnapEnd () { board.position(game.fen()); }
+
+            $('#board').on('click touchstart', '.square-55d63', function(e) {
+                if(e.type === 'touchstart') e.preventDefault(); 
+                if (game.game_over() || manuallyEnded || drawOfferPending || isPracticeMode) return;
+
+                if (!isTwoPlayer && game.turn() !== playerColor) return; 
+
+                var square = $(this).attr('data-square');
+                var piece = game.get(square);
+
+                if (selectedSquare) {
+                    var move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
+                    if (move === null) {
+                        var canSelect = isTwoPlayer ? (piece && piece.color === game.turn()) : (piece && piece.color === playerColor);
+                        if (canSelect) { selectedSquare = square; highlightSquare(square); } 
+                        else { selectedSquare = null; removeHighlights(); }
+                    } else {
+                        board.position(game.fen());
+                        selectedSquare = null; removeHighlights();
+                        
+                        updateStatus();
+                        updateMoveHistory();
+                        if(!isTwoPlayer) {
+                            window.setTimeout(makeEngineMove, 250);
+                        } else {
+                            stockfish.postMessage('position fen ' + game.fen());
+                            stockfish.postMessage('go depth 8'); 
+                        }
+                    }
+                } else {
+                    var canSelect = isTwoPlayer ? (piece && piece.color === game.turn()) : (piece && piece.color === playerColor);
+                    if (canSelect) { selectedSquare = square; highlightSquare(square); }
+                }
+            });
+
+            function highlightSquare(square) { removeHighlights(); $('#board .square-' + square).addClass('highlight-square'); }
+            function removeHighlights() { $('#board .square-55d63').removeClass('highlight-square'); }
+
+            function makeEngineMove() {
+                setEngineLevel(); 
+                stockfish.postMessage('position fen ' + game.fen());
+                
+                var aiTimeLeft = (game.turn() === 'w') ? whiteTime : blackTime;
+                var moveTimeMs = 2000; 
+                
+                if (aiTimeLeft <= 5) moveTimeMs = 200; 
+                else if (aiTimeLeft <= 15) moveTimeMs = 500; 
+                else if (aiTimeLeft <= 30) moveTimeMs = 1000; 
+                else if (aiTimeLeft <= 60) moveTimeMs = 1500; 
+                else moveTimeMs = Math.min(3000, Math.floor((aiTimeLeft * 1000) * 0.05)); 
+                
+                stockfish.postMessage('go movetime ' + moveTimeMs); 
+            }
+
+            function updateOpeningName() {
+                var historyArray = game.history();
+                if (historyArray.length === 0) { $('#openingDisplay').hide(); return; }
+                var currentSequence = historyArray.join(" ");
+                var foundOpening = "";
+                var maxMatchLen = 0;
+                for (var seq in chessOpenings) {
+                    if (currentSequence.startsWith(seq) && seq.length > maxMatchLen) {
+                        maxMatchLen = seq.length; foundOpening = chessOpenings[seq];
+                    }
+                }
+                if (foundOpening !== "") $('#openingDisplay').html("Opening : " + foundOpening).show();
+            }
+
+            function updateMoveHistory() {
+                if (game.history().length > 0) {
+                    $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide();
+                    
+                    if (game.game_over() || manuallyEnded || isPracticeMode) {
+                        $('#actionButtons').hide(); 
+                    } else {
+                        $('#actionButtons').css('display', 'flex'); 
+                    }
+                } else {
+                    $('#colorSelect').show(); $('#difficultySelect').show(); $('#timeSelect').show(); $('#togglePgnBoxBtn').show();
+                    $('#actionButtons').hide(); 
+                }
+
+                updateOpeningName(); 
+                var history = game.history();
+                var html = '';
+                for (var i = 0; i < history.length; i += 2) {
+                    var moveNum = (i / 2) + 1;
+                    var whiteMove = history[i];
+                    var blackMove = history[i + 1] ? history[i + 1] : '';
+                    html += '<b>' + moveNum + '.</b> ' + whiteMove + ' ' + blackMove + ' ';
+                }
+                var $box = $('#moveHistoryBox');
+                if (html === '') {
+                    $box.html('<span style="color:#7f8c8d; font-style:italic;">Chet dan record hetah a lo lang ang...</span>');
+                } else { 
+                    $box.html(html); 
+                    setTimeout(function() {
+                        $box.scrollTop($box[0].scrollHeight);
+                    }, 10);
+                }
+            }
+
+            function endGameWithMessage(msg) {
+                manuallyEnded = true;
+                if (timerInterval) clearInterval(timerInterval);
+                finalStatusMsg = msg; 
+                $status.html(msg); showRandomVerse();
+                savedGameHistory = game.history(); 
+                
+                $('#actionButtons').hide(); 
+                $('#moveHistoryBox').hide(); 
+                
+                $('#playAgainBtn').fadeIn(); 
+                $('#showPgnBtn').fadeIn();
+                
+                if (savedGameHistory.length > 4) {
+                    $('#learnMistakesBtn').fadeIn(); 
+                }
+            }
+
+            function updateStatus () {
+                if (manuallyEnded || drawOfferPending) return;
+                var turnColor = (game.turn() === 'w') ? 'A var' : 'A dum';
+                var playerText = isTwoPlayer ? turnColor : ((game.turn() === playerColor) ? 'Nangmah ('+turnColor+')' : 'Khawl thluak nei('+turnColor+')');
+
+                if (game.in_checkmate()) endGameWithMessage('A tawp ta, ' + playerText + ' a chak lo! Isuan a hmangaih che u'); 
+                else if (game.in_draw()) endGameWithMessage('A tawp ta, inhneh tawk. Isuan a hmangaih che u'); 
+                else {
+                    var statusHTML = playerText + ' chet hun...';
+                    if (game.in_check()) statusHTML += ' (Check!)';
+                    $status.html(statusHTML);
+                }
+            }
+            
+            function restorePostGameState() {
+                isPracticeMode = false;
+                manuallyEnded = true; 
+                
+                game.reset();
+                for (var i = 0; i < savedGameHistory.length; i++) {
+                    game.move(savedGameHistory[i]);
+                }
+                board.position(game.fen());
+                board.orientation((playerColor === 'w') ? 'white' : 'black');
+                
+                $('#srsControls').hide();
+                $('#gameControls').show();
+                $('#timerContainer').show();
+                
+                $('#moveHistoryBox').hide(); 
+                
+                $('#colorSelect').hide();
+                $('#difficultySelect').hide();
+                $('#timeSelect').hide();
+                $('#togglePgnBoxBtn').hide();
+                
+                $('#actionButtons').hide();
+                
+                $('#playAgainBtn').fadeIn();
+                $('#showPgnBtn').fadeIn();
+                
+                $('#learnMistakesBtn').hide();
+                
+                $status.html(finalStatusMsg);
+            }
+
+            var config = {
+                draggable: true, position: 'start', onDragStart: onDragStart, onDrop: onDrop, onSnapEnd: onSnapEnd,
+                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+            };
+            board = Chessboard('board', config);
+            $(window).resize(function() { if(board) board.resize(); });
+
+            function initGame() {
+                isPracticeMode = false; hideVerse(); 
+                lessonCompleted = false; hasMadeMistakeInCurrent = false;
+                if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
+
+                manuallyEnded = false; drawOfferPending = false; practiceEngineState = 'none';
+                isTwoPlayer = ($('#difficultySelect').val() === 'human');
+
+                mistakePositions = []; savedGameHistory = []; plyEvaluations = {};
+                
+                $('#gameControls').show(); $('#srsControls').hide(); $('#pgnContainer').hide();
+                $('#playAgainBtn').hide(); $('#learnMistakesBtn').hide(); $('#showPgnBtn').hide();
+                
+                $('#actionButtons').hide(); 
+                
+                $('#colorSelect').show(); $('#difficultySelect').show(); $('#timeSelect').show(); $('#togglePgnBoxBtn').show();
+                
+                var timeVal = parseInt($('#timeSelect').val()) * 60;
+                whiteTime = timeVal; blackTime = timeVal;
+                $('#timerContainer').show(); updateTimerDisplay(); startTimer();
+
+                $('#moveHistoryBox').show(); $('#openingDisplay').hide(); 
+                
+                playerColor = $('#colorSelect').val();
+                game.reset(); board.orientation((playerColor === 'w') ? 'white' : 'black');
+                board.start(); selectedSquare = null; removeHighlights(); 
+                
+                setEngineLevel(); updateStatus(); updateMoveHistory(); 
+                if (!isTwoPlayer && playerColor === 'b') window.setTimeout(makeEngineMove, 250);
+            }
+
+            $('#colorSelect, #difficultySelect, #timeSelect').on('change', function() { initGame(); });
+            $('#playAgainBtn').on('click', function() { initGame(); });
+
+            $('#togglePgnBoxBtn').on('click', function() {
+                $('#pgnContainer').slideToggle();
+            });
+
+            $('#importPgnFileBtn').on('click', function() {
+                $('#pgnFileInput').click();
+            });
+
+            $('#pgnFileInput').on('change', function(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+                var reader = new FileReader();
+                reader.onload = function(evt) {
+                    $('#pgnText').val(evt.target.result);
+                };
+                reader.readAsText(file);
+            });
+
+            $('#loadAndLearnPgnBtn').on('click', function() {
+                var pgnString = $('#pgnText').val().trim();
+                if (!pgnString) {
+                    alert("PGN a ruak a nia, paste luh hmasak phawt tur a ni.");
+                    return;
+                }
+
+                var tempGame = new Chess();
+                var success = false;
+
+                success = tempGame.load_pgn(pgnString);
+
+                if (!success) {
+                    try {
+                        tempGame.reset();
+                        var lines = pgnString.split('\n');
+                        var cleanMovesText = "";
+                        
+                        for (var i = 0; i < lines.length; i++) {
+                            var line = lines[i].trim();
+                            if (line.startsWith('[') && line.endsWith(']')) {
+                                continue;
+                            }
+                            cleanMovesText += line + " ";
+                        }
+
+                        cleanMovesText = cleanMovesText.replace(/\{[^}]*\}/g, ''); 
+                        cleanMovesText = cleanMovesText.replace(/\$\d+/g, ''); 
+                        
+                        success = tempGame.load_pgn(cleanMovesText.trim());
+                    } catch (err) {
+                        success = false;
+                    }
+                }
+                
+                if (!success) {
+                    alert("PGN format a dik lo, chess.com a PGN Copy Text kha a fai lo a ni thei e. Check nawn leh rawh.");
+                    return;
+                }
+
+                savedGameHistory = tempGame.history();
+                if (savedGameHistory.length < 4) {
+                    alert("PGN move a tlem deuh a, tihsual atanga zir turin move 4 aia tam a ngai.");
+                    return;
+                }
+
+                mistakePositions = [];
+                tempGame.reset();
+                for (var i = 0; i < savedGameHistory.length; i++) {
+                    var fenBefore = tempGame.fen();
+                    tempGame.move(savedGameHistory[i]);
+                    if (i >= 2) {
+                        var posObj = {
+                            fen: fenBefore,
+                            moveNumber: Math.floor(i / 2) + 1,
+                            orientation: (tempGame.turn() === 'w') ? 'black' : 'white',
+                            srsLevel: 1,
+                            nextReviewTime: 0
+                        };
+                        try {
+                            var savedData = localStorage.getItem('mizo_chess_srs_' + fenBefore);
+                            if (savedData) {
+                                var parsed = JSON.parse(savedData);
+                                posObj.srsLevel = parsed.srsLevel || 1;
+                                posObj.nextReviewTime = parsed.nextReviewTime || 0;
+                            }
+                        } catch(e) {}
+                        mistakePositions.push(posObj);
+                    }
+                }
+
+                mistakePositions.sort(function(a, b) {
+                    return a.nextReviewTime - b.nextReviewTime;
+                });
+
+                if (mistakePositions.length > 0) {
+                    isPracticeMode = true; hideVerse(); manuallyEnded = false;
+                    
+                    // Score initialization
+                    sessionScore = 0;
+                    maxSessionScore = mistakePositions.length * 10;
+                    
+                    if (timerInterval) clearInterval(timerInterval);
+                    $('#timerContainer').hide(); $('#pgnContainer').hide();
+                    $('#gameControls').hide(); $('#srsControls').css('display', 'flex');
+                    $('#moveHistoryBox').hide(); currentMistakeIndex = 0; loadMistake();
+                } else {
+                    alert("Zir tur mistake a awm chiah lo.");
+                }
+            });
+
+            $('#showPgnBtn').on('click', function() {
+                var pgnData = game.pgn();
+                if(pgnData) $('#pgnText').val(pgnData);
+                $('#pgnContainer').slideToggle();
+            });
+
+            $('#resignBtn').on('click', function() {
+                if (game.game_over() || manuallyEnded || isPracticeMode) return;
+                if (isTwoPlayer) {
+                    var loser = (game.turn() === 'w') ? 'A Var' : 'A Dum';
+                    var winner = (game.turn() === 'w') ? 'A Dum' : 'A Var';
+                    endGameWithMessage(loser + ' a tlawm ta! ' + winner + ' a chak. Isuan a hmangaih che u.');
+                } else endGameWithMessage('I tlawm ta! Isuan a hmangaih che.');
+            });
+
+            $('#drawBtn').on('click', function() {
+                if (game.game_over() || manuallyEnded || isPracticeMode || drawOfferPending) return;
+                if (isTwoPlayer) { endGameWithMessage('Inhneh tawk (Draw) in pawm dun e! Isuan a hmangaih che u.'); return; }
+                if (game.turn() !== playerColor) { alert("Khawl chet hun a ni a, a lo chet hunah i sawm chauh dawn nia."); return; }
+                drawOfferPending = true;
+                $status.html("Khawl in i draw sawmna a ngaihtuah mek...");
+                stockfish.postMessage('position fen ' + game.fen());
+                stockfish.postMessage('go depth 10'); 
+            });
+
+            $('#learnMistakesBtn').on('click', function() {
+                var tempGame = new Chess(); var history = savedGameHistory; 
+                mistakePositions = []; var lastWhiteScore = 0; 
+
+                for (var i = 0; i < history.length; i++) {
+                    var plyColor = tempGame.turn(); var moveNum = Math.floor(i / 2) + 1;
+                    var fenBeforeHumanMove = tempGame.fen(); tempGame.move(history[i]);
+                    var currentPly = i + 1;
+                    
+                    if (plyEvaluations[currentPly] !== undefined) {
+                        var currWhiteScore = plyEvaluations[currentPly];
+                        if (lastWhiteScore !== null) {
+                            var scoreDrop = (plyColor === 'w') ? (currWhiteScore - lastWhiteScore) : (lastWhiteScore - currWhiteScore); 
+                            var analyzeThisPly = isTwoPlayer ? true : (plyColor === playerColor);
+
+                            // Score drop > 300 = Blunder, > 150 = Mistake, > 50 = Inaccuracy
+                            if (analyzeThisPly && scoreDrop < -50) { 
+                                var mistakeType = "";
+                                if (scoreDrop <= -300) mistakeType = "Tihsual pawi (Blunder)";
+                                else if (scoreDrop <= -150) mistakeType = "Tihsual (Mistake)";
+                                else mistakeType = "Dik lo hlek (Inaccuracy)";
+
+                                var posObj = {
+                                    fen: fenBeforeHumanMove,
+                                    moveNumber: moveNum,
+                                    orientation: (plyColor === 'w') ? 'white' : 'black',
+                                    mistakeType: mistakeType,
+                                    srsLevel: 1,
+                                    nextReviewTime: 0
+                                };
+                                try {
+                                    var savedData = localStorage.getItem('mizo_chess_srs_' + fenBeforeHumanMove);
+                                    if (savedData) {
+                                        var parsed = JSON.parse(savedData);
+                                        posObj.srsLevel = parsed.srsLevel || 1;
+                                        posObj.nextReviewTime = parsed.nextReviewTime || 0;
+                                    }
+                                } catch(e) {}
+                                mistakePositions.push(posObj);
+                            }
+                        }
+                        lastWhiteScore = currWhiteScore;
+                    }
+                }
+
+                if (mistakePositions.length === 0 && savedGameHistory.length > 0) {
+                    tempGame.reset();
+                    for (var i = 0; i < history.length; i++) {
+                        var fenBefore = tempGame.fen();
+                        tempGame.move(history[i]);
+                        if (i >= 2) {
+                            var posObj = {
+                                fen: fenBefore,
+                                moveNumber: Math.floor(i / 2) + 1,
+                                orientation: (tempGame.turn() === 'w') ? 'black' : 'white',
+                                srsLevel: 1,
+                                nextReviewTime: 0
+                            };
+                            try {
+                                var savedData = localStorage.getItem('mizo_chess_srs_' + fenBefore);
+                                if (savedData) {
+                                    var parsed = JSON.parse(savedData);
+                                    posObj.srsLevel = parsed.srsLevel || 1;
+                                    posObj.nextReviewTime = parsed.nextReviewTime || 0;
+                                }
+                            } catch(e) {}
+                            mistakePositions.push(posObj);
+                        }
+                    }
+                }
+
+                mistakePositions.sort(function(a, b) {
+                    return a.nextReviewTime - b.nextReviewTime;
+                });
+
+                if(mistakePositions.length > 0) {
+                    isPracticeMode = true; hideVerse(); manuallyEnded = false;
+                    
+                    // Score initialization
+                    sessionScore = 0;
+                    maxSessionScore = mistakePositions.length * 10;
+                    
+                    if (timerInterval) clearInterval(timerInterval);
+                    $('#timerContainer').hide(); $('#pgnContainer').hide();
+                    $('#gameControls').hide(); $('#srsControls').css('display', 'flex');
+                    $('#moveHistoryBox').hide(); currentMistakeIndex = 0; loadMistake();
+                } else alert("Game tha tak a ni! Tactic hlah emaw tihsual lian tham i nei lo."); 
+            });
+
+            function loadMistake() {
+                lessonCompleted = false;
+                hasMadeMistakeInCurrent = false;
+                attemptsInCurrentMistake = 0;
+                if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
+
+                if(currentMistakeIndex < mistakePositions.length) {
+                    var currentPos = mistakePositions[currentMistakeIndex];
+                    game.load(currentPos.fen); board.position(game.fen()); 
+                    board.orientation(currentPos.orientation);
+                    setEngineLevel(); practiceEngineState = 'analyzing_base'; mcqRawMoves = [];
+                    
+                    var levelInfo = currentPos.srsLevel ? " (SRS: Lvl " + currentPos.srsLevel + ")" : "";
+                    var typeInfo = currentPos.mistakeType ? " <br><b style='color:#c0392b;'>[" + currentPos.mistakeType + "]</b>" : "";
+                    
+                    $status.html("ZIRNA (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ")" + levelInfo + typeInfo + "<br>Position zir chian leh zawhna siam mek a ni...");
+                    stockfish.postMessage('position fen ' + game.fen());
+                    stockfish.postMessage('go depth 14'); 
+                } else {
+                    var percentage = maxSessionScore > 0 ? Math.round((sessionScore / maxSessionScore) * 100) : 0;
+                    if (percentage < 0) percentage = 0;
+                    
+                    alert("Zir tur i zo ta! \nI score hmuh zat: " + percentage + "% \n\nKhelh zawhnaah i kir leh ang a, i duh chuan PGN i en chhunzawm thei ang."); 
+                    restorePostGameState();
+                }
+            }
+
+            $('#nextMistakeBtn').on('click', function() { 
+                if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
+                currentMistakeIndex++; 
+                loadMistake(); 
+            });
+            
+            $('#exitPracticeBtn').on('click', function() { restorePostGameState(); });
+
+            initGame();
+        });
+    </script>
+</body>
+</html>
