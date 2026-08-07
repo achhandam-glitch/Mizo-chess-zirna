@@ -199,7 +199,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     
     <script>
-        // Firebase Configuration I lak chhuah ngei kha
         const firebaseConfig = {
             apiKey: "AIzaSyByN8ttbJhtPNcac_ciaQ1d_fMXE2gul20",
             authDomain: "mizo-chess-khelhna.firebaseapp.com",
@@ -339,13 +338,11 @@
                 endGameWithMessage('Hun a tawp! ' + winner + ' a chak. Isuan a hmangaih che u.');
             }
 
-            // Firebase Listener function
             function listenToRoom() {
                 roomRef = database.ref('rooms/' + onlineRoomId);
                 roomRef.on('value', function(snapshot) {
                     var data = snapshot.val();
                     if (data) {
-                        // Check if opponent made a move
                         if (data.pgn !== game.pgn()) {
                             game.load_pgn(data.pgn || "");
                             board.position(game.fen());
@@ -564,16 +561,13 @@
             function onDragStart (source, piece) {
                 if (game.game_over() || manuallyEnded || drawOfferPending || isPracticeMode) return false;
                 
-                // Online multiplayer restrictions
                 if (isOnlineMode) {
                     if (game.turn() !== playerColor) return false;
                     if (piece.charAt(0) !== playerColor) return false;
                 } 
-                // Local 2 player
                 else if (isTwoPlayer) {
                     if (piece.charAt(0) !== game.turn()) return false;
                 } 
-                // Playing against AI
                 else {
                     if (piece.charAt(0) !== playerColor) return false;
                 }
@@ -737,12 +731,14 @@
                 
                 if (!isOnlineMode) {
                     $('#playAgainBtn').fadeIn(); 
-                    $('#showPgnBtn').fadeIn();
-                    if (savedGameHistory.length > 4) {
-                        $('#learnMistakesBtn').fadeIn(); 
-                    }
                 } else {
                     $('#onlineRoomBox').html("<button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:10px; font-size:16px;'>Online Game atanga chhuahna</button>").show();
+                }
+
+                // Hengte hi Offline leh Online-ah a lang tawh ang
+                $('#showPgnBtn').fadeIn();
+                if (savedGameHistory.length > 4) {
+                    $('#learnMistakesBtn').fadeIn(); 
                 }
             }
 
@@ -792,9 +788,13 @@
                 
                 $('#actionButtons').hide();
                 
-                $('#playAgainBtn').fadeIn();
-                $('#showPgnBtn').fadeIn();
+                if (!isOnlineMode) {
+                    $('#playAgainBtn').fadeIn();
+                } else {
+                    $('#onlineRoomBox').show();
+                }
                 
+                $('#showPgnBtn').fadeIn();
                 $('#learnMistakesBtn').hide();
                 
                 $status.html(finalStatusMsg);
@@ -835,7 +835,6 @@
                 
                 playerColor = $('#colorSelect').val();
                 
-                // URL ah room ID a awm chuan (Thianpa join tu a ni)
                 if (urlParams.has('room')) {
                     isOnlineMode = true;
                     isTwoPlayer = false;
@@ -849,7 +848,6 @@
                     
                     listenToRoom();
                 } 
-                // Online hmeh thar a nih chuan (Room siamtu)
                 else if (isOnlineMode) {
                     onlineRoomId = Math.random().toString(36).substring(2, 8);
                     board.orientation((playerColor === 'w') ? 'white' : 'black');
@@ -884,7 +882,6 @@
                 if (!isTwoPlayer && !isOnlineMode && playerColor === 'b') window.setTimeout(makeEngineMove, 250);
             }
 
-            // Copy link button handler
             $(document).on('click', '#copyLinkBtn', function() {
                 var copyText = document.getElementById("roomLinkInput");
                 copyText.select();
@@ -894,7 +891,6 @@
                 setTimeout(() => $(this).text("🔗 Link Copy-na"), 2000);
             });
 
-            // Exit online mode handler
             $(document).on('click', '#exitOnlineBtn', function() {
                 window.location.href = window.location.href.split('?')[0];
             });
@@ -990,7 +986,7 @@
                 var loser = (game.turn() === 'w') ? 'A Var' : 'A Dum';
                 var winner = (game.turn() === 'w') ? 'A Dum' : 'A Var';
                 if (isOnlineMode) {
-                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Resign}"}); // Just broadcast sync
+                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Resign}"}); 
                     endGameWithMessage('Ka tlawm ta! Isuan a hmangaih che u.');
                 } else if (isTwoPlayer) {
                     endGameWithMessage(loser + ' a tlawm ta! ' + winner + ' a chak. Isuan a hmangaih che u.');
@@ -1128,7 +1124,6 @@
             
             $('#exitPracticeBtn').on('click', function() { restorePostGameState(); });
 
-            // On load initialization trigger (checks URL automatically)
             initGame();
         });
     </script>
