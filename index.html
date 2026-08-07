@@ -7,7 +7,7 @@
     
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
     
-    <!-- WhatsApp Icon atan FontAwesome kan hmang -->
+    <!-- WhatsApp & Support Icon atan FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Firebase SDK (Online Multiplayer atan) -->
@@ -69,10 +69,12 @@
         .btn-purple { background-color: #8e44ad; color: #fff; } 
         .btn-purple:hover { background-color: #732d91; }
         .btn-teal { background-color: #16a085; color: #fff; }
-        
-        /* WhatsApp Button CSS thar */
         .btn-whatsapp { background-color: #25D366 !important; color: white !important; }
         .btn-whatsapp:hover { background-color: #128C7E !important; }
+        
+        /* Support Button CSS */
+        .btn-support { background-color: #d35400 !important; color: white !important; }
+        .btn-support:hover { background-color: #ba4a00 !important; }
 
         .color-dropdown {
             padding: 10px; font-size: 14px; border-radius: 6px; border: 1px solid #bdc3c7;
@@ -115,6 +117,13 @@
             margin-bottom: 10px; text-align: center;
         }
 
+        /* Support Box Modal/Section - A tirah a thukru (hidden) */
+        #supportBox {
+            display: none; width: 100%; max-width: 400px; background: #fdfefe; 
+            padding: 12px; border-radius: 6px; border: 1px solid #d35400; 
+            margin-bottom: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
         .footer-text { margin-top: 15px; font-size: 12px; color: #7f8c8d; text-align: center; font-style: italic; max-width: 400px; padding-bottom: 20px;}
     </style>
 </head>
@@ -126,6 +135,18 @@
     <div id="status">Board a in-load mek...</div>
     
     <div id="onlineRoomBox"></div>
+
+    <!-- Developer Thlawpna (Support) Box -->
+    <div id="supportBox">
+        <div style="font-size: 13px; font-weight: bold; color: #d35400; margin-bottom: 5px;">☕ Developer Thlawpna (Support)</div>
+        <div style="font-size: 12px; color: #555; margin-bottom: 8px; line-height: 1.4;">
+            He game hi i hlimpui a, min thlawp ve duh chuan (i duhthlan thu a ni, a phut luih a ni lo):
+        </div>
+        <a id="gpayPayLink" href="upi://pay?pa=Chhanajuly@oksbi&pn=Alan%20Lalchhandama&cu=INR" class="btn-support btn-full" style="padding: 10px; text-decoration: none; font-size: 14px; border-radius: 6px;">
+            <i class="fa-solid fa-indian-rupee-sign"></i> GPay / UPI-in Thlawpna Pekna
+        </a>
+        <button id="closeSupportBtn" class="btn-gray" style="width: 100%; padding: 6px; margin-top: 5px; font-size: 12px;">Khar rawh</button>
+    </div>
 
     <div id="openingDisplay"></div>
     <div id="verseDisplay"></div>
@@ -185,6 +206,9 @@
 
         <button id="learnMistakesBtn" class="btn-yellow btn-full" style="display: none; margin-top: 5px; font-size: 15px; padding: 12px;">I tihsual atangin zir rawh</button>
         
+        <!-- Support Button - A tirah a inhîp bo (hidden) ang -->
+        <button id="toggleSupportBtn" class="btn-support btn-full" style="display: none; margin-top: 5px; font-size: 14px; padding: 10px;">☕ Developer Thlawpna (Support)</button>
+
         <button id="showPgnBtn" class="btn-teal btn-full" style="display: none; margin-top: 5px;">📜 PGN Enna & Download</button>
 
         <button id="playAgainBtn" class="btn-green btn-full" style="display: none; margin-top: 15px; font-size: 16px; padding: 12px;">A thar khel rawh</button>
@@ -225,13 +249,11 @@
             var game = new Chess();
             var $status = $('#status');
             
-            // Mode flags
             var isPracticeMode = false;
             var manuallyEnded = false; 
             var isTwoPlayer = false; 
             var isOnlineMode = false; 
 
-            // Online variables
             var onlineRoomId = null;
             var roomRef = null;
             const urlParams = new URLSearchParams(window.location.search);
@@ -243,7 +265,6 @@
             var playerColor = 'w';
             var selectedSquare = null; 
 
-            // SRS Zirna Variables
             var mistakePositions = [];
             var currentMistakeIndex = 0;
             var savedGameHistory = []; 
@@ -353,7 +374,6 @@
                     if (data) {
                         var incomingPgn = data.pgn || "";
                         
-                        // Khingpui a tlawm (Resign) tih a rawn thlen hian:
                         if (incomingPgn.indexOf("{Resign}") !== -1) {
                             incomingPgn = incomingPgn.replace(" {Resign}", ""); 
                             if (incomingPgn !== game.pgn()) {
@@ -367,7 +387,6 @@
                             return; 
                         }
 
-                        // Inhneh tawk (Draw) a rawn thlen hian:
                         if (incomingPgn.indexOf("{Draw}") !== -1) {
                             incomingPgn = incomingPgn.replace(" {Draw}", ""); 
                             if (incomingPgn !== game.pgn()) {
@@ -381,7 +400,6 @@
                             return; 
                         }
 
-                        // Tlawm emaw Draw a nih loh a, chet pangngai a nih chuan:
                         if (incomingPgn !== game.pgn()) {
                             game.load_pgn(incomingPgn);
                             board.position(game.fen());
@@ -778,6 +796,9 @@
                 if (savedGameHistory.length > 4) {
                     $('#learnMistakesBtn').fadeIn(); 
                 }
+                
+                // Inkhel a zawh hunah Support button a lo lang ang
+                $('#toggleSupportBtn').fadeIn();
             }
 
             function updateStatus () {
@@ -835,6 +856,9 @@
                 $('#showPgnBtn').fadeIn();
                 $('#learnMistakesBtn').hide();
                 
+                // Tihsual atanga zirna (SRS) a zawh veleh support button a lo lang bawk ang
+                $('#toggleSupportBtn').fadeIn();
+                
                 $status.html(finalStatusMsg);
             }
 
@@ -852,6 +876,10 @@
 
                 manuallyEnded = false; drawOfferPending = false; practiceEngineState = 'none';
                 
+                // Game tan a nih dawn avangin Support button leh Box kan thukru leh ang
+                $('#toggleSupportBtn').hide();
+                $('#supportBox').hide();
+
                 var diff = $('#difficultySelect').val();
                 isTwoPlayer = (diff === 'human');
                 isOnlineMode = (diff === 'online');
@@ -893,7 +921,6 @@
                     
                     var joinLink = window.location.href.split('?')[0] + '?room=' + onlineRoomId + '&color=' + oppColor;
                     
-                    /* WhatsApp Share Button thar dah luhna */
                     $('#onlineRoomBox').html(`
                         <div style="font-size: 13px; font-weight: bold; color: #16a085; margin-bottom: 5px;">I thianpa thawn tur Link:</div>
                         <input type="text" id="roomLinkInput" value="${joinLink}" readonly style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 5px; font-size: 12px; text-align:center;">
@@ -935,11 +962,18 @@
                 setTimeout(() => $(this).html("🔗 Copy"), 2000);
             });
 
-            /* WhatsApp Button Hmeh ruala function thawk tur */
             $(document).on('click', '#whatsappShareBtn', function() {
                 var link = document.getElementById("roomLinkInput").value;
                 var text = encodeURIComponent("Chess i khel ang hmiang! Helai link-ah hian lo lut rawh: " + link);
                 window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
+            });
+
+            /* Support Box Toggle Actions */
+            $('#toggleSupportBtn').on('click', function() {
+                $('#supportBox').slideToggle();
+            });
+            $('#closeSupportBtn').on('click', function() {
+                $('#supportBox').slideUp();
             });
 
             $(document).on('click', '#exitOnlineBtn', function() {
