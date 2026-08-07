@@ -197,15 +197,26 @@
         <!-- Support Button -->
         <button id="toggleSupportBtn" class="btn-support btn-full" style="display: none; margin-top: 5px; font-size: 14px; padding: 10px;">☕ Developer Thlawpna (Support)</button>
 
-        <!-- Support Box -->
+        <!-- UPDATED Support Box -->
         <div id="supportBox">
-            <div style="font-size: 12px; color: #555; margin-bottom: 6px; line-height: 1.3;">
-                He game hi i hlimpui a, min thlawp ve duh chuan (i duhthlan thu a ni, a phut luih a ni lo):
+            <div style="font-size: 13px; color: #555; margin-bottom: 10px; line-height: 1.4;">
+                He game hi i hlimpui a, min thlawp ve duh chuan (a phut luih a ni lo):
             </div>
-            <a id="gpayPayLink" href="upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&cu=INR" class="btn-support btn-full" style="padding: 8px; text-decoration: none; font-size: 13px; border-radius: 6px;">
-                <i class="fa-solid fa-indian-rupee-sign"></i> GPay / UPI-in Thlawpna Pekna
+            
+            <a id="gpayPayLink" href="upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR" class="btn-support btn-full" style="padding: 10px; text-decoration: none; font-size: 14px; border-radius: 6px; margin-bottom: 8px;">
+                <i class="fa-solid fa-indian-rupee-sign"></i> GPay / UPI App Hmangin
             </a>
-            <button id="closeSupportBtn" class="btn-gray" style="width: 100%; padding: 4px; margin-top: 4px; font-size: 11px;">Khar rawh</button>
+
+            <div style="background: #f4f6f7; padding: 8px; border-radius: 6px; font-size: 13px; color: #2c3e50; margin-bottom: 8px; border: 1px dashed #bdc3c7;">
+                <strong>UPI ID:</strong> chhanajuly@oksbi <br>
+                <span style="font-size: 11px; color: #7f8c8d;">(Computer atanga hmang chuan he ID hi copy la, i app-ah paste rawh)</span>
+            </div>
+
+            <div style="font-size: 12px; color: #333; margin-bottom: 5px;">Emaw he QR Code hi Scan rawh:</div>
+            <!-- QR Code lan na tur -->
+            <div id="qrcode" style="display: flex; justify-content: center; margin-bottom: 10px;"></div>
+
+            <button id="closeSupportBtn" class="btn-gray" style="width: 100%; padding: 6px; font-size: 12px;">Khar rawh</button>
         </div>
 
         <button id="showPgnBtn" class="btn-teal btn-full" style="display: none; margin-top: 5px;">📜 PGN Enna & Download</button>
@@ -225,9 +236,12 @@
         <b>Buatsaihtu thuchah:</b> He Mizo Chess zirna hi Alan Lalchhandama buatsaih a ni a. Hetiang hi a lo suangtuah thin a, enchhinna (experiment) a ni. Mizo thalaite leh naupangte'n chess kan tuipui theih nana siam a ni a; online-in emaw khawl thluak (Stockfish) nen in inkhel thei ang. I tihsual atangin zir nawnna (SRS) te pawh hman theih turin a awm a ni. Lo hmang tangkai ngei ang che u!
     </div>
 
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <!-- QR Code Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <script>
         const firebaseConfig = {
@@ -283,6 +297,7 @@
             var timerInterval = null;
 
             var finalStatusMsg = '';
+            var qrCodeGenerated = false; // QR Code siam nawn loh nan
 
             var chessOpenings = {
                 "e4": "King's Pawn Game",
@@ -964,9 +979,24 @@
                 window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
             });
 
+            // SUPPORT BOX QR CODE LOGIC HETAH
             $('#toggleSupportBtn').on('click', function() {
-                $('#supportBox').slideToggle();
+                $('#supportBox').slideToggle(300, function() {
+                    // Box a lo lan hunah chauh leh vawikhat chiah QR Code a siam ang
+                    if (!qrCodeGenerated && $('#supportBox').is(':visible')) {
+                        new QRCode(document.getElementById("qrcode"), {
+                            text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR",
+                            width: 140,
+                            height: 140,
+                            colorDark : "#000000",
+                            colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.M
+                        });
+                        qrCodeGenerated = true;
+                    }
+                });
             });
+
             $('#closeSupportBtn').on('click', function() {
                 $('#supportBox').slideUp();
             });
