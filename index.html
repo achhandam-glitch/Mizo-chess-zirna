@@ -194,7 +194,7 @@
         <!-- Support Button -->
         <button id="toggleSupportBtn" class="btn-support btn-full" style="display: none; margin-top: 5px; font-size: 14px; padding: 10px;">☕ Developer Thlawpna (Support)</button>
 
-        <!-- UPDATED Support Box with App Specific Links -->
+        <!-- UPDATED Support Box with Native Anchor Tags -->
         <div id="supportBox">
             <div style="font-size: 13px; color: #555; margin-bottom: 10px; line-height: 1.4;">
                 He game hi i hlimpui a, min thlawp ve duh chuan (a phut luih a ni lo):
@@ -207,11 +207,11 @@
                 <input type="number" id="upiAmount" value="30" min="1" style="width: 100px; padding: 8px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 16px; text-align: center; font-weight: bold;">
             </div>
 
-            <!-- App Specific Buttons to Bypass WhatsApp Block -->
+            <!-- NATIVE LINKS - Webview in a block thei lo -->
             <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;">
-                <button id="btnGpay" style="flex: 1 1 45%; background-color: #4285F4; color: white; padding: 10px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;">Google Pay</button>
-                <button id="btnPhonepe" style="flex: 1 1 45%; background-color: #5f259f; color: white; padding: 10px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;">PhonePe</button>
-                <button id="btnGenericUpi" style="flex: 1 1 100%; background-color: #27ae60; color: white; padding: 10px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; margin-top: 5px;">UPI App dang hmangin</button>
+                <a id="linkGpay" href="#" target="_top" style="flex: 1 1 45%; background-color: #4285F4; color: white; padding: 10px; font-size: 13px; border-radius: 6px; text-align: center; text-decoration: none; font-weight: bold;">Google Pay</a>
+                <a id="linkPhonepe" href="#" target="_top" style="flex: 1 1 45%; background-color: #5f259f; color: white; padding: 10px; font-size: 13px; border-radius: 6px; text-align: center; text-decoration: none; font-weight: bold;">PhonePe</a>
+                <a id="linkGenericUpi" href="#" target="_top" style="flex: 1 1 100%; background-color: #27ae60; color: white; padding: 10px; font-size: 13px; border-radius: 6px; text-align: center; text-decoration: none; font-weight: bold; margin-top: 5px;">UPI App dang hmangin</a>
             </div>
 
             <div style="background: #f4f6f7; padding: 8px; border-radius: 6px; font-size: 13px; color: #2c3e50; margin-bottom: 8px; border: 1px dashed #bdc3c7;">
@@ -826,7 +826,8 @@
                 var playerText = '';
                 
                 if (isOnlineMode) {
-                    playerText = (game.turn() === playerColor) ? 'Nangmah ('+turnColor+')' : 'I thianpa ('+turnColor+')';
+                    // Changed 'I thianpa' to 'I thian' here
+                    playerText = (game.turn() === playerColor) ? 'Nangmah ('+turnColor+')' : 'I thian ('+turnColor+')';
                 } else if (isTwoPlayer) {
                     playerText = turnColor;
                 } else {
@@ -927,7 +928,8 @@
                     
                     $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide();
                     
-                    $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'>Online Game I thianpa nen in inkhel mek</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
+                    // Changed 'I thianpa' to 'I thian'
+                    $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'>Online Game I thian nen in inkhel mek</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
                     
                     listenToRoom();
                 } 
@@ -938,8 +940,9 @@
                     
                     var joinLink = window.location.href.split('?')[0] + '?room=' + onlineRoomId + '&color=' + oppColor;
                     
+                    // Changed 'I thianpa' to 'I thian'
                     $('#onlineRoomBox').html(`
-                        <div style="font-size: 13px; font-weight: bold; color: #16a085; margin-bottom: 5px;">I thianpa thawn tur Link:</div>
+                        <div style="font-size: 13px; font-weight: bold; color: #16a085; margin-bottom: 5px;">I thian thawn tur Link:</div>
                         <input type="text" id="roomLinkInput" value="${joinLink}" readonly style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 5px; font-size: 12px; text-align:center;">
                         <div style="display: flex; gap: 5px; margin-bottom: 5px;">
                             <button id="copyLinkBtn" class="btn-gray" style="flex: 1; padding: 8px; font-size: 14px;">🔗 Copy</button>
@@ -979,37 +982,49 @@
                 setTimeout(() => $(this).html("🔗 Copy"), 2000);
             });
 
+            // WHATSAPP SHARE UPDATE LOGIC
             $(document).on('click', '#whatsappShareBtn', function() {
                 var link = document.getElementById("roomLinkInput").value;
                 var text = encodeURIComponent("Chess i khel ang hmiang! Helai link-ah hian lo lut rawh: " + link);
-                window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
+                
+                // WhatsApp hawng nghal turin
+                var isAndroid = /Android/i.test(navigator.userAgent);
+                if(isAndroid) {
+                    window.location.href = "whatsapp://send?text=" + text;
+                } else {
+                    window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
+                }
+                
+                // An rawn back leh veleh fiah taka a lo lan tawh nan a box kan lo thlak (hide) hmak ang
+                $('#onlineRoomBox').html(`
+                    <div style='color:#16a085; font-weight:bold; margin-bottom:5px;'>
+                        <i class='fa-solid fa-spinner fa-spin'></i> I thian lo luh hun nghah mek a ni...
+                    </div>
+                    <button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px; margin-top: 5px;'>Cancel</button>
+                `);
             });
 
             // ============================================
-            // UPI PAYMENT LOGIC (APP SPECIFIC FIX)
+            // NATIVE UPI LINKS UPDATE LOGIC
             // ============================================
-            function getUpiUrl(scheme) {
+            function updateUpiLinks() {
                 var amtVal = $('#upiAmount').val() || 30;
-                // parseFloat leh toFixed(2) hian decimal .00 a dah hrim hrim ang, (App in error an pek loh nan)
-                var amt = parseFloat(amtVal).toFixed(2); 
+                var amt = parseFloat(amtVal).toFixed(2);
                 var baseParams = "pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=MizoChessSupport&cu=INR&am=" + amt;
-                return scheme + "?" + baseParams;
+                
+                $('#linkGpay').attr('href', 'tez://upi/pay?' + baseParams);
+                $('#linkPhonepe').attr('href', 'phonepe://pay?' + baseParams);
+                $('#linkGenericUpi').attr('href', 'upi://pay?' + baseParams);
             }
 
-            $('#btnGpay').on('click', function() {
-                window.location.href = getUpiUrl("tez://upi/pay");
-            });
-
-            $('#btnPhonepe').on('click', function() {
-                window.location.href = getUpiUrl("phonepe://pay");
-            });
-
-            $('#btnGenericUpi').on('click', function() {
-                window.location.href = getUpiUrl("upi://pay");
+            $('#upiAmount').on('input change', function() {
+                updateUpiLinks();
             });
 
             $('#toggleSupportBtn').on('click', function() {
                 $('#supportBox').slideToggle(300, function() {
+                    updateUpiLinks(); 
+                    
                     if (!qrCodeGenerated && $('#supportBox').is(':visible')) {
                         new QRCode(document.getElementById("qrcode"), {
                             text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=MizoChessSupport&cu=INR",
