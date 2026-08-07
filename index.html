@@ -6,11 +6,8 @@
     <title>Mizo Chess zirna</title>
     
     <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
-    
-    <!-- WhatsApp & Support Icon atan FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Firebase SDK (Online Multiplayer atan) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -197,7 +194,7 @@
         <!-- Support Button -->
         <button id="toggleSupportBtn" class="btn-support btn-full" style="display: none; margin-top: 5px; font-size: 14px; padding: 10px;">☕ Developer Thlawpna (Support)</button>
 
-        <!-- UPDATED Support Box -->
+        <!-- UPDATED Support Box with App Specific Links -->
         <div id="supportBox">
             <div style="font-size: 13px; color: #555; margin-bottom: 10px; line-height: 1.4;">
                 He game hi i hlimpui a, min thlawp ve duh chuan (a phut luih a ni lo):
@@ -205,21 +202,24 @@
             
             <div style="font-size: 12px; color: #c0392b; margin-bottom: 5px; font-weight: bold;">Pawisa zat tur (Amount) thlang hmasa rawh:</div>
             
-            <div style="display: flex; gap: 5px; margin-bottom: 10px; align-items: center;">
-                <b style="color: #2c3e50; font-size: 16px;">₹</b>
-                <input type="number" id="upiAmount" value="30" min="1" style="width: 80px; padding: 10px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 16px; text-align: center; font-weight: bold;">
-                <a id="gpayPayLink" href="#" target="_top" class="btn-support" style="flex: 1; padding: 12px; text-decoration: none; font-size: 14px; border-radius: 6px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 5px;">
-                    <i class="fa-solid fa-paper-plane"></i> UPI-in Thawn rawh
-                </a>
+            <div style="display: flex; justify-content: center; margin-bottom: 10px; align-items: center;">
+                <b style="color: #2c3e50; font-size: 18px; margin-right: 5px;">₹</b>
+                <input type="number" id="upiAmount" value="30" min="1" style="width: 100px; padding: 8px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 16px; text-align: center; font-weight: bold;">
+            </div>
+
+            <!-- App Specific Buttons to Bypass WhatsApp Block -->
+            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;">
+                <button id="btnGpay" style="flex: 1 1 45%; background-color: #4285F4; color: white; padding: 10px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;">Google Pay</button>
+                <button id="btnPhonepe" style="flex: 1 1 45%; background-color: #5f259f; color: white; padding: 10px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;">PhonePe</button>
+                <button id="btnGenericUpi" style="flex: 1 1 100%; background-color: #27ae60; color: white; padding: 10px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; margin-top: 5px;">UPI App dang hmangin</button>
             </div>
 
             <div style="background: #f4f6f7; padding: 8px; border-radius: 6px; font-size: 13px; color: #2c3e50; margin-bottom: 8px; border: 1px dashed #bdc3c7;">
                 <strong>UPI ID:</strong> chhanajuly@oksbi <br>
-                <span style="font-size: 11px; color: #7f8c8d;">(A chunga thawnna hian a la thawk lo fo a nih chuan, he ID hi copy la i app-ah paste mai rawh)</span>
+                <span style="font-size: 11px; color: #7f8c8d;">(A chunga hmeh hian a thawk lo a nih chuan, he ID hi copy la i app-ah paste mai rawh)</span>
             </div>
 
             <div style="font-size: 12px; color: #333; margin-bottom: 5px;">Emaw he QR Code hi Scan rawh:</div>
-            <!-- QR Code lan na tur -->
             <div id="qrcode" style="display: flex; justify-content: center; margin-bottom: 10px;"></div>
 
             <button id="closeSupportBtn" class="btn-gray" style="width: 100%; padding: 6px; font-size: 12px;">Khar rawh</button>
@@ -986,37 +986,33 @@
             });
 
             // ============================================
-            // UPI PAYMENT LOGIC (THAR LEH UPDATE)
+            // UPI PAYMENT LOGIC (APP SPECIFIC FIX)
             // ============================================
-            function updateUpiLink() {
-                var amt = $('#upiAmount').val() || 30; // Default amount 30
-                // Amount nen a thlapin kan generate
-                var upiString = "pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR&am=" + amt;
-                
-                var isAndroid = /Android/i.test(navigator.userAgent);
-                var finalUrl = "upi://pay?" + upiString; // Default
-                
-                if (isAndroid) {
-                    // Android OS intent chu a tag href-ah a tha ber
-                    finalUrl = "intent://pay?" + upiString + "#Intent;scheme=upi;end;";
-                }
-                
-                // Link-ah (<a> tag) kan pe thar zel
-                $('#gpayPayLink').attr('href', finalUrl);
+            function getUpiUrl(scheme) {
+                var amtVal = $('#upiAmount').val() || 30;
+                // parseFloat leh toFixed(2) hian decimal .00 a dah hrim hrim ang, (App in error an pek loh nan)
+                var amt = parseFloat(amtVal).toFixed(2); 
+                var baseParams = "pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=MizoChessSupport&cu=INR&am=" + amt;
+                return scheme + "?" + baseParams;
             }
 
-            // User-in amount an thlakin link auto-update turin
-            $('#upiAmount').on('input change', function() {
-                updateUpiLink();
+            $('#btnGpay').on('click', function() {
+                window.location.href = getUpiUrl("tez://upi/pay");
+            });
+
+            $('#btnPhonepe').on('click', function() {
+                window.location.href = getUpiUrl("phonepe://pay");
+            });
+
+            $('#btnGenericUpi').on('click', function() {
+                window.location.href = getUpiUrl("upi://pay");
             });
 
             $('#toggleSupportBtn').on('click', function() {
                 $('#supportBox').slideToggle(300, function() {
-                    updateUpiLink(); // Box in hawn hian link siam dik nghal tur
-                    
                     if (!qrCodeGenerated && $('#supportBox').is(':visible')) {
                         new QRCode(document.getElementById("qrcode"), {
-                            text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR",
+                            text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=MizoChessSupport&cu=INR",
                             width: 140,
                             height: 140,
                             colorDark : "#000000",
