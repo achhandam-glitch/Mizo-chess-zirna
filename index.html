@@ -203,13 +203,19 @@
                 He game hi i hlimpui a, min thlawp ve duh chuan (a phut luih a ni lo):
             </div>
             
-            <button id="gpayPayBtn" class="btn-support btn-full" style="padding: 10px; font-size: 14px; border-radius: 6px; margin-bottom: 8px;">
-                <i class="fa-solid fa-indian-rupee-sign"></i> GPay / UPI App Hmangin
-            </button>
+            <div style="font-size: 12px; color: #c0392b; margin-bottom: 5px; font-weight: bold;">Pawisa zat tur (Amount) thlang hmasa rawh:</div>
+            
+            <div style="display: flex; gap: 5px; margin-bottom: 10px; align-items: center;">
+                <b style="color: #2c3e50; font-size: 16px;">₹</b>
+                <input type="number" id="upiAmount" value="30" min="1" style="width: 80px; padding: 10px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 16px; text-align: center; font-weight: bold;">
+                <a id="gpayPayLink" href="#" target="_top" class="btn-support" style="flex: 1; padding: 12px; text-decoration: none; font-size: 14px; border-radius: 6px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    <i class="fa-solid fa-paper-plane"></i> UPI-in Thawn rawh
+                </a>
+            </div>
 
             <div style="background: #f4f6f7; padding: 8px; border-radius: 6px; font-size: 13px; color: #2c3e50; margin-bottom: 8px; border: 1px dashed #bdc3c7;">
                 <strong>UPI ID:</strong> chhanajuly@oksbi <br>
-                <span style="font-size: 11px; color: #7f8c8d;">(Computer atanga hmang chuan he ID hi copy la, i app-ah paste rawh)</span>
+                <span style="font-size: 11px; color: #7f8c8d;">(A chunga thawnna hian a la thawk lo fo a nih chuan, he ID hi copy la i app-ah paste mai rawh)</span>
             </div>
 
             <div style="font-size: 12px; color: #333; margin-bottom: 5px;">Emaw he QR Code hi Scan rawh:</div>
@@ -979,9 +985,35 @@
                 window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
             });
 
-            // SUPPORT BOX QR CODE LOGIC HETAH
+            // ============================================
+            // UPI PAYMENT LOGIC (THAR LEH UPDATE)
+            // ============================================
+            function updateUpiLink() {
+                var amt = $('#upiAmount').val() || 30; // Default amount 30
+                // Amount nen a thlapin kan generate
+                var upiString = "pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR&am=" + amt;
+                
+                var isAndroid = /Android/i.test(navigator.userAgent);
+                var finalUrl = "upi://pay?" + upiString; // Default
+                
+                if (isAndroid) {
+                    // Android OS intent chu a tag href-ah a tha ber
+                    finalUrl = "intent://pay?" + upiString + "#Intent;scheme=upi;end;";
+                }
+                
+                // Link-ah (<a> tag) kan pe thar zel
+                $('#gpayPayLink').attr('href', finalUrl);
+            }
+
+            // User-in amount an thlakin link auto-update turin
+            $('#upiAmount').on('input change', function() {
+                updateUpiLink();
+            });
+
             $('#toggleSupportBtn').on('click', function() {
                 $('#supportBox').slideToggle(300, function() {
+                    updateUpiLink(); // Box in hawn hian link siam dik nghal tur
+                    
                     if (!qrCodeGenerated && $('#supportBox').is(':visible')) {
                         new QRCode(document.getElementById("qrcode"), {
                             text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR",
@@ -995,33 +1027,11 @@
                     }
                 });
             });
-            
-            // JAVASCRIPT THAR - UPI LINK HMEH HUN ATAN
-            $('#gpayPayBtn').on('click', function(e) {
-                e.preventDefault();
-                var upiURL = "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR";
-                var isAndroid = /Android/i.test(navigator.userAgent);
-
-                if (isAndroid) {
-                    // WhatsApp leh in-app browser dang paltlang nan intent URL hman a ni
-                    window.location.href = "intent://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR#Intent;scheme=upi;end;";
-                } else {
-                    // iPhone leh dangte tan
-                    window.location.href = upiURL;
-                }
-                
-                // WebView dangin a la dan theih palh avangin, Alert message lo lang turin ka set a ni
-                setTimeout(function() {
-                    var isWebView = /(WhatsApp|FBAV|FBAN|Instagram)/i.test(navigator.userAgent);
-                    if (isWebView) {
-                        alert("I browser atang khan direct-a UPI App hawn a theih loh hmel! Khawngaihin i phone a Chrome emaw Safari atangin rawn lut leh la, emaw a hnuaia QR Code khu screenshot la i UPI App (GPay/PhonePe) atangin scan mai rawh le.");
-                    }
-                }, 2000);
-            });
 
             $('#closeSupportBtn').on('click', function() {
                 $('#supportBox').slideUp();
             });
+            // ============================================
 
             $(document).on('click', '#exitOnlineBtn', function() {
                 window.location.href = window.location.href.split('?')[0];
