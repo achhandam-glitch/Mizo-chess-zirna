@@ -117,14 +117,14 @@
             margin-bottom: 10px; text-align: center;
         }
 
-        /* Support Box - Button hnuai chiah a lang tur */
+        /* Support Box */
         #supportBox {
             display: none; width: 100%; max-width: 400px; background: #fdfefe; 
             padding: 10px; border-radius: 6px; border: 1px solid #d35400; 
             margin-top: -5px; margin-bottom: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .footer-text { margin-top: 15px; font-size: 12px; color: #7f8c8d; text-align: center; font-style: italic; max-width: 400px; padding-bottom: 20px;}
+        .footer-text { margin-top: 15px; font-size: 12px; color: #7f8c8d; text-align: center; line-height: 1.5; max-width: 400px; padding-bottom: 20px;}
     </style>
 </head>
 <body>
@@ -197,7 +197,7 @@
         <!-- Support Button -->
         <button id="toggleSupportBtn" class="btn-support btn-full" style="display: none; margin-top: 5px; font-size: 14px; padding: 10px;">☕ Developer Thlawpna (Support)</button>
 
-        <!-- Support Box - Button hnuai chiahah a rawn lang ang -->
+        <!-- Support Box -->
         <div id="supportBox">
             <div style="font-size: 12px; color: #555; margin-bottom: 6px; line-height: 1.3;">
                 He game hi i hlimpui a, min thlawp ve duh chuan (i duhthlan thu a ni, a phut luih a ni lo):
@@ -222,7 +222,7 @@
     </div>
 
     <div class="footer-text">
-        <b>A buatsaihtu thuchah</b> : Ka hming chu Alan Lalchhandama a ni a. Hetiang hi ka lo suangtuah ve thin a,enchhinna(experiment) a ni tih min lo hriat sak dawn nia.Lo hmang tangkai ngei ang che
+        <b>Buatsaihtu thuchah:</b> He Mizo Chess zirna hi Alan Lalchhandama buatsaih a ni a. Hetiang hi a lo suangtuah thin a, enchhinna (experiment) a ni. Mizo thalaite leh naupangte'n chess kan tuipui theih nana siam a ni a; online-in emaw khawl thluak (Stockfish) nen in inkhel thei ang. I tihsual atangin zir nawnna (SRS) te pawh hman theih turin a awm a ni. Lo hmang tangkai ngei ang che u!
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -964,7 +964,6 @@
                 window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
             });
 
-            /* Support Box Toggle Actions (Button hnuai chiah a in-slide thla tur) */
             $('#toggleSupportBtn').on('click', function() {
                 $('#supportBox').slideToggle();
             });
