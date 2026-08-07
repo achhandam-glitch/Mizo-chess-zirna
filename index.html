@@ -220,8 +220,8 @@
             // Mode flags
             var isPracticeMode = false;
             var manuallyEnded = false; 
-            var isTwoPlayer = false; // Local pass and play
-            var isOnlineMode = false; // Multiplayer
+            var isTwoPlayer = false; 
+            var isOnlineMode = false; 
 
             // Online variables
             var onlineRoomId = null;
@@ -343,8 +343,39 @@
                 roomRef.on('value', function(snapshot) {
                     var data = snapshot.val();
                     if (data) {
-                        if (data.pgn !== game.pgn()) {
-                            game.load_pgn(data.pgn || "");
+                        var incomingPgn = data.pgn || "";
+                        
+                        // Khingpui a tlawm (Resign) tih a rawn thlen hian:
+                        if (incomingPgn.indexOf("{Resign}") !== -1) {
+                            incomingPgn = incomingPgn.replace(" {Resign}", ""); 
+                            if (incomingPgn !== game.pgn()) {
+                                game.load_pgn(incomingPgn);
+                                board.position(game.fen());
+                                updateMoveHistory();
+                            }
+                            if (!manuallyEnded) {
+                                endGameWithMessage('I khingpui a tlawm ta! I chak e. Isuan a hmangaih che u.');
+                            }
+                            return; 
+                        }
+
+                        // Inhneh tawk (Draw) a rawn thlen hian:
+                        if (incomingPgn.indexOf("{Draw}") !== -1) {
+                            incomingPgn = incomingPgn.replace(" {Draw}", ""); 
+                            if (incomingPgn !== game.pgn()) {
+                                game.load_pgn(incomingPgn);
+                                board.position(game.fen());
+                                updateMoveHistory();
+                            }
+                            if (!manuallyEnded) {
+                                endGameWithMessage('Inhneh tawk (Draw) a ni e! Isuan a hmangaih che u.');
+                            }
+                            return; 
+                        }
+
+                        // Tlawm emaw Draw a nih loh a, chet pangngai a nih chuan:
+                        if (incomingPgn !== game.pgn()) {
+                            game.load_pgn(incomingPgn);
                             board.position(game.fen());
                             if (data.whiteTime !== undefined) whiteTime = data.whiteTime;
                             if (data.blackTime !== undefined) blackTime = data.blackTime;
@@ -735,7 +766,6 @@
                     $('#onlineRoomBox').html("<button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:10px; font-size:16px;'>Online Game atanga chhuahna</button>").show();
                 }
 
-                // Hengte hi Offline leh Online-ah a lang tawh ang
                 $('#showPgnBtn').fadeIn();
                 if (savedGameHistory.length > 4) {
                     $('#learnMistakesBtn').fadeIn(); 
@@ -997,10 +1027,16 @@
 
             $('#drawBtn').on('click', function() {
                 if (game.game_over() || manuallyEnded || isPracticeMode || drawOfferPending) return;
-                if (isOnlineMode || isTwoPlayer) { 
-                    endGameWithMessage('Inhneh tawk (Draw) in pawm dun e! Isuan a hmangaih che u.'); 
+                
+                if (isOnlineMode) { 
+                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Draw}"}); 
+                    endGameWithMessage('Inhneh tawk (Draw) a ni e! Isuan a hmangaih che u.'); 
                     return; 
+                } else if (isTwoPlayer) {
+                    endGameWithMessage('Inhneh tawk (Draw) in pawm dun e! Isuan a hmangaih che u.');
+                    return;
                 }
+                
                 if (game.turn() !== playerColor) { alert("Khawl chet hun a ni a, a lo chet hunah i sawm chauh dawn nia."); return; }
                 drawOfferPending = true;
                 $status.html("Khawl in i draw sawmna a ngaihtuah mek...");
