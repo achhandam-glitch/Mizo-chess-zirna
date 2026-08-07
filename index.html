@@ -203,9 +203,9 @@
                 He game hi i hlimpui a, min thlawp ve duh chuan (a phut luih a ni lo):
             </div>
             
-            <a id="gpayPayLink" href="upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR" class="btn-support btn-full" style="padding: 10px; text-decoration: none; font-size: 14px; border-radius: 6px; margin-bottom: 8px;">
+            <button id="gpayPayBtn" class="btn-support btn-full" style="padding: 10px; font-size: 14px; border-radius: 6px; margin-bottom: 8px;">
                 <i class="fa-solid fa-indian-rupee-sign"></i> GPay / UPI App Hmangin
-            </a>
+            </button>
 
             <div style="background: #f4f6f7; padding: 8px; border-radius: 6px; font-size: 13px; color: #2c3e50; margin-bottom: 8px; border: 1px dashed #bdc3c7;">
                 <strong>UPI ID:</strong> chhanajuly@oksbi <br>
@@ -297,7 +297,7 @@
             var timerInterval = null;
 
             var finalStatusMsg = '';
-            var qrCodeGenerated = false; // QR Code siam nawn loh nan
+            var qrCodeGenerated = false;
 
             var chessOpenings = {
                 "e4": "King's Pawn Game",
@@ -982,7 +982,6 @@
             // SUPPORT BOX QR CODE LOGIC HETAH
             $('#toggleSupportBtn').on('click', function() {
                 $('#supportBox').slideToggle(300, function() {
-                    // Box a lo lan hunah chauh leh vawikhat chiah QR Code a siam ang
                     if (!qrCodeGenerated && $('#supportBox').is(':visible')) {
                         new QRCode(document.getElementById("qrcode"), {
                             text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR",
@@ -995,6 +994,29 @@
                         qrCodeGenerated = true;
                     }
                 });
+            });
+            
+            // JAVASCRIPT THAR - UPI LINK HMEH HUN ATAN
+            $('#gpayPayBtn').on('click', function(e) {
+                e.preventDefault();
+                var upiURL = "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR";
+                var isAndroid = /Android/i.test(navigator.userAgent);
+
+                if (isAndroid) {
+                    // WhatsApp leh in-app browser dang paltlang nan intent URL hman a ni
+                    window.location.href = "intent://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=Mizo%20Chess%20Support&cu=INR#Intent;scheme=upi;end;";
+                } else {
+                    // iPhone leh dangte tan
+                    window.location.href = upiURL;
+                }
+                
+                // WebView dangin a la dan theih palh avangin, Alert message lo lang turin ka set a ni
+                setTimeout(function() {
+                    var isWebView = /(WhatsApp|FBAV|FBAN|Instagram)/i.test(navigator.userAgent);
+                    if (isWebView) {
+                        alert("I browser atang khan direct-a UPI App hawn a theih loh hmel! Khawngaihin i phone a Chrome emaw Safari atangin rawn lut leh la, emaw a hnuaia QR Code khu screenshot la i UPI App (GPay/PhonePe) atangin scan mai rawh le.");
+                    }
+                }, 2000);
             });
 
             $('#closeSupportBtn').on('click', function() {
