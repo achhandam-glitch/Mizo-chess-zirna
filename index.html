@@ -193,7 +193,7 @@
                 <div id="mmIncomingList"></div>
             </div>
 
-            <!-- GAME HISTORY BOX (Thar) -->
+            <!-- GAME HISTORY BOX -->
             <div style="background:#fdfefe; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #d5dbdb;">
                 <div style="font-size:13px; font-weight:bold; margin-bottom:8px; color:#2c3e50;">
                     <i class="fa-solid fa-clock-rotate-left"></i> Ka Game Khelh Tawhte (History)
@@ -503,6 +503,37 @@
                 endGameWithMessage('Hun a tawp! ' + winner + ' a chak.');
             }
 
+            function restartOnlineGame() {
+                manuallyEnded = false;
+                drawOfferPending = false;
+                hideVerse();
+                $('#toggleSupportBtn').hide();
+                $('#supportBox').hide();
+                
+                game.reset(); 
+                board.start(); 
+                selectedSquare = null; 
+                removeHighlights();
+                
+                $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
+                
+                $('#moveHistoryBox').show();
+                $('#actionButtons').hide(); 
+                $('#playAgainBtn').hide();
+                $('#showPgnBtn').hide();
+                $('#learnMistakesBtn').hide();
+                $('#pgnContainer').hide();
+                
+                var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
+                whiteTime = timeVal; blackTime = timeVal;
+                
+                $('#timerContainer').show();
+                updateTimerDisplay();
+                startTimer();
+                updateStatus();
+                updateMoveHistory();
+            }
+
             function listenToRoom() {
                 if(roomRef) roomRef.off();
                 roomRef = database.ref('rooms/' + onlineRoomId);
@@ -511,7 +542,43 @@
                     if (data) {
                         if (data.whiteUser) whiteUsername = data.whiteUser;
                         if (data.blackUser) blackUsername = data.blackUser;
-                        updateTimerDisplay();
+                        
+                        if (!manuallyEnded) {
+                            updateTimerDisplay();
+                        }
+
+                        // --- REMATCH LOGIC (Khel leh ila) ---
+                        if (data.rematch && manuallyEnded) {
+                            if (data.rematch.status === 'pending') {
+                                if (data.rematch.offerBy !== myUsername) {
+                                    $('#rematchArea').html(`
+                                        <div style="font-size:13px; font-weight:bold; color:#16a085; margin-bottom:5px;">I khingpuiin khelh nawn a duh!</div>
+                                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                                            <button id="acceptRematchBtn" class="btn-green" style="flex:1;">Pawmna</button>
+                                            <button id="rejectRematchBtn" class="btn-red" style="flex:1;">Hnial</button>
+                                        </div>
+                                    `);
+                                } else {
+                                    $('#rematchArea').html(`<div style="font-size:13px; color:#d35400; font-weight:bold; margin-bottom:10px;">Sawmna thawn mek a ni...</div>`);
+                                }
+                            } else if (data.rematch.status === 'rejected') {
+                                if (data.rematch.offerBy === myUsername) {
+                                    $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">A hnawl ta! (Rejected)</div>`);
+                                } else {
+                                    $('#rematchArea').html(`<div style="font-size:13px; color:#7f8c8d; font-weight:bold; margin-bottom:10px;">I hnawl ta.</div>`);
+                                }
+                            }
+                        }
+
+                        // Detect game reset for Rematch
+                        if (data.pgn === "" && manuallyEnded && !isPracticeMode) {
+                            if (data.whiteUser === myUsername) playerColor = 'w';
+                            else if (data.blackUser === myUsername) playerColor = 'b';
+                            board.orientation(playerColor === 'w' ? 'white' : 'black');
+                            restartOnlineGame();
+                            return;
+                        }
+                        // ----------------------------------
 
                         var incomingPgn = data.pgn || "";
                         
@@ -549,6 +616,15 @@
                             updateTimerDisplay();
                             updateStatus();
                             updateMoveHistory();
+                        }
+                    } else {
+                        // Room deleted (Opponent left)
+                        if (isOnlineMode) {
+                            if (!manuallyEnded) {
+                                endGameWithMessage("I khingpuiin app a chhuahsan! (Disconnected)");
+                            } else {
+                                $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">I khingpuiin a chhuahsan tawh.</div>`);
+                            }
                         }
                     }
                 });
@@ -603,7 +679,6 @@
 
             $('#mmLogoutBtn').click(function() { 
                 if(myUsername) {
-                    // Update to offline before signing out
                     database.ref('/status/' + myUsername).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
                 }
                 auth.signOut(); 
@@ -655,6 +730,42 @@
                 alert("Game hlui PGN lakchhuah a ni e!\n'Zirna-ah lut nghal rawh' tih hmangin i chetsualna te i enlet thei ang.");
             });
             // ------------------------------
+
+            // --- REMATCH BUTTON HANDLERS ---
+            $(document).on('click', '#rematchBtn', function() {
+                if(onlineRoomId) {
+                    database.ref('rooms/' + onlineRoomId + '/rematch').set({
+                        offerBy: myUsername,
+                        status: 'pending'
+                    });
+                }
+            });
+
+            $(document).on('click', '#acceptRematchBtn', function() {
+                if(onlineRoomId) {
+                    var newWhiteUser = blackUsername;
+                    var newBlackUser = whiteUsername;
+                    var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
+
+                    database.ref('rooms/' + onlineRoomId).update({
+                        pgn: "",
+                        whiteTime: timeVal,
+                        blackTime: timeVal,
+                        whiteUser: newWhiteUser,
+                        blackUser: newBlackUser,
+                        rematch: null
+                    });
+                }
+            });
+
+            $(document).on('click', '#rejectRematchBtn', function() {
+                if(onlineRoomId) {
+                    database.ref('rooms/' + onlineRoomId + '/rematch').update({
+                        status: 'rejected'
+                    });
+                }
+            });
+            // --------------------------------
 
             $('#mmChallengeBtn').click(function() {
                 var opp = $('#mmSearchUser').val().toLowerCase().trim();
@@ -758,7 +869,8 @@
                     whiteTime: whiteTime,
                     blackTime: blackTime,
                     whiteUser: whiteUsername,
-                    blackUser: blackUsername
+                    blackUser: blackUsername,
+                    rematch: null
                 });
 
                 // App a close emaw a chhuah veleh Room hi delete nghal zel turin
@@ -1142,7 +1254,7 @@
                 $status.html(msg); showRandomVerse();
                 savedGameHistory = game.history(); 
                 
-                // --- NEW: Save Game History to Firebase ---
+                // --- Save Game History to Firebase ---
                 if (myUsername && savedGameHistory.length > 2) {
                     var oppName = isOnlineMode ? (playerColor === 'w' ? blackUsername : whiteUsername) : $('#difficultySelect option:selected').text();
                     database.ref('users/' + myUsername + '/games').push({
@@ -1160,7 +1272,15 @@
                 if (!isOnlineMode) {
                     $('#playAgainBtn').fadeIn(); 
                 } else {
-                    $('#onlineRoomBox').html("<button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:10px; font-size:16px;'>Online Game atanga chhuahna</button>").show();
+                    var rematchHtml = '';
+                    if (myUsername) {
+                        rematchHtml = `<div id="rematchArea" style="margin-bottom:10px;"><button id="rematchBtn" class="btn-green" style="width:100%; padding:10px; font-size:15px; margin-bottom:5px;">🔄 Khel leh ila (Rematch)</button></div>`;
+                    }
+                    $('#onlineRoomBox').html(
+                        "<div style='color:#16a085; font-weight:bold; margin-bottom:10px;'><i class='fa-solid fa-circle-check'></i> Game a tawp ta!</div>" +
+                        rematchHtml + 
+                        "<button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:10px; font-size:16px;'>Online Game atanga chhuahna</button>"
+                    ).show();
                 }
 
                 $('#showPgnBtn').fadeIn();
