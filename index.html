@@ -199,7 +199,8 @@
                 <div style="font-size:13px; font-weight:bold; margin-bottom:8px;">Khelhpui tur zawng rawh:</div>
                 <div style="display:flex; gap:5px;">
                     <input type="text" id="mmSearchUser" placeholder="Thianpa username..." style="flex:2; padding:10px; border:1px solid #bdc3c7; border-radius:4px; margin:0;">
-                    <button id="mmChallengeBtn" class="btn-green" style="flex:1; margin:0;">Sawmna</button>
+                    <!-- HETAH HIAN MIN-WIDTH LEH PADDING KAN BELH E -->
+                    <button id="mmChallengeBtn" class="btn-green" style="flex:1; margin:0; min-width: 70px; padding: 10px 5px;">Sawmna</button>
                 </div>
                 <div id="mmChallengeMsg" style="font-size:12px; color:#c0392b; margin-top:8px; font-weight: bold;"></div>
             </div>
@@ -949,7 +950,7 @@
                 var challenger = $(this).data('from');
                 var challengeTime = $(this).data('time');
                 
-                $('#timeSelect').val(challengeTime); // Sync time setting
+                $('#timeSelect').val(challengeTime); 
 
                 database.ref('challenges/' + cId).update({status: 'accepted'});
                 startMatch(rId, 'b', challenger, myUsername); 
@@ -1371,7 +1372,6 @@
                 $status.html(msg); showRandomVerse();
                 savedGameHistory = game.history(); 
                 
-                // --- Save Game History to Firebase ---
                 if (myUsername && savedGameHistory.length > 2) {
                     var oppName = isOnlineMode ? (playerColor === 'w' ? blackUsername : whiteUsername) : $('#difficultySelect option:selected').text();
                     database.ref('users/' + myUsername + '/games').push({
@@ -1382,7 +1382,6 @@
                     });
                 }
 
-                // --- POINT SYSTEM UPDATE (Leaderboard w/ Categories) ---
                 if (isOnlineMode && myUsername && !gameResultSaved) {
                     var myResult = resultOverride;
 
@@ -1411,7 +1410,7 @@
                                     newPointsObj = {
                                         'Rang lutuk': 0,
                                         'Rang vak lo': 0,
-                                        'Rang pangngai': currentPoints, // Hmanlai points fallback
+                                        'Rang pangngai': currentPoints, 
                                         'A muang chi': 0
                                     };
                                 } else if (currentPoints && typeof currentPoints === 'object') {
@@ -1433,7 +1432,6 @@
                         gameResultSaved = true; 
                     }
                 }
-                // -------------------------------------------
 
                 $('#actionButtons').hide(); 
                 $('#moveHistoryBox').hide(); 
@@ -1629,7 +1627,6 @@
                         blackTime: blackTime
                     });
                     
-                    // App a close rualin Link Room pawh in-delete nghal zel turin
                     roomRefDb.onDisconnect().remove();
 
                     listenToRoom();
