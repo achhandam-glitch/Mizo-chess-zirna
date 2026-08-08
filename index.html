@@ -240,28 +240,15 @@
 
         <div id="supportBox">
             <div style="font-size: 13px; color: #555; margin-bottom: 10px; line-height: 1.4;">
-                He game hi i hlimpui a, min thlawp ve duh chuan (a phut luih a ni lo):
+                He game hi i hlimpui a, min thlawp ve duh chuan (Thlawptu hmuh that dan azirin hma hunah domain tak tak lei tum a ni.):
             </div>
             
-            <div style="font-size: 12px; color: #c0392b; margin-bottom: 5px; font-weight: bold;">Pawisa zat tur (Amount) thlang hmasa rawh:</div>
-            
-            <div style="display: flex; justify-content: center; margin-bottom: 10px; align-items: center;">
-                <b style="color: #2c3e50; font-size: 18px; margin-right: 5px;">₹</b>
-                <input type="number" id="upiAmount" value="30" min="1" style="width: 100px; padding: 8px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 16px; text-align: center; font-weight: bold;">
+            <div style="background: #f4f6f7; padding: 10px; border-radius: 6px; font-size: 13px; color: #2c3e50; margin-bottom: 10px; border: 1px dashed #bdc3c7;">
+                <strong>UPI ID:</strong> <span id="upiIdText" style="color: #c0392b; font-weight: bold;">chhanajuly@oksbi</span>
+                <button id="copyUpiBtn" class="btn-gray" style="padding: 4px 8px; font-size: 11px; margin-top: 5px; width: 100%;">📋 UPI ID Copy rawh</button>
             </div>
 
-            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;">
-                <a id="linkGpay" href="#" target="_top" style="flex: 1 1 45%; background-color: #4285F4; color: white; padding: 10px; font-size: 13px; border-radius: 6px; text-align: center; text-decoration: none; font-weight: bold;">Google Pay</a>
-                <a id="linkPhonepe" href="#" target="_top" style="flex: 1 1 45%; background-color: #5f259f; color: white; padding: 10px; font-size: 13px; border-radius: 6px; text-align: center; text-decoration: none; font-weight: bold;">PhonePe</a>
-                <a id="linkGenericUpi" href="#" target="_top" style="flex: 1 1 100%; background-color: #27ae60; color: white; padding: 10px; font-size: 13px; border-radius: 6px; text-align: center; text-decoration: none; font-weight: bold; margin-top: 5px;">UPI App dang hmangin</a>
-            </div>
-
-            <div style="background: #f4f6f7; padding: 8px; border-radius: 6px; font-size: 13px; color: #2c3e50; margin-bottom: 8px; border: 1px dashed #bdc3c7;">
-                <strong>UPI ID:</strong> chhanajuly@oksbi <br>
-                <span style="font-size: 11px; color: #7f8c8d;">(A chunga hmeh hian a thawk lo a nih chuan, he ID hi copy la i app-ah paste mai rawh)</span>
-            </div>
-
-            <div style="font-size: 12px; color: #333; margin-bottom: 5px;">Emaw he QR Code hi Scan rawh:</div>
+            <div style="font-size: 12px; color: #333; margin-bottom: 5px;">I UPI App (GPay/PhonePe/Paytm) hmangin he QR Code hi Scan rawh:</div>
             <div id="qrcode" style="display: flex; justify-content: center; margin-bottom: 10px;"></div>
 
             <button id="closeSupportBtn" class="btn-gray" style="width: 100%; padding: 6px; font-size: 12px;">Khar rawh</button>
@@ -281,7 +268,7 @@
     </div>
 
     <div class="footer-text">
-        <b>Buatsaihtu thuchah:</b> He Mizo Chess zirna hi Alan Lalchhandama buatsaih a ni a. Hetiang hi a lo suangtuah thin a, enchhinna (experiment) a ni. Mizo thalaite leh naupangte'n chess kan tuipui theih nana siam a ni a; online-in emaw khawl thluak (Stockfish) nen in inkhel thei ang. I tihsual atangin zir nawnna (SRS) te pawh hman theih turin a awm a ni. Lo hmang tangkai ngei ang che u!
+        <b>Buatsaihtu thuchah:</b> He Mizo Chess zirna hi Alan Lalchhandama buatsaih a ni a. Hetiang hi a lo suangtuah thin a, enchhinna (experiment) a ni. Mizo thalaite leh naupangte'n chess kan tuipui theih nana siam a ni a; online-in emaw khawl thluak nei nen in inkhel thei ang. I tihsual atanga i inzirna  tur  te pawh hman theihin a awm a ni. Lo tangkaipui ngei ang che!
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -1227,29 +1214,24 @@
                 window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
             });
 
-            function updateUpiLinks() {
-                var amtVal = $('#upiAmount').val() || 30;
-                var amt = parseFloat(amtVal).toFixed(2);
-                var baseParams = "pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=MizoChessSupport&cu=INR&am=" + amt;
-                
-                $('#linkGpay').attr('href', 'tez://upi/pay?' + baseParams);
-                $('#linkPhonepe').attr('href', 'phonepe://pay?' + baseParams);
-                $('#linkGenericUpi').attr('href', 'upi://pay?' + baseParams);
-            }
-
-            $('#upiAmount').on('input change', function() {
-                updateUpiLinks();
+            $(document).on('click', '#copyUpiBtn', function() {
+                var dummy = document.createElement("textarea");
+                document.body.appendChild(dummy);
+                dummy.value = "chhanajuly@oksbi";
+                dummy.select();
+                document.execCommand("copy");
+                document.body.removeChild(dummy);
+                $(this).html("✅ UPI ID Copy tawh!");
+                setTimeout(() => $(this).html("📋 UPI ID Copy rawh"), 2000);
             });
 
             $('#toggleSupportBtn').on('click', function() {
                 $('#supportBox').slideToggle(300, function() {
-                    updateUpiLinks(); 
-                    
                     if (!qrCodeGenerated && $('#supportBox').is(':visible')) {
                         new QRCode(document.getElementById("qrcode"), {
                             text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=MizoChessSupport&cu=INR",
-                            width: 140,
-                            height: 140,
+                            width: 150,
+                            height: 150,
                             colorDark : "#000000",
                             colorLight : "#ffffff",
                             correctLevel : QRCode.CorrectLevel.M
@@ -1432,7 +1414,7 @@
                             var posObj = {
                                 fen: fenBefore,
                                 moveNumber: Math.floor(i / 2) + 1,
-                                orientation: (tempGame.turn() === 'w') ? 'black' : 'white',
+                                orientation: (tempGame.turn() === 'w') ? 'white' : 'black',
                                 srsLevel: 1,
                                 nextReviewTime: 0
                             };
