@@ -22,6 +22,13 @@
         h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; font-size: 22px; }
         .subtitle { font-size: 13px; color: #7f8c8d; margin-bottom: 10px; text-align: center; max-width: 400px; line-height: 1.4; }
         
+        /* Main Live Stats Box */
+        #mainStatsBox {
+            width: 100%; max-width: 400px; background:#fff; padding:10px 15px; 
+            border-radius:8px; margin-bottom:12px; border: 1px solid #bdc3c7; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
         /* Timer CSS */
         .timer-wrapper {
             display: flex; justify-content: space-between; width: 100%; max-width: 400px; 
@@ -135,6 +142,21 @@
     <h2><u>CHESS : MIZOTE TAN </u></h2>
     <div class="subtitle">Ngaihtuahna tichak a, hmathlir tha nei turin Chess khel rawh</div>
     
+    <!-- MAIN SCREEN ONLINE STATS BOX -->
+    <div id="mainStatsBox">
+        <div style="font-size:13px; font-weight:bold; color:#2980b9; margin-bottom:8px; text-align:center;">
+            <i class="fa-solid fa-chart-line"></i> Tualzawl Chanchin (Live Stats)
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #34495e; border-bottom: 1px dashed #ecf0f1; padding-bottom: 6px; margin-bottom: 6px;">
+            <span>👁️ Hmang mek: <strong id="totalVisitorsCount" style="color:#8e44ad; font-size:14px;">0</strong></span>
+            <span>🟢 Log-in: <strong id="onlineCount" style="color:#27ae60; font-size:14px;">0</strong></span>
+            <span>🎮 Inkhel: <strong id="activeGamesCount" style="color:#d35400; font-size:14px;">0</strong></span>
+        </div>
+        <div style="font-size: 11px; color: #7f8c8d; text-align:center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <b>Online:</b> <span id="onlineUsersList" style="color:#2980b9;">Tumah an awm lo</span>
+        </div>
+    </div>
+    
     <div id="status">Board a in-load mek...</div>
     
     <div id="onlineRoomBox"></div>
@@ -155,27 +177,6 @@
         <div id="lobbyBox" style="display: none;">
             <div style="font-size:14px; margin-bottom:12px; color: #2c3e50; font-weight: bold;">
                 I Username: <span id="lblMyUsername" style="color:#e67e22; font-size: 16px;"></span>
-            </div>
-
-            <!-- ONLINE STATS BOX -->
-            <div style="background:#f4f6f7; padding:10px; border-radius:6px; margin-bottom:12px; border: 1px solid #d5dbdb;">
-                <div style="font-size:13px; font-weight:bold; color:#2c3e50; margin-bottom:8px;">
-                    <i class="fa-solid fa-chart-line"></i> Tualzawl Chanchin (Live Stats)
-                </div>
-                <div style="font-size:12px; color:#34495e; margin-bottom: 6px;">
-                    👁️ App hmang mek (Total): <strong id="totalVisitorsCount" style="color:#8e44ad; font-size:14px;">0</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #bdc3c7; padding-bottom: 6px; margin-bottom: 6px;">
-                    <div style="font-size:12px; color:#34495e;">
-                        🟢 Online (Log-in): <strong id="onlineCount" style="color:#27ae60; font-size:14px;">0</strong>
-                    </div>
-                    <div style="font-size:12px; color:#34495e;">
-                        🎮 Inkhel mek: <strong id="activeGamesCount" style="color:#d35400; font-size:14px;">0</strong>
-                    </div>
-                </div>
-                <div style="font-size:12px; color:#34495e;">
-                    <b>Online te:</b> <span id="onlineUsersList" style="color:#2980b9; font-style:italic;">Tuman an rawn tlawh rih lo</span>
-                </div>
             </div>
             
             <div style="background:#f4f6f7; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #d5dbdb;">
