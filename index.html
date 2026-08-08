@@ -166,8 +166,8 @@
     <div id="guideBox" style="display: none; width: 100%; max-width: 400px; background: #fdfefe; padding: 15px; border-radius: 6px; border: 1px solid #3498db; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 13px; color: #2c3e50; line-height: 1.5;">
         <h4 style="margin-top: 0; color: #2980b9; text-align: center; border-bottom: 1px dashed #bdc3c7; padding-bottom: 8px;">App Hman Dan Tlangpui</h4>
         <ul style="padding-left: 20px; margin-bottom: 15px; margin-top: 5px;">
-            <li style="margin-bottom: 8px;"><b>Online Khelh (Point hmuhna):</b> 'Online (Register / Thian zawngin)' thlang la, account siam rawh. I thianpa/thiannu Username zawng chhuakin sawm (challenge) rawh. <br><i style="color:#d35400;">(Chak: +10 pts, Draw: +5 pts, Tlawm: -5 pts)</i></li>
-            <li style="margin-bottom: 8px;"><b>Link Hmanga Sawm (Awlsam):</b> Register kher lovin 'Online (Link - Whatsapp)' thlang la, Link inpe sa kha Whatsapp-ah i thianpa/thiannu thawn rawh.</li>
+            <li style="margin-bottom: 8px;"><b>Online Khelh (Point hmuhna):</b> 'Online (Register / Thian zawngin)' thlang la, account siam rawh. I thianpa Username zawn chhuahin sawm (challenge) rawh. <br><i style="color:#d35400;">(Chak: +10 pts, Draw: +5 pts, Tlawm: -5 pts)</i></li>
+            <li style="margin-bottom: 8px;"><b>Link Hmanga Sawm (Awlsam):</b> Register kher lovin 'Online (Link - Whatsapp)' thlang la, Link inpe sa kha Whatsapp-ah i thianpa thawn rawh.</li>
             <li style="margin-bottom: 8px;"><b>Khawl / Mahnia Khelh:</b> Khawl thluak nei lakah emaw, phone pakhatah 'Mahnia inkhelhna' thlangin a khelh theih bawk.</li>
             <li style="margin-bottom: 8px;"><b>Tihsual Atanga Zirna:</b> Game i khelh zawhah <i>'I tihsual atangin zir rawh'</i> hmet la, khawlin i chetsual dan a hrilhfiah ang che.</li>
         </ul>
@@ -215,7 +215,6 @@
                 <div style="font-size:13px; font-weight:bold; margin-bottom:8px;">Khelhpui tur zawng rawh:</div>
                 <div style="display:flex; gap:5px;">
                     <input type="text" id="mmSearchUser" placeholder="Thianpa username..." style="flex:2; padding:10px; border:1px solid #bdc3c7; border-radius:4px; margin:0;">
-                    <!-- HETAH HIAN MIN-WIDTH LEH PADDING KAN BELH E -->
                     <button id="mmChallengeBtn" class="btn-green" style="flex:1; margin:0; min-width: 70px; padding: 10px 5px;">Sawmna</button>
                 </div>
                 <div id="mmChallengeMsg" style="font-size:12px; color:#c0392b; margin-top:8px; font-weight: bold;"></div>
@@ -291,6 +290,9 @@
         </select>
 
         <button id="togglePgnBoxBtn" class="btn-teal btn-full" style="margin-top: 5px;">📥 Hmun danga khelhna PGN Import-na</button>
+        
+        <!-- DRAW OFFER UI BOX -->
+        <div id="drawOfferBox" style="display: none; width: 100%; margin-bottom: 8px;"></div>
         
         <div id="actionButtons" style="display: none; width: 100%; gap: 8px;">
             <button id="drawBtn" class="btn-gray" style="flex: 1 1 45%;">Inhneh tawk</button>
@@ -589,6 +591,8 @@
                 
                 $('#moveHistoryBox').show();
                 $('#actionButtons').hide(); 
+                $('#drawOfferBox').hide();
+                $('#drawBtn').prop('disabled', false);
                 $('#playAgainBtn').hide();
                 $('#showPgnBtn').hide();
                 $('#learnMistakesBtn').hide();
@@ -685,6 +689,46 @@
                             updateStatus();
                             updateMoveHistory();
                         }
+                        
+                        // --- DRAW OFFER LOGIC ---
+                        if (data.drawOffer && !manuallyEnded) {
+                            if (data.drawOffer.status === 'pending') {
+                                var amISender = (myUsername) ? (data.drawOffer.offerBy === myUsername) : (data.drawOffer.offerBy === playerColor);
+                                if (!amISender) {
+                                    $('#actionButtons').hide();
+                                    $('#drawOfferBox').html(`
+                                        <div style="background:#f39c12; color:#fff; padding:10px; border-radius:6px; margin-bottom:10px; text-align:center; width:100%;">
+                                            <b style="font-size: 14px;">I khingpuiin Inhneh tawk (Draw) a rawt!</b>
+                                            <div style="display:flex; gap:5px; margin-top:8px;">
+                                                <button id="acceptDrawBtn" class="btn-green" style="flex:1; padding:8px; font-size:14px; margin:0;">Pawmna</button>
+                                                <button id="rejectDrawBtn" class="btn-red" style="flex:1; padding:8px; font-size:14px; margin:0;">Hnawl</button>
+                                            </div>
+                                        </div>
+                                    `).show();
+                                } else {
+                                    $status.html("<span style='color:#d35400;'>Draw sawmna thawn a ni, chhanna nghak rawh...</span>");
+                                    $('#drawBtn').prop('disabled', true);
+                                }
+                            } else if (data.drawOffer.status === 'rejected') {
+                                var amISender = (myUsername) ? (data.drawOffer.offerBy === myUsername) : (data.drawOffer.offerBy === playerColor);
+                                if (amISender) {
+                                    $status.html("<span style='color:#c0392b;'>I khingpuiin Draw sawmna a hnawl!</span>");
+                                    setTimeout(function() { 
+                                        if(!manuallyEnded) updateStatus(); 
+                                        $('#drawBtn').prop('disabled', false);
+                                    }, 3000); 
+                                }
+                                $('#drawOfferBox').hide();
+                                if (game.history().length > 0 && !manuallyEnded) $('#actionButtons').css('display', 'flex');
+                            }
+                        } else {
+                            $('#drawOfferBox').hide();
+                            $('#drawBtn').prop('disabled', false);
+                            if (game.history().length > 0 && !manuallyEnded && !isPracticeMode && !isMatchmakingState) {
+                                $('#actionButtons').css('display', 'flex');
+                            }
+                        }
+
                     } else {
                         // Room deleted (Opponent left)
                         if (isOnlineMode) {
@@ -869,7 +913,7 @@
                 alert("Game hlui PGN lakchhuah a ni e!\n'Zirna-ah lut nghal rawh' tih hmangin i chetsualna te i enlet thei ang.");
             });
 
-            // --- REMATCH BUTTON HANDLERS ---
+            // --- REMATCH & DRAW ACCEPT/REJECT BUTTON HANDLERS ---
             $(document).on('click', '#rematchBtn', function() {
                 if(onlineRoomId) {
                     database.ref('rooms/' + onlineRoomId + '/rematch').set({
@@ -891,7 +935,8 @@
                         blackTime: timeVal,
                         whiteUser: newWhiteUser,
                         blackUser: newBlackUser,
-                        rematch: null
+                        rematch: null,
+                        drawOffer: null
                     });
                 }
             });
@@ -901,6 +946,24 @@
                     database.ref('rooms/' + onlineRoomId + '/rematch').update({
                         status: 'rejected'
                     });
+                }
+            });
+
+            $(document).on('click', '#acceptDrawBtn', function() {
+                if (onlineRoomId) {
+                    database.ref('rooms/' + onlineRoomId).update({ 
+                        pgn: game.pgn() + " {Draw}",
+                        drawOffer: null 
+                    });
+                }
+            });
+
+            $(document).on('click', '#rejectDrawBtn', function() {
+                if (onlineRoomId) {
+                    database.ref('rooms/' + onlineRoomId + '/drawOffer').update({ status: 'rejected' });
+                    setTimeout(function() {
+                        database.ref('rooms/' + onlineRoomId + '/drawOffer').remove();
+                    }, 3000);
                 }
             });
 
@@ -998,7 +1061,7 @@
 
                 $('#matchmakingPanel').hide();
                 $('#colorSelect, #difficultySelect, #timeSelect, #togglePgnBoxBtn').hide();
-                $('#guideBtn').hide(); // Hide guide when playing
+                $('#guideBtn').hide(); 
                 
                 $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
                 
@@ -1014,7 +1077,8 @@
                     blackTime: blackTime,
                     whiteUser: whiteUsername,
                     blackUser: blackUsername,
-                    rematch: null
+                    rematch: null,
+                    drawOffer: null
                 });
 
                 roomRefDb.onDisconnect().remove();
@@ -1358,7 +1422,7 @@
             function updateMoveHistory() {
                 if (game.history().length > 0) {
                     $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide();
-                    $('#guideBtn').hide(); // Hide guide when playing
+                    $('#guideBtn').hide(); 
                     
                     if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) {
                         $('#actionButtons').hide(); 
@@ -1462,6 +1526,7 @@
                 }
 
                 $('#actionButtons').hide(); 
+                $('#drawOfferBox').hide();
                 $('#moveHistoryBox').hide(); 
                 
                 if (!isOnlineMode) {
@@ -1484,7 +1549,7 @@
                 }
                 
                 $('#toggleSupportBtn').fadeIn();
-                $('#guideBtn').show(); // Show guide again after game
+                $('#guideBtn').show(); 
             }
 
             function updateStatus () {
@@ -1534,6 +1599,7 @@
                 $('#guideBtn').show();
                 
                 $('#actionButtons').hide();
+                $('#drawOfferBox').hide();
                 
                 if (!isOnlineMode) {
                     $('#playAgainBtn').fadeIn();
@@ -1577,6 +1643,7 @@
                     $('#gameControls').show(); $('#srsControls').hide(); $('#pgnContainer').hide();
                     $('#playAgainBtn').hide(); $('#learnMistakesBtn').hide(); $('#showPgnBtn').hide();
                     $('#actionButtons').hide(); $('#onlineRoomBox').hide();
+                    $('#drawOfferBox').hide();
                     $('#timerContainer').hide();
                     $('#guideBtn').hide();
                     
@@ -1605,6 +1672,7 @@
                 $('#gameControls').show(); $('#srsControls').hide(); $('#pgnContainer').hide();
                 $('#playAgainBtn').hide(); $('#learnMistakesBtn').hide(); $('#showPgnBtn').hide();
                 $('#actionButtons').hide(); 
+                $('#drawOfferBox').hide();
                 $('#onlineRoomBox').hide();
                 $('#guideBtn').show();
                 
@@ -1658,7 +1726,8 @@
                     roomRefDb.set({
                         pgn: "",
                         whiteTime: whiteTime,
-                        blackTime: blackTime
+                        blackTime: blackTime,
+                        drawOffer: null
                     });
                     
                     roomRefDb.onDisconnect().remove();
@@ -1826,8 +1895,11 @@
                 if (game.game_over() || manuallyEnded || isPracticeMode || drawOfferPending || isMatchmakingState) return;
                 
                 if (isOnlineMode) { 
-                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Draw}"}); 
-                    endGameWithMessage('Inhneh tawk (Draw) a ni e!', 'draw'); 
+                    var offerSender = myUsername ? myUsername : playerColor;
+                    database.ref('rooms/' + onlineRoomId + '/drawOffer').set({
+                        offerBy: offerSender,
+                        status: 'pending'
+                    });
                     return; 
                 } else if (isTwoPlayer) {
                     endGameWithMessage('Inhneh tawk (Draw) in pawm dun e!');
