@@ -25,11 +25,12 @@
         /* Timer CSS */
         .timer-wrapper {
             display: flex; justify-content: space-between; width: 100%; max-width: 400px; 
-            margin-bottom: 10px; font-weight: bold; font-size: 16px;
+            margin-bottom: 10px; font-weight: bold; font-size: 15px;
         }
         .timer-box {
-            padding: 6px 12px; border-radius: 6px; border: 2px solid #bdc3c7; 
-            min-width: 100px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 6px 8px; border-radius: 6px; border: 2px solid #bdc3c7; 
+            width: 48%; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         #whiteTimer { background-color: #fff; color: #2c3e50; }
         #blackTimer { background-color: #34495e; color: #fff; border-color: #2c3e50;}
@@ -138,9 +139,8 @@
     
     <div id="onlineRoomBox"></div>
 
-    <!-- MATCHMAKING PANEL (Lichess ang register) -->
+    <!-- MATCHMAKING PANEL -->
     <div id="matchmakingPanel">
-        <!-- Auth Box -->
         <div id="authBox">
             <h4 style="margin-top:0; margin-bottom: 10px; color:#2c3e50;"><i class="fa-solid fa-lock"></i> Online Khel turin lut rawh</h4>
             <div id="authError" style="color:#c0392b; font-size:12px; margin-bottom:8px; font-weight:bold;"></div>
@@ -152,7 +152,6 @@
             </div>
         </div>
 
-        <!-- Lobby Box -->
         <div id="lobbyBox" style="display: none;">
             <div style="font-size:14px; margin-bottom:12px; color: #2c3e50; font-weight: bold;">
                 I Username: <span id="lblMyUsername" style="color:#e67e22; font-size: 16px;"></span>
@@ -320,6 +319,9 @@
             var myUsername = null;
             var incomingChallengeRef = null;
 
+            var whiteUsername = "A Var";
+            var blackUsername = "A Dum";
+
             const urlParams = new URLSearchParams(window.location.search);
             
             var drawOfferPending = false;
@@ -404,8 +406,13 @@
             function updateTimerDisplay() {
                 var $wTimer = $('#whiteTimer');
                 var $bTimer = $('#blackTimer');
-                $wTimer.text('A Var: ' + formatTime(whiteTime));
-                $bTimer.text('A Dum: ' + formatTime(blackTime));
+                
+                var wName = (isOnlineMode && whiteUsername) ? whiteUsername : "A Var";
+                var bName = (isOnlineMode && blackUsername) ? blackUsername : "A Dum";
+
+                $wTimer.text(wName + ': ' + formatTime(whiteTime));
+                $bTimer.text(bName + ': ' + formatTime(blackTime));
+
                 if(whiteTime <= 30) $wTimer.addClass('time-low'); else $wTimer.removeClass('time-low');
                 if(blackTime <= 30) $bTimer.addClass('time-low'); else $bTimer.removeClass('time-low');
             }
@@ -431,8 +438,7 @@
 
             function timeOut(color) {
                 clearInterval(timerInterval);
-                var loser = color === 'w' ? 'A Var' : 'A Dum';
-                var winner = color === 'w' ? 'A Dum' : 'A Var';
+                var winner = color === 'w' ? (isOnlineMode ? blackUsername : 'A Dum') : (isOnlineMode ? whiteUsername : 'A Var');
                 endGameWithMessage('Hun a tawp! ' + winner + ' a chak.');
             }
 
@@ -442,6 +448,10 @@
                 roomRef.on('value', function(snapshot) {
                     var data = snapshot.val();
                     if (data) {
+                        if (data.whiteUser) whiteUsername = data.whiteUser;
+                        if (data.blackUser) blackUsername = data.blackUser;
+                        updateTimerDisplay();
+
                         var incomingPgn = data.pgn || "";
                         
                         if (incomingPgn.indexOf("{Resign}") !== -1) {
@@ -540,7 +550,7 @@
                             var data = cSnap.val();
                             if(data && data.status === 'accepted') {
                                 chal.off(); chal.remove();
-                                startMatch(roomId, 'w'); // Challenger is White
+                                startMatch(roomId, 'w', myUsername, opp); 
                             } else if (!data) {
                                 chal.off(); $('#mmChallengeMsg').text("Sawmna cancel emaw a tawp.");
                             }
@@ -569,7 +579,7 @@
                         if(c.status === 'pending') {
                             html += `<div style="background:#fff; border:1px solid #ccc; padding:8px; border-radius:4px; margin-bottom:5px;">
                                 <b>${c.from}</b> in a rawn sawm che!
-                                <button class="btn-green mm-accept-btn" data-id="${child.key}" data-room="${c.room}" style="padding:6px; margin-top:5px; width:100%;">Pawmna (Accept)</button>
+                                <button class="btn-green mm-accept-btn" data-id="${child.key}" data-room="${c.room}" data-from="${c.from}" style="padding:6px; margin-top:5px; width:100%;">Pawmna (Accept)</button>
                             </div>`;
                         }
                     });
@@ -582,31 +592,40 @@
             }
 
             $(document).on('click', '.mm-accept-btn', function() {
-                var cId = $(this).data('id'); var rId = $(this).data('room');
+                var cId = $(this).data('id'); 
+                var rId = $(this).data('room');
+                var challenger = $(this).data('from');
                 database.ref('challenges/' + cId).update({status: 'accepted'});
-                startMatch(rId, 'b'); // Accepter is Black
+                startMatch(rId, 'b', challenger, myUsername); 
             });
 
-            function startMatch(roomId, color) {
+            function startMatch(roomId, color, wUser, bUser) {
                 isMatchmakingState = false;
                 isOnlineMode = true;
                 isTwoPlayer = false;
                 onlineRoomId = roomId;
                 playerColor = color;
                 
+                whiteUsername = wUser;
+                blackUsername = bUser;
+
                 $('#matchmakingPanel').hide();
                 $('#colorSelect, #difficultySelect, #timeSelect, #togglePgnBoxBtn').hide();
                 
-                $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game I thian nen in inkhel mek</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
+                $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
                 
                 var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
                 whiteTime = timeVal; blackTime = timeVal;
 
                 board.orientation(playerColor === 'w' ? 'white' : 'black');
                 
-                if (playerColor === 'w') {
-                    database.ref('rooms/' + onlineRoomId).set({ pgn: "", whiteTime: whiteTime, blackTime: blackTime });
-                }
+                database.ref('rooms/' + onlineRoomId).update({
+                    pgn: "",
+                    whiteTime: whiteTime,
+                    blackTime: blackTime,
+                    whiteUser: whiteUsername,
+                    blackUser: blackUsername
+                });
                 
                 game.reset(); board.start(); selectedSquare = null; removeHighlights();
                 updateStatus(); updateMoveHistory(); 
@@ -1009,7 +1028,8 @@
                 var playerText = '';
                 
                 if (isOnlineMode) {
-                    playerText = (game.turn() === playerColor) ? 'Nangmah ('+turnColor+')' : 'I thian ('+turnColor+')';
+                    var activeUser = (game.turn() === 'w') ? whiteUsername : blackUsername;
+                    playerText = activeUser + ' (' + turnColor + ')';
                 } else if (isTwoPlayer) {
                     playerText = turnColor;
                 } else {
@@ -1085,7 +1105,6 @@
 
                 var diff = $('#difficultySelect').val();
                 
-                // MATCHMAKING STATE (Register/Lobby)
                 if (diff === 'matchmaking') {
                     isMatchmakingState = true;
                     $('#gameControls').show(); $('#srsControls').hide(); $('#pgnContainer').hide();
@@ -1139,7 +1158,7 @@
                     
                     $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide();
                     
-                    $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'>Online Game I thian nen in inkhel mek</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
+                    $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'>Online Game (Link hmangin)</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
                     
                     listenToRoom();
                 } 
@@ -1197,9 +1216,6 @@
                 window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
             });
 
-            // ============================================
-            // NATIVE UPI LINKS UPDATE LOGIC
-            // ============================================
             function updateUpiLinks() {
                 var amtVal = $('#upiAmount').val() || 30;
                 var amt = parseFloat(amtVal).toFixed(2);
