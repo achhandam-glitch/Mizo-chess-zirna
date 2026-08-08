@@ -22,14 +22,12 @@
         h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; font-size: 22px; }
         .subtitle { font-size: 13px; color: #7f8c8d; margin-bottom: 10px; text-align: center; max-width: 400px; line-height: 1.4; }
         
-        /* Main Live Stats Box */
         #mainStatsBox {
             width: 100%; max-width: 400px; background:#fff; padding:10px 15px; 
             border-radius:8px; margin-bottom:10px; border: 1px solid #bdc3c7; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         
-        /* Timer CSS */
         .timer-wrapper {
             display: flex; justify-content: space-between; width: 100%; max-width: 400px; 
             margin-bottom: 10px; font-weight: bold; font-size: 15px;
@@ -44,10 +42,9 @@
         .time-low { color: #e74c3c !important; animation: blinker 1s linear infinite; }
         @keyframes blinker { 50% { opacity: 0.5; } }
 
-        .board-wrapper { width: 100%; max-width: 400px; margin-bottom: 10px; }
+        .board-wrapper { width: 100%; max-width: 400px; margin-bottom: 10px; position: relative; }
         #board { width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1); touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
         
-        /* Move History CSS */
         .move-history-wrapper {
             width: 100%; max-width: 400px; background: #fff; border: 1px solid #bdc3c7; 
             border-radius: 6px; padding: 10px; margin-bottom: 15px; 
@@ -73,20 +70,28 @@
         .btn-full { flex: 1 1 100%; }
         .btn-blue { background-color: #2980b9; color: #fff;} 
         .btn-purple { background-color: #8e44ad; color: #fff; } 
-        .btn-purple:hover { background-color: #732d91; }
         .btn-teal { background-color: #16a085; color: #fff; }
         .btn-whatsapp { background-color: #25D366 !important; color: white !important; }
-        .btn-whatsapp:hover { background-color: #128C7E !important; }
-        
         .btn-support { background-color: #d35400 !important; color: white !important; }
-        .btn-support:hover { background-color: #ba4a00 !important; }
 
         .color-dropdown {
             padding: 10px; font-size: 14px; border-radius: 6px; border: 1px solid #bdc3c7;
             font-weight: bold; color: #2c3e50; flex: 1 1 calc(33% - 10px); min-width: 100px;
         }
-        .highlight-square { background-color: #f1c40f !important; opacity: 0.7; }
         
+        /* CHESS PIECE AND BOARD INDICATORS CSS */
+        .highlight-square { background-color: #f1c40f !important; opacity: 0.7; }
+        .legal-move-dot {
+            position: absolute; top: 50%; left: 50%; width: 25%; height: 25%;
+            background: rgba(0,0,0,0.3); border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 2;
+        }
+        .legal-move-capture {
+            position: absolute; top: 50%; left: 50%; width: 85%; height: 85%;
+            border: 4px solid rgba(0,0,0,0.3); border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none; z-index: 2; box-sizing: border-box;
+        }
+
         #status { 
             font-size: 15px; font-weight: bold; margin-bottom: 8px; 
             color: #c0392b; text-align: center; background: #fff;
@@ -94,45 +99,54 @@
         }
 
         #openingDisplay {
-            font-size: 14px; font-weight: bold; color: #2980b9;
-            margin-bottom: 10px; text-align: center; width: 100%; max-width: 400px;
-            display: none; background: #d6eaf8; padding: 5px; border-radius: 5px;
+            font-size: 14px; font-weight: bold; color: #2980b9; margin-bottom: 10px; text-align: center; width: 100%; max-width: 400px; display: none; background: #d6eaf8; padding: 5px; border-radius: 5px;
         }
 
         #verseDisplay {
-            display: none; font-size: 14px; color: #145a32; background-color: #d5f5e3;
-            border-left: 5px solid #27ae60; padding: 12px; border-radius: 4px;
-            margin-bottom: 15px; width: 100%; max-width: 400px; text-align: center;
-            font-style: italic; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none; font-size: 14px; color: #145a32; background-color: #d5f5e3; border-left: 5px solid #27ae60; padding: 12px; border-radius: 4px; margin-bottom: 15px; width: 100%; max-width: 400px; text-align: center; font-style: italic; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         #pgnContainer {
-            display: none; width: 100%; max-width: 400px; margin-bottom: 15px;
-            background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #bdc3c7;
+            display: none; width: 100%; max-width: 400px; margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #bdc3c7;
         }
         #pgnText {
-            width: 100%; height: 120px; padding: 8px; font-size: 12px; font-family: monospace;
-            border: 1px solid #ccc; border-radius: 4px; resize: none; margin-bottom: 8px;
+            width: 100%; height: 120px; padding: 8px; font-size: 12px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px; resize: none; margin-bottom: 8px;
         }
 
         #onlineRoomBox {
-            display: none; width: 100%; max-width: 400px; background: #e8f8f5; 
-            padding: 10px; border-radius: 6px; border: 1px solid #1abc9c; 
-            margin-bottom: 10px; text-align: center;
+            display: none; width: 100%; max-width: 400px; background: #e8f8f5; padding: 10px; border-radius: 6px; border: 1px solid #1abc9c; margin-bottom: 10px; text-align: center;
         }
 
-        /* Matchmaking Panel */
         #matchmakingPanel {
-            display: none; width: 100%; max-width: 400px; background: #fff; 
-            padding: 15px; border-radius: 6px; border: 1px solid #3498db; 
-            margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none; width: 100%; max-width: 400px; background: #fff; padding: 15px; border-radius: 6px; border: 1px solid #3498db; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         #supportBox {
-            display: none; width: 100%; max-width: 400px; background: #fdfefe; 
-            padding: 10px; border-radius: 6px; border: 1px solid #d35400; 
-            margin-top: -5px; margin-bottom: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none; width: 100%; max-width: 400px; background: #fdfefe; padding: 10px; border-radius: 6px; border: 1px solid #d35400; margin-top: -5px; margin-bottom: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+
+        /* PROMOTION MODAL */
+        #promotionModal {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            z-index: 1000; text-align: center; border: 2px solid #2980b9;
+        }
+        .promo-piece {
+            width: 50px; cursor: pointer; background: #ecf0f1; border-radius: 4px; padding: 5px; transition: transform 0.2s;
+        }
+        .promo-piece:hover { transform: scale(1.1); background: #d6eaf8; }
+
+        /* CHAT BOX */
+        #chatBoxContainer {
+            display: none; width: 100%; max-width: 400px; background: #fff; border: 1px solid #bdc3c7; 
+            border-radius: 6px; margin-bottom: 10px; overflow: hidden;
+        }
+        #chatMessages {
+            height: 120px; overflow-y: auto; padding: 10px; font-size: 13px; background: #fafafa;
+        }
+        .chat-input-area { display: flex; border-top: 1px solid #bdc3c7; }
+        .chat-input-area input { flex: 1; border: none; padding: 10px; outline: none; font-size: 13px; }
+        .chat-input-area button { background: #2ecc71; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 0; min-width: unset; flex: none;}
 
         .footer-text { margin-top: 15px; font-size: 12px; color: #7f8c8d; text-align: center; line-height: 1.5; max-width: 400px; padding-bottom: 20px;}
     </style>
@@ -196,7 +210,6 @@
                 I Username: <span id="lblMyUsername" style="color:#e67e22; font-size: 16px;"></span>
             </div>
 
-            <!-- LEADERBOARD BOX -->
             <div style="background:#fdfefe; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #f1c40f;">
                 <div style="font-size:13px; font-weight:bold; margin-bottom:8px; color:#d35400; display:flex; justify-content:space-between; align-items:center;">
                     <span><i class="fa-solid fa-trophy"></i> Point Hmu Sangte</span>
@@ -225,7 +238,6 @@
                 <div id="mmIncomingList"></div>
             </div>
 
-            <!-- GAME HISTORY BOX -->
             <div style="background:#fdfefe; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #d5dbdb;">
                 <div style="font-size:13px; font-weight:bold; margin-bottom:8px; color:#2c3e50;">
                     <i class="fa-solid fa-clock-rotate-left"></i> Ka Game Khelh Tawhte (History)
@@ -246,7 +258,32 @@
         <div class="timer-box" id="blackTimer">A Dum: 10:00</div>
     </div>
 
-    <div class="board-wrapper"><div id="board"></div></div>
+    <div class="board-wrapper">
+        <div id="board"></div>
+        <!-- PROMOTION MODAL -->
+        <div id="promotionModal">
+            <h4 style="margin-top:0; color:#2c3e50; font-size:14px; margin-bottom:10px;">Sipai Thlanna</h4>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <img src="" class="promo-piece" data-piece="q">
+                <img src="" class="promo-piece" data-piece="r">
+                <img src="" class="promo-piece" data-piece="b">
+                <img src="" class="promo-piece" data-piece="n">
+            </div>
+            <button id="cancelPromoBtn" class="btn-red" style="margin-top:12px; width:100%; padding:6px; font-size:12px;">Cancel (Sutna)</button>
+        </div>
+    </div>
+    
+    <!-- CHAT BOX -->
+    <div id="chatBoxContainer">
+        <div style="background: #2980b9; color: #fff; padding: 6px 10px; font-size: 13px; font-weight: bold;">
+            <i class="fa-solid fa-comments"></i> Inbiakna (Live Chat)
+        </div>
+        <div id="chatMessages"></div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Sawi tur ziak rawh...">
+            <button id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
     
     <div class="move-history-wrapper" id="moveHistoryBox">
         <span style="color:#7f8c8d; font-style:italic;">Chet dan record hetah a lo lang ang...</span>
@@ -356,6 +393,23 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
+        // --- AUDIO SOUND EFFECTS ---
+        const moveSnd = new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3');
+        const captureSnd = new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/capture.mp3');
+        const checkSnd = new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-check.mp3');
+        const gameEndSnd = new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/game-end.mp3');
+        const lowTimeSnd = new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/tenseconds.mp3');
+        var lowTimePlayedW = false;
+        var lowTimePlayedB = false;
+
+        function playMoveSound(moveObj) {
+            if (!moveObj) return;
+            var isCheck = moveObj.san && (moveObj.san.includes('+') || moveObj.san.includes('#'));
+            if (isCheck) checkSnd.play().catch(e=>{});
+            else if (moveObj.captured) captureSnd.play().catch(e=>{});
+            else moveSnd.play().catch(e=>{});
+        }
+
         $(document).ready(function() {
             var board = null;
             var game = new Chess();
@@ -370,6 +424,7 @@
 
             var onlineRoomId = null;
             var roomRef = null;
+            var chatRef = null;
             var myUsername = null;
             var incomingChallengeRef = null;
 
@@ -437,15 +492,9 @@
             stockfish.postMessage('uci');
 
             // --- GUIDE BOX TOGGLE ---
-            $('#guideBtn').click(function() {
-                $('#guideBox').slideToggle();
-            });
-            $('#closeGuideBtn').click(function() {
-                $('#guideBox').slideUp();
-            });
-            // ------------------------
+            $('#guideBtn').click(function() { $('#guideBox').slideToggle(); });
+            $('#closeGuideBtn').click(function() { $('#guideBox').slideUp(); });
 
-            // --- CATEGORY HELPER FUNCTION ---
             function getTimeControlCategory(minutes) {
                 var m = parseInt(minutes);
                 if (m <= 1) return 'Rang lutuk';
@@ -461,54 +510,32 @@
             var dailyRef = database.ref('daily_visitors/' + dateString);
             
             if (!localStorage.getItem(visitedKey)) {
-                dailyRef.transaction(function(current_value) {
-                    return (current_value || 0) + 1;
-                });
+                dailyRef.transaction(current_value => (current_value || 0) + 1);
                 localStorage.setItem(visitedKey, 'true');
             }
-            
-            dailyRef.on('value', function(snapshot) {
-                $('#todayVisitorsCount').text(snapshot.val() || 0);
-            });
+            dailyRef.on('value', snap => $('#todayVisitorsCount').text(snap.val() || 0));
 
             // --- TOTAL VISITORS PRESENCE SYSTEM ---
             var visitorsRef = database.ref('/online_visitors');
             var myVisitorRef = visitorsRef.push(); 
-
-            database.ref('.info/connected').on('value', function(snapshot) {
-                if (snapshot.val() == false) { return; }
-                myVisitorRef.onDisconnect().remove().then(function() {
-                    myVisitorRef.set(true);
-                });
+            database.ref('.info/connected').on('value', snap => {
+                if (snap.val() == false) return;
+                myVisitorRef.onDisconnect().remove().then(() => myVisitorRef.set(true));
             });
+            visitorsRef.on('value', snap => $('#totalVisitorsCount').text(snap.numChildren()));
 
-            visitorsRef.on('value', function(snapshot) {
-                $('#totalVisitorsCount').text(snapshot.numChildren());
-            });
-
-            // --- PRESENCE SYSTEM (Online Stats Listeners) ---
+            // --- PRESENCE SYSTEM ---
             database.ref('/status/').on('value', function(snapshot) {
-                var count = 0;
-                var onlineUsers = [];
+                var count = 0; var onlineUsers = [];
                 snapshot.forEach(function(child) {
-                    if (child.val().state === 'online') {
-                        count++;
-                        onlineUsers.push(child.key);
-                    }
+                    if (child.val().state === 'online') { count++; onlineUsers.push(child.key); }
                 });
                 $('#onlineCount').text(count);
-                if (onlineUsers.length > 0) {
-                    $('#onlineUsersList').text(onlineUsers.join(', '));
-                } else {
-                    $('#onlineUsersList').text('Tumah an awm lo');
-                }
+                $('#onlineUsersList').text(onlineUsers.length > 0 ? onlineUsers.join(', ') : 'Tumah an awm lo');
             });
-
             database.ref('rooms/').on('value', function(snapshot) {
                 var activeRooms = 0;
-                snapshot.forEach(function(child) {
-                    if (child.val()) { activeRooms++; }
-                });
+                snapshot.forEach(child => { if (child.val()) activeRooms++; });
                 $('#activeGamesCount').text(activeRooms);
             });
 
@@ -557,9 +584,11 @@
 
                     if (game.turn() === 'w') {
                         whiteTime--;
+                        if (whiteTime === 10 && !lowTimePlayedW) { lowTimeSnd.play().catch(e=>{}); lowTimePlayedW = true; }
                         if (whiteTime <= 0) { whiteTime = 0; timeOut('w'); }
                     } else {
                         blackTime--;
+                        if (blackTime === 10 && !lowTimePlayedB) { lowTimeSnd.play().catch(e=>{}); lowTimePlayedB = true; }
                         if (blackTime <= 0) { blackTime = 0; timeOut('b'); }
                     }
                     updateTimerDisplay();
@@ -575,37 +604,22 @@
             }
 
             function restartOnlineGame() {
-                manuallyEnded = false;
-                drawOfferPending = false;
-                gameResultSaved = false;
-                hideVerse();
-                $('#toggleSupportBtn').hide();
-                $('#supportBox').hide();
+                manuallyEnded = false; drawOfferPending = false; gameResultSaved = false;
+                lowTimePlayedW = false; lowTimePlayedB = false;
+                hideVerse(); $('#toggleSupportBtn').hide(); $('#supportBox').hide();
                 
-                game.reset(); 
-                board.start(); 
-                selectedSquare = null; 
-                removeHighlights();
+                game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
                 
                 $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
                 
-                $('#moveHistoryBox').show();
-                $('#actionButtons').hide(); 
-                $('#drawOfferBox').hide();
-                $('#drawBtn').prop('disabled', false);
-                $('#playAgainBtn').hide();
-                $('#showPgnBtn').hide();
-                $('#learnMistakesBtn').hide();
-                $('#pgnContainer').hide();
+                $('#moveHistoryBox').show(); $('#actionButtons').hide(); $('#drawOfferBox').hide();
+                $('#drawBtn').prop('disabled', false); $('#playAgainBtn').hide(); $('#showPgnBtn').hide();
+                $('#learnMistakesBtn').hide(); $('#pgnContainer').hide();
                 
                 var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
                 whiteTime = timeVal; blackTime = timeVal;
                 
-                $('#timerContainer').show();
-                updateTimerDisplay();
-                startTimer();
-                updateStatus();
-                updateMoveHistory();
+                $('#timerContainer').show(); updateTimerDisplay(); startTimer(); updateStatus(); updateMoveHistory();
             }
 
             function listenToRoom() {
@@ -617,9 +631,7 @@
                         if (data.whiteUser) whiteUsername = data.whiteUser;
                         if (data.blackUser) blackUsername = data.blackUser;
                         
-                        if (!manuallyEnded) {
-                            updateTimerDisplay();
-                        }
+                        if (!manuallyEnded) updateTimerDisplay();
 
                         // --- REMATCH LOGIC ---
                         if (data.rematch && manuallyEnded) {
@@ -636,11 +648,8 @@
                                     $('#rematchArea').html(`<div style="font-size:13px; color:#d35400; font-weight:bold; margin-bottom:10px;">Sawmna thawn mek a ni...</div>`);
                                 }
                             } else if (data.rematch.status === 'rejected') {
-                                if (data.rematch.offerBy === myUsername) {
-                                    $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">A hnawl ta! (Rejected)</div>`);
-                                } else {
-                                    $('#rematchArea').html(`<div style="font-size:13px; color:#7f8c8d; font-weight:bold; margin-bottom:10px;">I hnawl ta.</div>`);
-                                }
+                                if (data.rematch.offerBy === myUsername) $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">A hnawl ta! (Rejected)</div>`);
+                                else $('#rematchArea').html(`<div style="font-size:13px; color:#7f8c8d; font-weight:bold; margin-bottom:10px;">I hnawl ta.</div>`);
                             }
                         }
 
@@ -648,46 +657,38 @@
                             if (data.whiteUser === myUsername) playerColor = 'w';
                             else if (data.blackUser === myUsername) playerColor = 'b';
                             board.orientation(playerColor === 'w' ? 'white' : 'black');
-                            restartOnlineGame();
-                            return;
+                            restartOnlineGame(); return;
                         }
 
                         var incomingPgn = data.pgn || "";
-                        
                         if (incomingPgn.indexOf("{Resign}") !== -1) {
                             incomingPgn = incomingPgn.replace(" {Resign}", ""); 
                             if (incomingPgn !== game.pgn()) {
-                                game.load_pgn(incomingPgn);
-                                board.position(game.fen());
-                                updateMoveHistory();
+                                game.load_pgn(incomingPgn); board.position(game.fen()); updateMoveHistory();
                             }
-                            if (!manuallyEnded) {
-                                endGameWithMessage('I khingpui a tlawm ta! I chak e.', 'win');
-                            }
+                            if (!manuallyEnded) endGameWithMessage('I khingpui a tlawm ta! I chak e.', 'win');
                             return; 
                         }
 
                         if (incomingPgn.indexOf("{Draw}") !== -1) {
                             incomingPgn = incomingPgn.replace(" {Draw}", ""); 
                             if (incomingPgn !== game.pgn()) {
-                                game.load_pgn(incomingPgn);
-                                board.position(game.fen());
-                                updateMoveHistory();
+                                game.load_pgn(incomingPgn); board.position(game.fen()); updateMoveHistory();
                             }
-                            if (!manuallyEnded) {
-                                endGameWithMessage('Inhneh tawk (Draw) a ni e!', 'draw');
-                            }
+                            if (!manuallyEnded) endGameWithMessage('Inhneh tawk (Draw) a ni e!', 'draw');
                             return; 
                         }
 
                         if (incomingPgn !== game.pgn()) {
-                            game.load_pgn(incomingPgn);
-                            board.position(game.fen());
+                            game.load_pgn(incomingPgn); board.position(game.fen());
+                            
+                            // Play sound for opponent move
+                            var hist = game.history({verbose: true});
+                            if(hist.length > 0) playMoveSound(hist[hist.length-1]);
+
                             if (data.whiteTime !== undefined) whiteTime = data.whiteTime;
                             if (data.blackTime !== undefined) blackTime = data.blackTime;
-                            updateTimerDisplay();
-                            updateStatus();
-                            updateMoveHistory();
+                            updateTimerDisplay(); updateStatus(); updateMoveHistory();
                         }
                         
                         // --- DRAW OFFER LOGIC ---
@@ -730,17 +731,36 @@
                         }
 
                     } else {
-                        // Room deleted (Opponent left)
                         if (isOnlineMode) {
-                            if (!manuallyEnded) {
-                                endGameWithMessage("I khingpuiin app a chhuahsan! (Disconnected)", 'win');
-                            } else {
-                                $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">I khingpuiin a chhuahsan tawh.</div>`);
-                            }
+                            if (!manuallyEnded) endGameWithMessage("I khingpuiin app a chhuahsan! (Disconnected)", 'win');
+                            else $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">I khingpuiin a chhuahsan tawh.</div>`);
                         }
                     }
                 });
+
+                // --- LIVE CHAT LISTENER ---
+                if (chatRef) chatRef.off();
+                chatRef = database.ref('rooms/' + onlineRoomId + '/chat');
+                chatRef.on('child_added', function(snapshot) {
+                    var c = snapshot.val();
+                    var myName = myUsername || (playerColor==='w'?'A Var':'A Dum');
+                    var align = (c.sender === myName) ? 'right' : 'left';
+                    var bg = align === 'right' ? '#d6eaf8' : '#e8eaed';
+                    $('#chatMessages').append(`<div style="text-align:${align}; margin-bottom:6px;"><span style="background:${bg}; padding:6px 10px; border-radius:12px; display:inline-block; max-width:85%; word-wrap:break-word; font-size:12px;"><b>${c.sender}:</b> ${c.text}</span></div>`);
+                    $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+                });
             }
+
+            // Chat send event
+            $('#chatSendBtn').click(function() {
+                var text = $('#chatInput').val().trim();
+                if (text && onlineRoomId) {
+                    var myName = myUsername || (playerColor==='w'?'A Var':'A Dum');
+                    database.ref('rooms/' + onlineRoomId + '/chat').push({sender: myName, text: text});
+                    $('#chatInput').val('');
+                }
+            });
+            $('#chatInput').keypress(function(e) { if(e.which == 13) $('#chatSendBtn').click(); });
 
             // --- AUTH & LOBBY LOGIC ---
             function getEmail(u) { return u.toLowerCase().trim() + "@mizochess.com"; }
@@ -775,12 +795,7 @@
                 auth.createUserWithEmailAndPassword(getEmail(u), p).then(() => {
                     database.ref('users/' + u.toLowerCase().trim()).set({ 
                         joined: Date.now(), 
-                        points: {
-                            'Rang lutuk': 0,
-                            'Rang vak lo': 0,
-                            'Rang pangngai': 0,
-                            'A muang chi': 0
-                        }
+                        points: { 'Rang lutuk': 0, 'Rang vak lo': 0, 'Rang pangngai': 0, 'A muang chi': 0 }
                     });
                     $('#authError').text("");
                 }).catch(e => $('#authError').text(e.message));
@@ -795,9 +810,7 @@
             });
 
             $('#mmLogoutBtn').click(function() { 
-                if(myUsername) {
-                    database.ref('/status/' + myUsername).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
-                }
+                if(myUsername) database.ref('/status/' + myUsername).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
                 auth.signOut(); 
             });
 
@@ -807,7 +820,6 @@
                 listenToChallenges();
             }
 
-            // --- LEADERBOARD CATEGORY LOGIC ---
             function loadLeaderboard() {
                 var $list = $('#mmLeaderboardList');
                 var category = $('#leaderboardCategoryFilter').val();
@@ -816,22 +828,14 @@
                 database.ref('users').once('value').then(function(snapshot) {
                     var leaders = [];
                     snapshot.forEach(function(child) {
-                        var data = child.val();
-                        var pts = 0;
-                        if (data.points && typeof data.points === 'object') {
-                            pts = data.points[category] || 0;
-                        } else if (typeof data.points === 'number' && category === 'Rang pangngai') {
-                            // Hmanlai data fallback (10 mins default vangin)
-                            pts = data.points;
-                        }
-                        
-                        if (pts > 0) { 
-                            leaders.push({ username: child.key, points: pts });
-                        }
+                        var data = child.val(); var pts = 0;
+                        if (data.points && typeof data.points === 'object') pts = data.points[category] || 0;
+                        else if (typeof data.points === 'number' && category === 'Rang pangngai') pts = data.points;
+                        if (pts > 0) leaders.push({ username: child.key, points: pts });
                     });
 
                     leaders.sort((a, b) => b.points - a.points);
-                    leaders = leaders.slice(0, 10); // Top 10 chauh
+                    leaders = leaders.slice(0, 10);
 
                     if(leaders.length === 0) {
                         $list.html('<div style="padding:10px; text-align:center;"><i>Tumah an la awm lo.</i></div>');
@@ -846,44 +850,28 @@
                                 <td style="padding:8px; font-weight:bold; color:#d35400;">${l.points}</td>
                             </tr>`;
                         });
-                        html += '</table>';
-                        $list.html(html);
+                        html += '</table>'; $list.html(html);
                     }
                 });
             }
 
             $('#mmShowLeaderboardBtn').click(function() {
                 var $list = $('#mmLeaderboardList');
-                if($list.is(':visible')) {
-                    $list.slideUp();
-                    return;
-                }
+                if($list.is(':visible')) { $list.slideUp(); return; }
                 loadLeaderboard();
             });
 
-            $('#leaderboardCategoryFilter').change(function() {
-                if($('#mmLeaderboardList').is(':visible')) {
-                    loadLeaderboard();
-                }
-            });
+            $('#leaderboardCategoryFilter').change(function() { if($('#mmLeaderboardList').is(':visible')) loadLeaderboard(); });
 
-            // --- GAME HISTORY FETCHING ---
             $('#mmLoadHistoryBtn').click(function() {
                 if(!myUsername) return;
                 var $list = $('#mmHistoryList');
-                if($list.is(':visible')) {
-                    $list.slideUp();
-                    return;
-                }
-
+                if($list.is(':visible')) { $list.slideUp(); return; }
                 $list.html('<div style="padding:10px; text-align:center;"><i>Record zawn mek a ni...</i></div>').slideDown();
 
                 database.ref('users/' + myUsername + '/games').orderByChild('date').limitToLast(15).once('value').then(function(snapshot) {
-                    var html = '';
-                    var games = [];
-                    snapshot.forEach(function(child) {
-                        games.push({id: child.key, data: child.val()});
-                    });
+                    var html = ''; var games = [];
+                    snapshot.forEach(function(child) { games.push({id: child.key, data: child.val()}); });
                     games.reverse();
 
                     if(games.length === 0) {
@@ -892,10 +880,7 @@
                         games.forEach(function(g) {
                             var d = new Date(g.data.date).toLocaleDateString('en-GB');
                             html += `<div style="padding:8px; border-bottom:1px solid #ecf0f1; display:flex; justify-content:space-between; align-items:center;">
-                                <div style="flex:1;">
-                                    <b style="color:#2980b9;">vs ${g.data.opponent}</b> <br>
-                                    <span style="font-size:10px; color:#7f8c8d;">${d} | ${g.data.result.substring(0, 20)}</span>
-                                </div>
+                                <div style="flex:1;"><b style="color:#2980b9;">vs ${g.data.opponent}</b> <br><span style="font-size:10px; color:#7f8c8d;">${d} | ${g.data.result.substring(0, 20)}</span></div>
                                 <button class="btn-teal btn-load-past-game" data-pgn="${encodeURIComponent(g.data.pgn)}" style="padding:5px 10px; font-size:11px; min-width:60px;">Enna</button>
                             </div>`;
                         });
@@ -906,64 +891,37 @@
 
             $(document).on('click', '.btn-load-past-game', function() {
                 var pastPgn = decodeURIComponent($(this).data('pgn'));
-                $('#matchmakingPanel').hide();
-                $('#gameControls').show();
-                $('#pgnContainer').show();
+                $('#matchmakingPanel').hide(); $('#gameControls').show(); $('#pgnContainer').show();
                 $('#pgnText').val(pastPgn);
                 alert("Game hlui PGN lakchhuah a ni e!\n'Zirna-ah lut nghal rawh' tih hmangin i chetsualna te i enlet thei ang.");
             });
 
-            // --- REMATCH & DRAW ACCEPT/REJECT BUTTON HANDLERS ---
             $(document).on('click', '#rematchBtn', function() {
-                if(onlineRoomId) {
-                    database.ref('rooms/' + onlineRoomId + '/rematch').set({
-                        offerBy: myUsername,
-                        status: 'pending'
-                    });
-                }
+                if(onlineRoomId) database.ref('rooms/' + onlineRoomId + '/rematch').set({ offerBy: myUsername, status: 'pending' });
             });
 
             $(document).on('click', '#acceptRematchBtn', function() {
                 if(onlineRoomId) {
-                    var newWhiteUser = blackUsername;
-                    var newBlackUser = whiteUsername;
+                    var newWhiteUser = blackUsername; var newBlackUser = whiteUsername;
                     var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
-
                     database.ref('rooms/' + onlineRoomId).update({
-                        pgn: "",
-                        whiteTime: timeVal,
-                        blackTime: timeVal,
-                        whiteUser: newWhiteUser,
-                        blackUser: newBlackUser,
-                        rematch: null,
-                        drawOffer: null
+                        pgn: "", whiteTime: timeVal, blackTime: timeVal, whiteUser: newWhiteUser, blackUser: newBlackUser, rematch: null, drawOffer: null
                     });
                 }
             });
 
             $(document).on('click', '#rejectRematchBtn', function() {
-                if(onlineRoomId) {
-                    database.ref('rooms/' + onlineRoomId + '/rematch').update({
-                        status: 'rejected'
-                    });
-                }
+                if(onlineRoomId) database.ref('rooms/' + onlineRoomId + '/rematch').update({ status: 'rejected' });
             });
 
             $(document).on('click', '#acceptDrawBtn', function() {
-                if (onlineRoomId) {
-                    database.ref('rooms/' + onlineRoomId).update({ 
-                        pgn: game.pgn() + " {Draw}",
-                        drawOffer: null 
-                    });
-                }
+                if (onlineRoomId) database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Draw}", drawOffer: null });
             });
 
             $(document).on('click', '#rejectDrawBtn', function() {
                 if (onlineRoomId) {
                     database.ref('rooms/' + onlineRoomId + '/drawOffer').update({ status: 'rejected' });
-                    setTimeout(function() {
-                        database.ref('rooms/' + onlineRoomId + '/drawOffer').remove();
-                    }, 3000);
+                    setTimeout(function() { database.ref('rooms/' + onlineRoomId + '/drawOffer').remove(); }, 3000);
                 }
             });
 
@@ -984,11 +942,9 @@
                         chal.on('value', function(cSnap) {
                             var data = cSnap.val();
                             if(data && data.status === 'accepted') {
-                                chal.off(); chal.remove();
-                                startMatch(roomId, 'w', myUsername, opp); 
+                                chal.off(); chal.remove(); startMatch(roomId, 'w', myUsername, opp); 
                             } else if (data && data.status === 'rejected') {
-                                chal.off(); chal.remove();
-                                $('#mmChallengeMsg').text(opp + " chuan i sawmna a hnawl ta (Rejected).");
+                                chal.off(); chal.remove(); $('#mmChallengeMsg').text(opp + " chuan i sawmna a hnawl ta (Rejected).");
                             } else if (!data) {
                                 chal.off(); $('#mmChallengeMsg').text("Sawmna cancel emaw a tawp.");
                             }
@@ -996,14 +952,10 @@
                         
                         setTimeout(() => {
                             chal.once('value').then(s => {
-                                if(s.exists() && s.val().status === 'pending') {
-                                    chal.remove(); $('#mmChallengeMsg').text("A chhang lo (Timeout).");
-                                }
+                                if(s.exists() && s.val().status === 'pending') { chal.remove(); $('#mmChallengeMsg').text("A chhang lo (Timeout)."); }
                             });
                         }, 30000);
-                    } else {
-                        $('#mmChallengeMsg').text("Chu Username chu a awm lo!");
-                    }
+                    } else { $('#mmChallengeMsg').text("Chu Username chu a awm lo!"); }
                 });
             });
 
@@ -1024,46 +976,31 @@
                             </div>`;
                         }
                     });
-                    if(html !== '') {
-                        $('#mmIncomingBox').show(); $('#mmIncomingList').html(html);
-                    } else {
-                        $('#mmIncomingBox').hide(); $('#mmIncomingList').html('');
-                    }
+                    if(html !== '') { $('#mmIncomingBox').show(); $('#mmIncomingList').html(html); } 
+                    else { $('#mmIncomingBox').hide(); $('#mmIncomingList').html(''); }
                 });
             }
 
             $(document).on('click', '.mm-accept-btn', function() {
-                var cId = $(this).data('id'); 
-                var rId = $(this).data('room');
-                var challenger = $(this).data('from');
-                var challengeTime = $(this).data('time');
-                
+                var cId = $(this).data('id'); var rId = $(this).data('room'); var challenger = $(this).data('from'); var challengeTime = $(this).data('time');
                 $('#timeSelect').val(challengeTime); 
-
                 database.ref('challenges/' + cId).update({status: 'accepted'});
                 startMatch(rId, 'b', challenger, myUsername); 
             });
 
             $(document).on('click', '.mm-reject-btn', function() {
-                var cId = $(this).data('id');
-                database.ref('challenges/' + cId).update({status: 'rejected'});
+                var cId = $(this).data('id'); database.ref('challenges/' + cId).update({status: 'rejected'});
             });
 
             function startMatch(roomId, color, wUser, bUser) {
-                isMatchmakingState = false;
-                isOnlineMode = true;
-                isTwoPlayer = false;
-                onlineRoomId = roomId;
-                playerColor = color;
-                
-                whiteUsername = wUser;
-                blackUsername = bUser;
+                isMatchmakingState = false; isOnlineMode = true; isTwoPlayer = false;
+                onlineRoomId = roomId; playerColor = color;
+                whiteUsername = wUser; blackUsername = bUser;
 
-                $('#matchmakingPanel').hide();
-                $('#colorSelect, #difficultySelect, #timeSelect, #togglePgnBoxBtn').hide();
-                $('#guideBtn').hide(); 
+                $('#matchmakingPanel').hide(); $('#colorSelect, #difficultySelect, #timeSelect, #togglePgnBoxBtn').hide(); $('#guideBtn').hide(); 
                 
                 $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
+                $('#chatBoxContainer').show(); $('#chatMessages').empty();
                 
                 var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
                 whiteTime = timeVal; blackTime = timeVal;
@@ -1071,31 +1008,20 @@
                 board.orientation(playerColor === 'w' ? 'white' : 'black');
                 
                 var roomRefDb = database.ref('rooms/' + onlineRoomId);
-                roomRefDb.update({
-                    pgn: "",
-                    whiteTime: whiteTime,
-                    blackTime: blackTime,
-                    whiteUser: whiteUsername,
-                    blackUser: blackUsername,
-                    rematch: null,
-                    drawOffer: null
-                });
-
+                roomRefDb.update({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, whiteUser: whiteUsername, blackUser: blackUsername, rematch: null, drawOffer: null });
                 roomRefDb.onDisconnect().remove();
                 
-                gameResultSaved = false;
-                game.reset(); board.start(); selectedSquare = null; removeHighlights();
+                gameResultSaved = false; lowTimePlayedW = false; lowTimePlayedB = false;
+                game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
                 updateStatus(); updateMoveHistory(); 
                 
                 $('#timerContainer').show(); updateTimerDisplay(); startTimer();
                 listenToRoom();
             }
 
-            // --- ENGINE & GAME LOGIC ---
+            // --- ENGINE LOGIC ---
             stockfish.onmessage = function(event) {
-                var line = event.data;
-                var currentScore = 0;
-                var hasScore = false;
+                var line = event.data; var currentScore = 0; var hasScore = false;
 
                 if (line.indexOf('info') > -1) {
                     var multipvMatch = line.match(/multipv (\d+)/);
@@ -1113,8 +1039,7 @@
                         else if (mateMatch) { currentScore = parseInt(mateMatch[1]) * 10000; hasScore = true; }
 
                         if (hasScore && practiceEngineState === 'none' && !manuallyEnded && !drawOfferPending && !isOnlineMode && !isMatchmakingState) {
-                            lastEngineScore = currentScore; 
-                            lastEngineMate = mateMatch ? parseInt(mateMatch[1]) : null; 
+                            lastEngineScore = currentScore; lastEngineMate = mateMatch ? parseInt(mateMatch[1]) : null; 
                             var sideToMove = game.turn(); 
                             var whiteScore = (sideToMove === 'w') ? currentScore : -currentScore;
                             plyEvaluations[game.history().length] = whiteScore;
@@ -1145,30 +1070,20 @@
 
                             var mcqSanOptions = options.map(function(moveStr) {
                                 var temp = new Chess(game.fen());
-                                var from = moveStr.substring(0, 2);
-                                var to = moveStr.substring(2, 4);
-                                var prom = moveStr.length === 5 ? moveStr.substring(4, 5) : 'q';
+                                var from = moveStr.substring(0, 2); var to = moveStr.substring(2, 4); var prom = moveStr.length === 5 ? moveStr.substring(4, 5) : 'q';
                                 var m = temp.move({from: from, to: to, promotion: prom});
                                 return { raw: moveStr, san: m ? m.san : moveStr };
                             });
                             mcqSanOptions.sort(() => Math.random() - 0.5);
 
-                            var currentPos = mistakePositions[currentMistakeIndex];
-                            var qText = "";
-                            
-                            if (currentPos.mistakeType === "Tihsual pawi (Blunder)") {
-                                qText = "He position-ah hian tihsual pawi (blunder) i nei a, a aia chet tha ber (best move) engnge?";
-                            } else if (currentPos.mistakeType === "Tihsual (Mistake)") {
-                                qText = "He position-ah hian tihsual pangngai (mistake) i nei a, a aia chet tha ber (best move) engnge?";
-                            } else if (currentPos.mistakeType === "Dik lo hlek (Inaccuracy)") {
-                                qText = "He position-ah hian tih dik loh chhe te (small inaccuracies) a awm a, a aia chet tha ber (best move) engnge?";
-                            } else {
+                            var currentPos = mistakePositions[currentMistakeIndex]; var qText = "";
+                            if (currentPos.mistakeType === "Tihsual pawi (Blunder)") qText = "He position-ah hian tihsual pawi (blunder) i nei a, a aia chet tha ber (best move) engnge?";
+                            else if (currentPos.mistakeType === "Tihsual (Mistake)") qText = "He position-ah hian tihsual pangngai (mistake) i nei a, a aia chet tha ber (best move) engnge?";
+                            else if (currentPos.mistakeType === "Dik lo hlek (Inaccuracy)") qText = "He position-ah hian tih dik loh chhe te (small inaccuracies) a awm a, a aia chet tha ber (best move) engnge?";
+                            else {
                                 var randQ = Math.random();
-                                if (randQ < 0.5) {
-                                    qText = (game.turn() === 'w') ? "A var chet a ni a, chet tha ber (best move) engnge?" : "A dum chet a ni a, chet tha ber (best move) engnge?";
-                                } else {
-                                    qText = "Khingpui te thil tum lo hmakhalhna chet (prophylactic move) engnge?";
-                                }
+                                if (randQ < 0.5) qText = (game.turn() === 'w') ? "A var chet a ni a, chet tha ber (best move) engnge?" : "A dum chet a ni a, chet tha ber (best move) engnge?";
+                                else qText = "Khingpui te thil tum lo hmakhalhna chet (prophylactic move) engnge?";
                             }
                             
                             var mcqHtml = '';
@@ -1184,37 +1099,30 @@
                     }
 
                     if (drawOfferPending) {
-                        drawOfferPending = false;
-                        var engineDeclines = false;
+                        drawOfferPending = false; var engineDeclines = false;
                         if (lastEngineMate !== null && lastEngineMate < 0) engineDeclines = true;
                         else if (lastEngineMate === null && lastEngineScore < -150) engineDeclines = true;
                         
-                        if (engineDeclines) {
-                            $status.html("Khawl in a chak zawk tih a hria a, Draw a pawm lo! Chet chhunzawm rawh le.");
-                        } else {
-                            endGameWithMessage('Khawl in Inhneh tawk (Draw) a pawm e!', 'draw');
-                        }
+                        if (engineDeclines) $status.html("Khawl in a chak zawk tih a hria a, Draw a pawm lo! Chet chhunzawm rawh le.");
+                        else endGameWithMessage('Khawl in Inhneh tawk (Draw) a pawm e!', 'draw');
                         return;
                     }
 
                     if (manuallyEnded || isMatchmakingState) return;
 
                     if (!isTwoPlayer && !isOnlineMode && match) {
-                        game.move({ from: match[1], to: match[2], promotion: match[3] || 'q' });
+                        var move = game.move({ from: match[1], to: match[2], promotion: match[3] || 'q' });
+                        playMoveSound(move);
                         board.position(game.fen());
-                        updateStatus();
-                        updateMoveHistory(); 
+                        updateStatus(); updateMoveHistory(); 
                     }
                 }
             };
 
             $(document).on('click', '.mcq-btn', function() {
                 if (lessonCompleted) return;
-                var chosenRaw = $(this).data('raw');
-                var isCorrect = (chosenRaw === practiceBestMove);
-                
+                var chosenRaw = $(this).data('raw'); var isCorrect = (chosenRaw === practiceBestMove);
                 attemptsInCurrentMistake++;
-
                 var currentPos = mistakePositions[currentMistakeIndex];
                 if (currentPos) {
                     if (!currentPos.srsLevel) currentPos.srsLevel = 1;
@@ -1222,48 +1130,33 @@
                 }
 
                 if (isCorrect) {
-                    lessonCompleted = true;
-                    $('.mcq-btn').prop('disabled', true);
+                    lessonCompleted = true; $('.mcq-btn').prop('disabled', true);
                     $(this).removeClass('btn-gray').removeClass('btn-red').addClass('btn-green');
-
-                    if (attemptsInCurrentMistake === 1) {
-                        sessionScore += 10;
-                    } else if (attemptsInCurrentMistake === 2) {
-                        sessionScore += 5;
-                    }
+                    if (attemptsInCurrentMistake === 1) sessionScore += 10;
+                    else if (attemptsInCurrentMistake === 2) sessionScore += 5;
 
                     if (currentPos && !hasMadeMistakeInCurrent) {
-                        currentPos.srsLevel += 1;
-                        var intervalMultiplier = Math.pow(2, currentPos.srsLevel);
+                        currentPos.srsLevel += 1; var intervalMultiplier = Math.pow(2, currentPos.srsLevel);
                         currentPos.nextReviewTime = Date.now() + (intervalMultiplier * 3600 * 1000);
                         try { localStorage.setItem('mizo_chess_srs_' + currentPos.fen, JSON.stringify(currentPos)); } catch(e) {}
                     }
-
                     $status.html("<span style='color:#27ae60; font-size: 16px;'><b>Dik lutuk!</b> Zirna dawtlehah kan insawn mek... <br>(Current Score: " + sessionScore + ")</span>");
-                    
-                    autoAdvanceTimer = setTimeout(function() {
-                        $('#nextMistakeBtn').click();
-                    }, 2000);
-
+                    autoAdvanceTimer = setTimeout(function() { $('#nextMistakeBtn').click(); }, 2000);
                 } else {
-                    $(this).removeClass('btn-gray').addClass('btn-red');
-                    $(this).prop('disabled', true);
-                    
+                    $(this).removeClass('btn-gray').addClass('btn-red'); $(this).prop('disabled', true);
                     if (currentPos && !hasMadeMistakeInCurrent) {
                         currentPos.srsLevel = Math.max(1, currentPos.srsLevel - 1);
                         currentPos.nextReviewTime = Date.now() + (1800 * 1000);
                         try { localStorage.setItem('mizo_chess_srs_' + currentPos.fen, JSON.stringify(currentPos)); } catch(e) {}
                         hasMadeMistakeInCurrent = true;
                     }
-
                     $status.html("<span style='color:#c0392b;'><b>A dik lo:</b> Ti leh rawh! I beidawn chuan 'Chhanna Enna' kha hmet mai rawh.</span>");
                 }
             });
 
             $('#showAnswerBtn').on('click', function() {
                 if (isPracticeMode && practiceBestMove && !lessonCompleted) {
-                    lessonCompleted = true;
-                    sessionScore -= 5;
+                    lessonCompleted = true; sessionScore -= 5;
                     if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
 
                     var currentPos = mistakePositions[currentMistakeIndex];
@@ -1274,64 +1167,97 @@
                         hasMadeMistakeInCurrent = true;
                     }
 
-                    $('.mcq-btn').each(function() {
-                        if($(this).data('raw') === practiceBestMove) {
-                            $(this).removeClass('btn-gray').removeClass('btn-red').addClass('btn-green');
-                        }
-                    });
-                    
-                    var from = practiceBestMove.substring(0, 2);
-                    var to = practiceBestMove.substring(2, 4);
-                    var prom = practiceBestMove.length === 5 ? practiceBestMove.substring(4, 5) : 'q';
+                    $('.mcq-btn').each(function() { if($(this).data('raw') === practiceBestMove) $(this).removeClass('btn-gray').removeClass('btn-red').addClass('btn-green'); });
+                    var from = practiceBestMove.substring(0, 2); var to = practiceBestMove.substring(2, 4); var prom = practiceBestMove.length === 5 ? practiceBestMove.substring(4, 5) : 'q';
                     
                     if (game.fen() === mistakePositions[currentMistakeIndex].fen) {
-                        game.move({from: from, to: to, promotion: prom});
-                        board.position(game.fen());
+                        game.move({from: from, to: to, promotion: prom}); board.position(game.fen());
                     }
-                    
                     $('.mcq-btn').prop('disabled', true);
                     $status.html("<span style='color:#27ae60;'><b>Chhanna chu:</b> A hring rawnga inrin hi a ni e. <b>Chhan:</b> Hemi hmunhma ah hian attack leh defense a in-balancein, hmelma tan remchang awm miah loin hma a sawn tir a ni. Zir chian hnuah 'A dawt leh' hmet rawh. <br>(Current Score: " + sessionScore + ")</span>");
                 }
             });
 
+            // --- INDICATOR LOGIC ---
+            function showLegalMoves(square) {
+                removeDots();
+                var moves = game.moves({ square: square, verbose: true });
+                for (var i = 0; i < moves.length; i++) {
+                    var isCapture = moves[i].captured;
+                    var $targetEl = $('#board .square-' + moves[i].to);
+                    if (isCapture) $targetEl.append('<div class="legal-move-capture"></div>');
+                    else $targetEl.append('<div class="legal-move-dot"></div>');
+                }
+            }
+            function removeDots() { $('.legal-move-dot, .legal-move-capture').remove(); }
+
+            // --- MOVE ATTEMPT AND PROMOTION LOGIC ---
+            function attemptMove(source, target, promotionChoice) {
+                var move = game.move({ from: source, to: target, promotion: promotionChoice });
+                if (move === null) return false;
+                playMoveSound(move);
+
+                selectedSquare = null; removeHighlights(); removeDots();
+                board.position(game.fen());
+                updateStatus(); updateMoveHistory(); 
+
+                if (isOnlineMode) {
+                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn(), whiteTime: whiteTime, blackTime: blackTime });
+                } else if (!isTwoPlayer) {
+                    window.setTimeout(makeEngineMove, 250);
+                } else {
+                    stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 8'); 
+                }
+                return true;
+            }
+
+            function showPromotionModal(color, source, target) {
+                $('.promo-piece').each(function() {
+                    var pieceType = $(this).data('piece');
+                    $(this).attr('src', 'https://chessboardjs.com/img/chesspieces/wikipedia/' + color + pieceType.toUpperCase() + '.png');
+                });
+                $('#promotionModal').data('source', source).data('target', target).fadeIn(200);
+            }
+
+            $('.promo-piece').click(function() {
+                var choice = $(this).data('piece');
+                var source = $('#promotionModal').data('source');
+                var target = $('#promotionModal').data('target');
+                $('#promotionModal').fadeOut(200);
+                attemptMove(source, target, choice);
+            });
+            $('#cancelPromoBtn').click(function() {
+                $('#promotionModal').fadeOut(200);
+                board.position(game.fen()); 
+            });
+
+
             function onDragStart (source, piece) {
                 if (game.game_over() || manuallyEnded || drawOfferPending || isPracticeMode || isMatchmakingState) return false;
-                
                 if (isOnlineMode) {
                     if (game.turn() !== playerColor) return false;
                     if (piece.charAt(0) !== playerColor) return false;
                 } 
-                else if (isTwoPlayer) {
-                    if (piece.charAt(0) !== game.turn()) return false;
-                } 
-                else {
-                    if (piece.charAt(0) !== playerColor) return false;
-                }
+                else if (isTwoPlayer) { if (piece.charAt(0) !== game.turn()) return false; } 
+                else { if (piece.charAt(0) !== playerColor) return false; }
+                
                 removeHighlights();
+                showLegalMoves(source);
             }
 
             function onDrop (source, target) {
-                var move = game.move({ from: source, to: target, promotion: 'q' });
-                if (move === null) return 'snapback';
+                removeDots(); removeHighlights();
                 
-                selectedSquare = null;
-                board.position(game.fen());
-                
-                updateStatus();
-                updateMoveHistory(); 
-                
-                if (isOnlineMode) {
-                    database.ref('rooms/' + onlineRoomId).update({
-                        pgn: game.pgn(),
-                        whiteTime: whiteTime,
-                        blackTime: blackTime
-                    });
-                } else if (!isTwoPlayer) {
-                    window.setTimeout(makeEngineMove, 250);
-                } else {
-                    stockfish.postMessage('position fen ' + game.fen());
-                    stockfish.postMessage('go depth 8'); 
+                var piece = game.get(source);
+                if (piece && piece.type === 'p' && ((piece.color === 'w' && target.charAt(1) === '8') || (piece.color === 'b' && target.charAt(1) === '1'))) {
+                    var isLegal = game.moves({verbose: true}).some(m => m.from === source && m.to === target);
+                    if (isLegal) {
+                        showPromotionModal(piece.color, source, target);
+                        return 'snapback'; // Wait for selection
+                    }
                 }
+
+                if (!attemptMove(source, target, 'q')) return 'snapback';
             }
 
             function onSnapEnd () { board.position(game.fen()); }
@@ -1339,7 +1265,6 @@
             $('#board').on('click touchstart', '.square-55d63', function(e) {
                 if(e.type === 'touchstart') e.preventDefault(); 
                 if (game.game_over() || manuallyEnded || drawOfferPending || isPracticeMode || isMatchmakingState) return;
-
                 if (isOnlineMode && game.turn() !== playerColor) return;
                 if (!isTwoPlayer && !isOnlineMode && game.turn() !== playerColor) return; 
 
@@ -1347,34 +1272,28 @@
                 var piece = game.get(square);
 
                 if (selectedSquare) {
-                    var move = game.move({ from: selectedSquare, to: square, promotion: 'q' });
-                    if (move === null) {
+                    var source = selectedSquare; var target = square;
+                    var selectedPiece = game.get(source);
+                    
+                    if (selectedPiece && selectedPiece.type === 'p' && ((selectedPiece.color === 'w' && target.charAt(1) === '8') || (selectedPiece.color === 'b' && target.charAt(1) === '1'))) {
+                        var isLegal = game.moves({verbose: true}).some(m => m.from === source && m.to === target);
+                        if (isLegal) {
+                            selectedSquare = null; removeHighlights(); removeDots();
+                            showPromotionModal(selectedPiece.color, source, target);
+                            return;
+                        }
+                    }
+
+                    if (attemptMove(source, target, 'q')) {
+                        // Moved successfully
+                    } else {
                         var canSelect = false;
                         if (isOnlineMode) canSelect = (piece && piece.color === playerColor);
                         else if (isTwoPlayer) canSelect = (piece && piece.color === game.turn());
                         else canSelect = (piece && piece.color === playerColor);
                         
-                        if (canSelect) { selectedSquare = square; highlightSquare(square); } 
-                        else { selectedSquare = null; removeHighlights(); }
-                    } else {
-                        board.position(game.fen());
-                        selectedSquare = null; removeHighlights();
-                        
-                        updateStatus();
-                        updateMoveHistory();
-                        
-                        if (isOnlineMode) {
-                            database.ref('rooms/' + onlineRoomId).update({
-                                pgn: game.pgn(),
-                                whiteTime: whiteTime,
-                                blackTime: blackTime
-                            });
-                        } else if(!isTwoPlayer) {
-                            window.setTimeout(makeEngineMove, 250);
-                        } else {
-                            stockfish.postMessage('position fen ' + game.fen());
-                            stockfish.postMessage('go depth 8'); 
-                        }
+                        if (canSelect) { selectedSquare = square; highlightSquare(square); showLegalMoves(square); } 
+                        else { selectedSquare = null; removeHighlights(); removeDots(); }
                     }
                 } else {
                     var canSelect = false;
@@ -1382,7 +1301,7 @@
                     else if (isTwoPlayer) canSelect = (piece && piece.color === game.turn());
                     else canSelect = (piece && piece.color === playerColor);
 
-                    if (canSelect) { selectedSquare = square; highlightSquare(square); }
+                    if (canSelect) { selectedSquare = square; highlightSquare(square); showLegalMoves(square); }
                 }
             });
 
@@ -1390,9 +1309,7 @@
             function removeHighlights() { $('#board .square-55d63').removeClass('highlight-square'); }
 
             function makeEngineMove() {
-                setEngineLevel(); 
-                stockfish.postMessage('position fen ' + game.fen());
-                
+                setEngineLevel(); stockfish.postMessage('position fen ' + game.fen());
                 var aiTimeLeft = (game.turn() === 'w') ? whiteTime : blackTime;
                 var moveTimeMs = 2000; 
                 
@@ -1408,13 +1325,9 @@
             function updateOpeningName() {
                 var historyArray = game.history();
                 if (historyArray.length === 0) { $('#openingDisplay').hide(); return; }
-                var currentSequence = historyArray.join(" ");
-                var foundOpening = "";
-                var maxMatchLen = 0;
+                var currentSequence = historyArray.join(" "); var foundOpening = ""; var maxMatchLen = 0;
                 for (var seq in chessOpenings) {
-                    if (currentSequence.startsWith(seq) && seq.length > maxMatchLen) {
-                        maxMatchLen = seq.length; foundOpening = chessOpenings[seq];
-                    }
+                    if (currentSequence.startsWith(seq) && seq.length > maxMatchLen) { maxMatchLen = seq.length; foundOpening = chessOpenings[seq]; }
                 }
                 if (foundOpening !== "") $('#openingDisplay').html("Opening : " + foundOpening).show();
             }
@@ -1424,65 +1337,46 @@
                     $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide();
                     $('#guideBtn').hide(); 
                     
-                    if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) {
-                        $('#actionButtons').hide(); 
-                    } else {
-                        $('#actionButtons').css('display', 'flex'); 
-                    }
+                    if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) $('#actionButtons').hide(); 
+                    else $('#actionButtons').css('display', 'flex'); 
                 } else {
                     if (!isOnlineMode && !isMatchmakingState) {
-                        $('#colorSelect').show(); $('#difficultySelect').show(); $('#timeSelect').show(); $('#togglePgnBoxBtn').show();
-                        $('#guideBtn').show();
+                        $('#colorSelect').show(); $('#difficultySelect').show(); $('#timeSelect').show(); $('#togglePgnBoxBtn').show(); $('#guideBtn').show();
                     }
                     $('#actionButtons').hide(); 
                 }
 
                 updateOpeningName(); 
-                var history = game.history();
-                var html = '';
+                var history = game.history(); var html = '';
                 for (var i = 0; i < history.length; i += 2) {
-                    var moveNum = (i / 2) + 1;
-                    var whiteMove = history[i];
-                    var blackMove = history[i + 1] ? history[i + 1] : '';
+                    var moveNum = (i / 2) + 1; var whiteMove = history[i]; var blackMove = history[i + 1] ? history[i + 1] : '';
                     html += '<b>' + moveNum + '.</b> ' + whiteMove + ' ' + blackMove + ' ';
                 }
                 var $box = $('#moveHistoryBox');
-                if (html === '') {
-                    $box.html('<span style="color:#7f8c8d; font-style:italic;">Chet dan record hetah a lo lang ang...</span>');
-                } else { 
-                    $box.html(html); 
-                    setTimeout(function() {
-                        $box.scrollTop($box[0].scrollHeight);
-                    }, 10);
-                }
+                if (html === '') $box.html('<span style="color:#7f8c8d; font-style:italic;">Chet dan record hetah a lo lang ang...</span>');
+                else { $box.html(html); setTimeout(function() { $box.scrollTop($box[0].scrollHeight); }, 10); }
             }
 
             function endGameWithMessage(msg, resultOverride = null) {
                 manuallyEnded = true;
                 if (timerInterval) clearInterval(timerInterval);
                 finalStatusMsg = msg; 
+                gameEndSnd.play().catch(e=>{}); // Play End Sound
                 $status.html(msg); showRandomVerse();
                 savedGameHistory = game.history(); 
                 
                 if (isOnlineMode && myUsername && savedGameHistory.length > 2) {
                     var oppName = playerColor === 'w' ? blackUsername : whiteUsername;
                     database.ref('users/' + myUsername + '/games').push({
-                        date: firebase.database.ServerValue.TIMESTAMP,
-                        pgn: game.pgn(),
-                        opponent: oppName,
-                        result: msg
+                        date: firebase.database.ServerValue.TIMESTAMP, pgn: game.pgn(), opponent: oppName, result: msg
                     });
                 }
 
                 if (isOnlineMode && myUsername && !gameResultSaved) {
                     var myResult = resultOverride;
-
                     if (!myResult) {
-                        if (game.in_checkmate()) {
-                            myResult = (game.turn() === playerColor) ? 'lose' : 'win';
-                        } else if (game.in_draw() || game.in_stalemate() || game.in_threefold_repetition()) {
-                            myResult = 'draw';
-                        }
+                        if (game.in_checkmate()) myResult = (game.turn() === playerColor) ? 'lose' : 'win';
+                        else if (game.in_draw() || game.in_stalemate() || game.in_threefold_repetition()) myResult = 'draw';
                     }
 
                     if (myResult) {
@@ -1498,23 +1392,9 @@
                             
                             userRef.transaction(function(currentPoints) {
                                 var newPointsObj = {};
-                                if (typeof currentPoints === 'number') {
-                                    newPointsObj = {
-                                        'Rang lutuk': 0,
-                                        'Rang vak lo': 0,
-                                        'Rang pangngai': currentPoints, 
-                                        'A muang chi': 0
-                                    };
-                                } else if (currentPoints && typeof currentPoints === 'object') {
-                                    newPointsObj = currentPoints;
-                                } else {
-                                    newPointsObj = {
-                                        'Rang lutuk': 0,
-                                        'Rang vak lo': 0,
-                                        'Rang pangngai': 0,
-                                        'A muang chi': 0
-                                    };
-                                }
+                                if (typeof currentPoints === 'number') newPointsObj = { 'Rang lutuk': 0, 'Rang vak lo': 0, 'Rang pangngai': currentPoints, 'A muang chi': 0 };
+                                else if (currentPoints && typeof currentPoints === 'object') newPointsObj = currentPoints;
+                                else newPointsObj = { 'Rang lutuk': 0, 'Rang vak lo': 0, 'Rang pangngai': 0, 'A muang chi': 0 };
                                 
                                 var newVal = (newPointsObj[category] || 0) + pointsToAdd;
                                 newPointsObj[category] = newVal < 0 ? 0 : newVal;
@@ -1525,31 +1405,19 @@
                     }
                 }
 
-                $('#actionButtons').hide(); 
-                $('#drawOfferBox').hide();
-                $('#moveHistoryBox').hide(); 
+                $('#actionButtons').hide(); $('#drawOfferBox').hide(); $('#moveHistoryBox').hide(); 
                 
                 if (!isOnlineMode) {
                     $('#playAgainBtn').fadeIn(); 
                 } else {
                     var rematchHtml = '';
-                    if (myUsername) {
-                        rematchHtml = `<div id="rematchArea" style="margin-bottom:10px;"><button id="rematchBtn" class="btn-green" style="width:100%; padding:10px; font-size:15px; margin-bottom:5px;">🔄 Khel leh ila (Rematch)</button></div>`;
-                    }
-                    $('#onlineRoomBox').html(
-                        "<div style='color:#16a085; font-weight:bold; margin-bottom:10px;'><i class='fa-solid fa-circle-check'></i> Game a tawp ta!</div>" +
-                        rematchHtml + 
-                        "<button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:10px; font-size:16px;'>Online Game atanga chhuahna</button>"
-                    ).show();
+                    if (myUsername) rematchHtml = `<div id="rematchArea" style="margin-bottom:10px;"><button id="rematchBtn" class="btn-green" style="width:100%; padding:10px; font-size:15px; margin-bottom:5px;">🔄 Khel leh ila (Rematch)</button></div>`;
+                    $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:10px;'><i class='fa-solid fa-circle-check'></i> Game a tawp ta!</div>" + rematchHtml + "<button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:10px; font-size:16px;'>Online Game atanga chhuahna</button>").show();
                 }
 
                 $('#showPgnBtn').fadeIn();
-                if (savedGameHistory.length > 4) {
-                    $('#learnMistakesBtn').fadeIn(); 
-                }
-                
-                $('#toggleSupportBtn').fadeIn();
-                $('#guideBtn').show(); 
+                if (savedGameHistory.length > 4) $('#learnMistakesBtn').fadeIn(); 
+                $('#toggleSupportBtn').fadeIn(); $('#guideBtn').show(); 
             }
 
             function updateStatus () {
@@ -1560,11 +1428,8 @@
                 if (isOnlineMode) {
                     var activeUser = (game.turn() === 'w') ? whiteUsername : blackUsername;
                     playerText = activeUser + ' (' + turnColor + ')';
-                } else if (isTwoPlayer) {
-                    playerText = turnColor;
-                } else {
-                    playerText = (game.turn() === playerColor) ? 'Nangmah ('+turnColor+')' : 'Khawl thluak nei ('+turnColor+')';
-                }
+                } else if (isTwoPlayer) { playerText = turnColor; } 
+                else { playerText = (game.turn() === playerColor) ? 'Nangmah ('+turnColor+')' : 'Khawl thluak nei ('+turnColor+')'; }
 
                 if (game.in_checkmate()) endGameWithMessage('A tawp ta, ' + playerText + ' a chak lo!'); 
                 else if (game.in_draw()) endGameWithMessage('A tawp ta, inhneh tawk.'); 
@@ -1576,44 +1441,19 @@
             }
             
             function restorePostGameState() {
-                isPracticeMode = false;
-                manuallyEnded = true; 
+                isPracticeMode = false; manuallyEnded = true; 
+                game.reset(); for (var i = 0; i < savedGameHistory.length; i++) game.move(savedGameHistory[i]);
+                board.position(game.fen()); board.orientation((playerColor === 'w') ? 'white' : 'black');
                 
-                game.reset();
-                for (var i = 0; i < savedGameHistory.length; i++) {
-                    game.move(savedGameHistory[i]);
-                }
-                board.position(game.fen());
-                board.orientation((playerColor === 'w') ? 'white' : 'black');
+                $('#srsControls').hide(); $('#gameControls').show(); $('#timerContainer').show();
+                $('#moveHistoryBox').hide(); $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide();
+                $('#togglePgnBoxBtn').hide(); $('#guideBtn').show(); $('#actionButtons').hide(); $('#drawOfferBox').hide();
                 
-                $('#srsControls').hide();
-                $('#gameControls').show();
-                $('#timerContainer').show();
+                if (!isOnlineMode) $('#playAgainBtn').fadeIn();
+                else $('#onlineRoomBox').show();
                 
-                $('#moveHistoryBox').hide(); 
-                
-                $('#colorSelect').hide();
-                $('#difficultySelect').hide();
-                $('#timeSelect').hide();
-                $('#togglePgnBoxBtn').hide();
-                $('#guideBtn').show();
-                
-                $('#actionButtons').hide();
-                $('#drawOfferBox').hide();
-                
-                if (!isOnlineMode) {
-                    $('#playAgainBtn').fadeIn();
-                } else {
-                    $('#onlineRoomBox').show();
-                }
-                
-                $('#showPgnBtn').fadeIn();
-                $('#learnMistakesBtn').hide();
-                
-                $('#toggleSupportBtn').fadeIn();
-                
-                showRandomVerse();
-                $status.html(finalStatusMsg);
+                $('#showPgnBtn').fadeIn(); $('#learnMistakesBtn').hide(); $('#toggleSupportBtn').fadeIn();
+                showRandomVerse(); $status.html(finalStatusMsg);
             }
 
             var config = {
@@ -1628,13 +1468,10 @@
                 lessonCompleted = false; hasMadeMistakeInCurrent = false;
                 if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
 
-                manuallyEnded = false; drawOfferPending = false; practiceEngineState = 'none';
-                isMatchmakingState = false;
-                gameResultSaved = false;
+                manuallyEnded = false; drawOfferPending = false; practiceEngineState = 'none'; isMatchmakingState = false; gameResultSaved = false;
+                lowTimePlayedW = false; lowTimePlayedB = false;
                 
-                $('#toggleSupportBtn').hide();
-                $('#supportBox').hide();
-                $('#matchmakingPanel').hide();
+                $('#toggleSupportBtn').hide(); $('#supportBox').hide(); $('#matchmakingPanel').hide(); $('#chatBoxContainer').hide();
 
                 var diff = $('#difficultySelect').val();
                 
@@ -1642,39 +1479,25 @@
                     isMatchmakingState = true;
                     $('#gameControls').show(); $('#srsControls').hide(); $('#pgnContainer').hide();
                     $('#playAgainBtn').hide(); $('#learnMistakesBtn').hide(); $('#showPgnBtn').hide();
-                    $('#actionButtons').hide(); $('#onlineRoomBox').hide();
-                    $('#drawOfferBox').hide();
-                    $('#timerContainer').hide();
-                    $('#guideBtn').hide();
-                    
-                    $('#colorSelect').hide(); $('#togglePgnBoxBtn').hide();
+                    $('#actionButtons').hide(); $('#onlineRoomBox').hide(); $('#drawOfferBox').hide();
+                    $('#timerContainer').hide(); $('#guideBtn').hide(); $('#colorSelect').hide(); $('#togglePgnBoxBtn').hide();
                     $('#difficultySelect').show(); $('#timeSelect').show();
 
                     $('#matchmakingPanel').show();
-                    if(auth.currentUser) {
-                        myUsername = auth.currentUser.email.split('@')[0];
-                        showLobby();
-                    } else {
-                        $('#authBox').show();
-                        $('#lobbyBox').hide();
-                    }
+                    if(auth.currentUser) { myUsername = auth.currentUser.email.split('@')[0]; showLobby(); } 
+                    else { $('#authBox').show(); $('#lobbyBox').hide(); }
 
-                    game.reset(); board.start(); selectedSquare = null; removeHighlights();
+                    game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
                     $status.html("<i class='fa-solid fa-gamepad'></i> Online Lobby-ah i awm mek...");
                     return; 
                 }
 
-                isTwoPlayer = (diff === 'human');
-                isOnlineMode = (diff === 'online');
-
+                isTwoPlayer = (diff === 'human'); isOnlineMode = (diff === 'online');
                 mistakePositions = []; savedGameHistory = []; plyEvaluations = {};
                 
                 $('#gameControls').show(); $('#srsControls').hide(); $('#pgnContainer').hide();
                 $('#playAgainBtn').hide(); $('#learnMistakesBtn').hide(); $('#showPgnBtn').hide();
-                $('#actionButtons').hide(); 
-                $('#drawOfferBox').hide();
-                $('#onlineRoomBox').hide();
-                $('#guideBtn').show();
+                $('#actionButtons').hide(); $('#drawOfferBox').hide(); $('#onlineRoomBox').hide(); $('#guideBtn').show();
                 
                 $('#colorSelect').show(); $('#difficultySelect').show(); $('#timeSelect').show(); $('#togglePgnBoxBtn').show();
                 
@@ -1683,20 +1506,16 @@
                 $('#timerContainer').show(); updateTimerDisplay(); startTimer();
 
                 $('#moveHistoryBox').show(); $('#openingDisplay').hide(); 
-                
                 playerColor = $('#colorSelect').val();
                 
                 if (urlParams.has('room')) {
-                    isOnlineMode = true;
-                    isTwoPlayer = false;
-                    onlineRoomId = urlParams.get('room');
-                    playerColor = urlParams.get('color') || 'b';
+                    isOnlineMode = true; isTwoPlayer = false;
+                    onlineRoomId = urlParams.get('room'); playerColor = urlParams.get('color') || 'b';
                     board.orientation((playerColor === 'w') ? 'white' : 'black');
                     
-                    $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide();
-                    $('#guideBtn').hide();
-                    
+                    $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide(); $('#guideBtn').hide();
                     $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'>Online Game (Link hmangin)</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
+                    $('#chatBoxContainer').show(); $('#chatMessages').empty();
                     
                     listenToRoom();
                 } 
@@ -1704,7 +1523,6 @@
                     onlineRoomId = Math.random().toString(36).substring(2, 8);
                     board.orientation((playerColor === 'w') ? 'white' : 'black');
                     var oppColor = (playerColor === 'w') ? 'b' : 'w';
-                    
                     var joinLink = window.location.href.split('?')[0] + '?room=' + onlineRoomId + '&color=' + oppColor;
                     
                     $('#onlineRoomBox').html(`
@@ -1712,46 +1530,32 @@
                         <input type="text" id="roomLinkInput" value="${joinLink}" readonly style="width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 5px; font-size: 12px; text-align:center;">
                         <div style="display: flex; gap: 5px; margin-bottom: 5px;">
                             <button id="copyLinkBtn" class="btn-gray" style="flex: 1; padding: 8px; font-size: 14px;">🔗 Copy</button>
-                            <button id="whatsappShareBtn" class="btn-whatsapp" style="flex: 2; padding: 8px; font-size: 14px;">
-                                <i class="fab fa-whatsapp" style="font-size: 18px;"></i> WhatsApp
-                            </button>
+                            <button id="whatsappShareBtn" class="btn-whatsapp" style="flex: 2; padding: 8px; font-size: 14px;"><i class="fab fa-whatsapp" style="font-size: 18px;"></i> WhatsApp</button>
                         </div>
                         <button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Cancel</button>
                     `).show();
 
-                    $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide();
-                    $('#guideBtn').hide();
+                    $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide(); $('#guideBtn').hide();
+                    $('#chatBoxContainer').show(); $('#chatMessages').empty();
 
                     var roomRefDb = database.ref('rooms/' + onlineRoomId);
-                    roomRefDb.set({
-                        pgn: "",
-                        whiteTime: whiteTime,
-                        blackTime: blackTime,
-                        drawOffer: null
-                    });
-                    
+                    roomRefDb.set({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, drawOffer: null });
                     roomRefDb.onDisconnect().remove();
-
                     listenToRoom();
                 } else {
                     if (roomRef) { roomRef.off(); roomRef = null; }
                     board.orientation((playerColor === 'w') ? 'white' : 'black');
                 }
                 
-                game.reset(); 
-                board.start(); selectedSquare = null; removeHighlights(); 
-                
+                game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
                 setEngineLevel(); updateStatus(); updateMoveHistory(); 
                 if (!isTwoPlayer && !isOnlineMode && playerColor === 'b') window.setTimeout(makeEngineMove, 250);
             }
 
             $(document).on('click', '#copyLinkBtn', function() {
-                var copyText = document.getElementById("roomLinkInput");
-                copyText.select();
-                copyText.setSelectionRange(0, 99999); 
+                var copyText = document.getElementById("roomLinkInput"); copyText.select(); copyText.setSelectionRange(0, 99999); 
                 document.execCommand("copy");
-                $(this).html("✅ Copy tawh!");
-                setTimeout(() => $(this).html("🔗 Copy"), 2000);
+                $(this).html("✅ Copy tawh!"); setTimeout(() => $(this).html("🔗 Copy"), 2000);
             });
 
             $(document).on('click', '#whatsappShareBtn', function() {
@@ -1761,74 +1565,45 @@
             });
 
             $(document).on('click', '#copyUpiBtn', function() {
-                var dummy = document.createElement("textarea");
-                document.body.appendChild(dummy);
-                dummy.value = "chhanajuly@oksbi";
-                dummy.select();
-                document.execCommand("copy");
-                document.body.removeChild(dummy);
-                $(this).html("✅ UPI ID Copy tawh!");
-                setTimeout(() => $(this).html("📋 UPI ID Copy rawh"), 2000);
+                var dummy = document.createElement("textarea"); document.body.appendChild(dummy);
+                dummy.value = "chhanajuly@oksbi"; dummy.select(); document.execCommand("copy"); document.body.removeChild(dummy);
+                $(this).html("✅ UPI ID Copy tawh!"); setTimeout(() => $(this).html("📋 UPI ID Copy rawh"), 2000);
             });
 
             $('#toggleSupportBtn').on('click', function() {
                 $('#supportBox').slideToggle(300, function() {
                     if (!qrCodeGenerated && $('#supportBox').is(':visible')) {
-                        new QRCode(document.getElementById("qrcode"), {
-                            text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=MizoChessSupport&cu=INR",
-                            width: 150,
-                            height: 150,
-                            colorDark : "#000000",
-                            colorLight : "#ffffff",
-                            correctLevel : QRCode.CorrectLevel.M
-                        });
+                        new QRCode(document.getElementById("qrcode"), { text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=MizoChessSupport&cu=INR", width: 150, height: 150, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
                         qrCodeGenerated = true;
                     }
                 });
             });
 
-            $('#closeSupportBtn').on('click', function() {
-                $('#supportBox').slideUp();
-            });
-
+            $('#closeSupportBtn').on('click', function() { $('#supportBox').slideUp(); });
             $(document).on('click', '#exitOnlineBtn', function() {
-                if (onlineRoomId) {
-                    database.ref('rooms/' + onlineRoomId).remove();
-                }
+                if (onlineRoomId) database.ref('rooms/' + onlineRoomId).remove();
                 window.location.href = window.location.href.split('?')[0];
             });
 
             $('#togglePgnBoxBtn').on('click', function() { $('#pgnContainer').slideToggle(); });
-
             $('#importPgnFileBtn').on('click', function() { $('#pgnFileInput').click(); });
-
             $('#pgnFileInput').on('change', function(e) {
-                var file = e.target.files[0];
-                if (!file) return;
-                var reader = new FileReader();
-                reader.onload = function(evt) { $('#pgnText').val(evt.target.result); };
-                reader.readAsText(file);
+                var file = e.target.files[0]; if (!file) return;
+                var reader = new FileReader(); reader.onload = function(evt) { $('#pgnText').val(evt.target.result); }; reader.readAsText(file);
             });
 
             $('#loadAndLearnPgnBtn').on('click', function() {
                 var pgnString = $('#pgnText').val().trim();
                 if (!pgnString) { alert("PGN a ruak a nia, paste luh hmasak phawt tur a ni."); return; }
 
-                var tempGame = new Chess();
-                var success = tempGame.load_pgn(pgnString);
-
+                var tempGame = new Chess(); var success = tempGame.load_pgn(pgnString);
                 if (!success) {
                     try {
-                        tempGame.reset();
-                        var lines = pgnString.split('\n');
-                        var cleanMovesText = "";
+                        tempGame.reset(); var lines = pgnString.split('\n'); var cleanMovesText = "";
                         for (var i = 0; i < lines.length; i++) {
-                            var line = lines[i].trim();
-                            if (line.startsWith('[') && line.endsWith(']')) continue;
-                            cleanMovesText += line + " ";
+                            var line = lines[i].trim(); if (line.startsWith('[') && line.endsWith(']')) continue; cleanMovesText += line + " ";
                         }
-                        cleanMovesText = cleanMovesText.replace(/\{[^}]*\}/g, ''); 
-                        cleanMovesText = cleanMovesText.replace(/\$\d+/g, ''); 
+                        cleanMovesText = cleanMovesText.replace(/\{[^}]*\}/g, ''); cleanMovesText = cleanMovesText.replace(/\$\d+/g, ''); 
                         success = tempGame.load_pgn(cleanMovesText.trim());
                     } catch (err) { success = false; }
                 }
@@ -1838,26 +1613,14 @@
                 savedGameHistory = tempGame.history();
                 if (savedGameHistory.length < 4) { alert("PGN move a tlem deuh a, zir tur a la awm lo."); return; }
 
-                mistakePositions = [];
-                tempGame.reset();
+                mistakePositions = []; tempGame.reset();
                 for (var i = 0; i < savedGameHistory.length; i++) {
-                    var fenBefore = tempGame.fen();
-                    tempGame.move(savedGameHistory[i]);
+                    var fenBefore = tempGame.fen(); tempGame.move(savedGameHistory[i]);
                     if (i >= 2) {
-                        var posObj = {
-                            fen: fenBefore,
-                            moveNumber: Math.floor(i / 2) + 1,
-                            orientation: (tempGame.turn() === 'w') ? 'black' : 'white',
-                            srsLevel: 1,
-                            nextReviewTime: 0
-                        };
+                        var posObj = { fen: fenBefore, moveNumber: Math.floor(i / 2) + 1, orientation: (tempGame.turn() === 'w') ? 'black' : 'white', srsLevel: 1, nextReviewTime: 0 };
                         try {
                             var savedData = localStorage.getItem('mizo_chess_srs_' + fenBefore);
-                            if (savedData) {
-                                var parsed = JSON.parse(savedData);
-                                posObj.srsLevel = parsed.srsLevel || 1;
-                                posObj.nextReviewTime = parsed.nextReviewTime || 0;
-                            }
+                            if (savedData) { var parsed = JSON.parse(savedData); posObj.srsLevel = parsed.srsLevel || 1; posObj.nextReviewTime = parsed.nextReviewTime || 0; }
                         } catch(e) {}
                         mistakePositions.push(posObj);
                     }
@@ -1866,62 +1629,45 @@
                 mistakePositions.sort((a, b) => a.nextReviewTime - b.nextReviewTime);
 
                 if (mistakePositions.length > 0) {
-                    isPracticeMode = true; hideVerse(); manuallyEnded = false;
-                    sessionScore = 0; maxSessionScore = mistakePositions.length * 10;
+                    isPracticeMode = true; hideVerse(); manuallyEnded = false; sessionScore = 0; maxSessionScore = mistakePositions.length * 10;
                     if (timerInterval) clearInterval(timerInterval);
-                    $('#timerContainer').hide(); $('#pgnContainer').hide();
-                    $('#gameControls').hide(); $('#srsControls').css('display', 'flex');
+                    $('#timerContainer').hide(); $('#pgnContainer').hide(); $('#gameControls').hide(); $('#srsControls').css('display', 'flex');
                     $('#moveHistoryBox').hide(); currentMistakeIndex = 0; loadMistake();
                 } else { alert("Zir tur mistake a awm chiah lo."); }
             });
 
             $('#showPgnBtn').on('click', function() {
-                var pgnData = game.pgn();
-                if(pgnData) $('#pgnText').val(pgnData);
+                var pgnData = game.pgn(); if(pgnData) $('#pgnText').val(pgnData);
                 $('#pgnContainer').slideToggle();
             });
 
             $('#resignBtn').on('click', function() {
                 if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) return;
                 if (isOnlineMode) {
-                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Resign}"}); 
-                    endGameWithMessage('Ka tlawm ta!', 'lose');
-                } else {
-                    endGameWithMessage('I tlawm ta!');
-                }
+                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Resign}"}); endGameWithMessage('Ka tlawm ta!', 'lose');
+                } else endGameWithMessage('I tlawm ta!');
             });
 
             $('#drawBtn').on('click', function() {
                 if (game.game_over() || manuallyEnded || isPracticeMode || drawOfferPending || isMatchmakingState) return;
-                
                 if (isOnlineMode) { 
                     var offerSender = myUsername ? myUsername : playerColor;
-                    database.ref('rooms/' + onlineRoomId + '/drawOffer').set({
-                        offerBy: offerSender,
-                        status: 'pending'
-                    });
+                    database.ref('rooms/' + onlineRoomId + '/drawOffer').set({ offerBy: offerSender, status: 'pending' });
                     return; 
                 } else if (isTwoPlayer) {
-                    endGameWithMessage('Inhneh tawk (Draw) in pawm dun e!');
-                    return;
+                    endGameWithMessage('Inhneh tawk (Draw) in pawm dun e!'); return;
                 }
-                
                 if (game.turn() !== playerColor) { alert("Khawl chet hun a ni a, a lo chet hunah i sawm chauh dawn nia."); return; }
-                drawOfferPending = true;
-                $status.html("Khawl in i draw sawmna a ngaihtuah mek...");
-                stockfish.postMessage('position fen ' + game.fen());
-                stockfish.postMessage('go depth 10'); 
+                
+                drawOfferPending = true; $status.html("Khawl in i draw sawmna a ngaihtuah mek...");
+                stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 10'); 
             });
 
             $('#learnMistakesBtn').on('click', function() {
-                var tempGame = new Chess(); var history = savedGameHistory; 
-                mistakePositions = []; var lastWhiteScore = 0; 
-
+                var tempGame = new Chess(); var history = savedGameHistory; mistakePositions = []; var lastWhiteScore = 0; 
                 for (var i = 0; i < history.length; i++) {
                     var plyColor = tempGame.turn(); var moveNum = Math.floor(i / 2) + 1;
-                    var fenBeforeHumanMove = tempGame.fen(); tempGame.move(history[i]);
-                    var currentPly = i + 1;
-                    
+                    var fenBeforeHumanMove = tempGame.fen(); tempGame.move(history[i]); var currentPly = i + 1;
                     if (plyEvaluations[currentPly] !== undefined) {
                         var currWhiteScore = plyEvaluations[currentPly];
                         if (lastWhiteScore !== null) {
@@ -1931,24 +1677,12 @@
                             if (analyzeThisPly && scoreDrop < -50) { 
                                 var mistakeType = "";
                                 if (scoreDrop <= -300) mistakeType = "Tihsual pawi (Blunder)";
-                                else if (scoreDrop <= -150) mistakeType = "Tihsual (Mistake)";
-                                else mistakeType = "Dik lo hlek (Inaccuracy)";
+                                else if (scoreDrop <= -150) mistakeType = "Tihsual (Mistake)"; else mistakeType = "Dik lo hlek (Inaccuracy)";
 
-                                var posObj = {
-                                    fen: fenBeforeHumanMove,
-                                    moveNumber: moveNum,
-                                    orientation: (plyColor === 'w') ? 'white' : 'black',
-                                    mistakeType: mistakeType,
-                                    srsLevel: 1,
-                                    nextReviewTime: 0
-                                };
+                                var posObj = { fen: fenBeforeHumanMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', mistakeType: mistakeType, srsLevel: 1, nextReviewTime: 0 };
                                 try {
                                     var savedData = localStorage.getItem('mizo_chess_srs_' + fenBeforeHumanMove);
-                                    if (savedData) {
-                                        var parsed = JSON.parse(savedData);
-                                        posObj.srsLevel = parsed.srsLevel || 1;
-                                        posObj.nextReviewTime = parsed.nextReviewTime || 0;
-                                    }
+                                    if (savedData) { var parsed = JSON.parse(savedData); posObj.srsLevel = parsed.srsLevel || 1; posObj.nextReviewTime = parsed.nextReviewTime || 0; }
                                 } catch(e) {}
                                 mistakePositions.push(posObj);
                             }
@@ -1960,59 +1694,42 @@
                 if (mistakePositions.length === 0 && savedGameHistory.length > 0) {
                     tempGame.reset();
                     for (var i = 0; i < history.length; i++) {
-                        var fenBefore = tempGame.fen();
-                        tempGame.move(history[i]);
+                        var fenBefore = tempGame.fen(); tempGame.move(history[i]);
                         if (i >= 2) {
-                            var posObj = {
-                                fen: fenBefore,
-                                moveNumber: Math.floor(i / 2) + 1,
-                                orientation: (tempGame.turn() === 'w') ? 'white' : 'black',
-                                srsLevel: 1,
-                                nextReviewTime: 0
-                            };
+                            var posObj = { fen: fenBefore, moveNumber: Math.floor(i / 2) + 1, orientation: (tempGame.turn() === 'w') ? 'white' : 'black', srsLevel: 1, nextReviewTime: 0 };
                             try {
                                 var savedData = localStorage.getItem('mizo_chess_srs_' + fenBefore);
-                                if (savedData) {
-                                    var parsed = JSON.parse(savedData);
-                                    posObj.srsLevel = parsed.srsLevel || 1;
-                                    posObj.nextReviewTime = parsed.nextReviewTime || 0;
-                                }
+                                if (savedData) { var parsed = JSON.parse(savedData); posObj.srsLevel = parsed.srsLevel || 1; posObj.nextReviewTime = parsed.nextReviewTime || 0; }
                             } catch(e) {}
                             mistakePositions.push(posObj);
                         }
                     }
                 }
-
                 mistakePositions.sort((a, b) => a.nextReviewTime - b.nextReviewTime);
 
                 if(mistakePositions.length > 0) {
                     isPracticeMode = true; hideVerse(); manuallyEnded = false;
                     sessionScore = 0; maxSessionScore = mistakePositions.length * 10;
                     if (timerInterval) clearInterval(timerInterval);
-                    $('#timerContainer').hide(); $('#pgnContainer').hide();
-                    $('#gameControls').hide(); $('#srsControls').css('display', 'flex');
+                    $('#timerContainer').hide(); $('#pgnContainer').hide(); $('#gameControls').hide(); $('#srsControls').css('display', 'flex');
                     $('#moveHistoryBox').hide(); currentMistakeIndex = 0; loadMistake();
                 } else alert("Game tha tak a ni! Tactic hlah emaw tihsual lian tham i nei lo."); 
             });
 
             function loadMistake() {
-                lessonCompleted = false;
-                hasMadeMistakeInCurrent = false;
-                attemptsInCurrentMistake = 0;
+                lessonCompleted = false; hasMadeMistakeInCurrent = false; attemptsInCurrentMistake = 0;
                 if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
 
                 if(currentMistakeIndex < mistakePositions.length) {
                     var currentPos = mistakePositions[currentMistakeIndex];
-                    game.load(currentPos.fen); board.position(game.fen()); 
-                    board.orientation(currentPos.orientation);
+                    game.load(currentPos.fen); board.position(game.fen()); board.orientation(currentPos.orientation);
                     setEngineLevel(); practiceEngineState = 'analyzing_base'; mcqRawMoves = [];
                     
                     var levelInfo = currentPos.srsLevel ? " (SRS: Lvl " + currentPos.srsLevel + ")" : "";
                     var typeInfo = currentPos.mistakeType ? " <br><b style='color:#c0392b;'>[" + currentPos.mistakeType + "]</b>" : "";
                     
                     $status.html("ZIRNA (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ")" + levelInfo + typeInfo + "<br>Position zir chian leh zawhna siam mek a ni...");
-                    stockfish.postMessage('position fen ' + game.fen());
-                    stockfish.postMessage('go depth 14'); 
+                    stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 14'); 
                 } else {
                     var percentage = maxSessionScore > 0 ? Math.round((sessionScore / maxSessionScore) * 100) : 0;
                     if (percentage < 0) percentage = 0;
@@ -2023,12 +1740,9 @@
 
             $('#nextMistakeBtn').on('click', function() { 
                 if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
-                currentMistakeIndex++; 
-                loadMistake(); 
+                currentMistakeIndex++; loadMistake(); 
             });
-            
             $('#exitPracticeBtn').on('click', function() { restorePostGameState(); });
-
             $('#playAgainBtn').on('click', function() { initGame(); });
 
             initGame();
