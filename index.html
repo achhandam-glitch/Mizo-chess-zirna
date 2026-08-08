@@ -551,6 +551,9 @@
                             if(data && data.status === 'accepted') {
                                 chal.off(); chal.remove();
                                 startMatch(roomId, 'w', myUsername, opp); 
+                            } else if (data && data.status === 'rejected') {
+                                chal.off(); chal.remove();
+                                $('#mmChallengeMsg').text(opp + " chuan i sawmna a hnawl ta (Rejected).");
                             } else if (!data) {
                                 chal.off(); $('#mmChallengeMsg').text("Sawmna cancel emaw a tawp.");
                             }
@@ -579,7 +582,10 @@
                         if(c.status === 'pending') {
                             html += `<div style="background:#fff; border:1px solid #ccc; padding:8px; border-radius:4px; margin-bottom:5px;">
                                 <b>${c.from}</b> in a rawn sawm che!
-                                <button class="btn-green mm-accept-btn" data-id="${child.key}" data-room="${c.room}" data-from="${c.from}" style="padding:6px; margin-top:5px; width:100%;">Pawmna (Accept)</button>
+                                <div style="display:flex; gap:5px; margin-top:5px;">
+                                    <button class="btn-green mm-accept-btn" data-id="${child.key}" data-room="${c.room}" data-from="${c.from}" style="padding:6px; flex:1;">Pawmna</button>
+                                    <button class="btn-red mm-reject-btn" data-id="${child.key}" style="padding:6px; flex:1;">Hnawl</button>
+                                </div>
                             </div>`;
                         }
                     });
@@ -597,6 +603,11 @@
                 var challenger = $(this).data('from');
                 database.ref('challenges/' + cId).update({status: 'accepted'});
                 startMatch(rId, 'b', challenger, myUsername); 
+            });
+
+            $(document).on('click', '.mm-reject-btn', function() {
+                var cId = $(this).data('id');
+                database.ref('challenges/' + cId).update({status: 'rejected'});
             });
 
             function startMatch(roomId, color, wUser, bUser) {
