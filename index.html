@@ -179,6 +179,21 @@
             <div style="font-size:14px; margin-bottom:12px; color: #2c3e50; font-weight: bold;">
                 I Username: <span id="lblMyUsername" style="color:#e67e22; font-size: 16px;"></span>
             </div>
+
+            <!-- LEADERBOARD BOX -->
+            <div style="background:#fdfefe; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #f1c40f;">
+                <div style="font-size:13px; font-weight:bold; margin-bottom:8px; color:#d35400; display:flex; justify-content:space-between; align-items:center;">
+                    <span><i class="fa-solid fa-trophy"></i> Point Hmu Sangte</span>
+                    <select id="leaderboardCategoryFilter" style="padding:4px; font-size:11px; border-radius:4px; border:1px solid #bdc3c7; background:#fff; font-weight:bold; color:#2c3e50;">
+                        <option value="Rang lutuk">Rang lutuk (1m)</option>
+                        <option value="Rang vak lo">Rang vak lo (3m, 5m)</option>
+                        <option value="Rang pangngai" selected>Rang pangngai (10m, 15m)</option>
+                        <option value="A muang chi">A muang chi (30m+)</option>
+                    </select>
+                </div>
+                <button id="mmShowLeaderboardBtn" class="btn-yellow" style="width:100%; padding:8px; margin-bottom:5px;">Top 10 Enna</button>
+                <div id="mmLeaderboardList" style="display:none; max-height:250px; overflow-y:auto; font-size:13px; margin-top:5px; background:#fff; border:1px solid #bdc3c7; border-radius:4px;"></div>
+            </div>
             
             <div style="background:#f4f6f7; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #d5dbdb;">
                 <div style="font-size:13px; font-weight:bold; margin-bottom:8px;">Khelhpui tur zawng rawh:</div>
@@ -332,6 +347,7 @@
             var isTwoPlayer = false; 
             var isOnlineMode = false; 
             var isMatchmakingState = false;
+            var gameResultSaved = false;
 
             var onlineRoomId = null;
             var roomRef = null;
@@ -401,6 +417,15 @@
             var stockfish = new Worker(URL.createObjectURL(blob));
             stockfish.postMessage('uci');
 
+            // --- CATEGORY HELPER FUNCTION ---
+            function getTimeControlCategory(minutes) {
+                var m = parseInt(minutes);
+                if (m <= 1) return 'Rang lutuk';
+                if (m <= 5) return 'Rang vak lo';
+                if (m <= 15) return 'Rang pangngai';
+                return 'A muang chi';
+            }
+
             // --- DAILY VISITORS SYSTEM ---
             var today = new Date();
             var dateString = today.getFullYear() + '-' + (today.getMonth()+1).toString().padStart(2, '0') + '-' + today.getDate().toString().padStart(2, '0');
@@ -417,7 +442,6 @@
             dailyRef.on('value', function(snapshot) {
                 $('#todayVisitorsCount').text(snapshot.val() || 0);
             });
-            // ----------------------------------------
 
             // --- TOTAL VISITORS PRESENCE SYSTEM ---
             var visitorsRef = database.ref('/online_visitors');
@@ -433,7 +457,6 @@
             visitorsRef.on('value', function(snapshot) {
                 $('#totalVisitorsCount').text(snapshot.numChildren());
             });
-            // ----------------------------------------
 
             // --- PRESENCE SYSTEM (Online Stats Listeners) ---
             database.ref('/status/').on('value', function(snapshot) {
@@ -460,7 +483,6 @@
                 });
                 $('#activeGamesCount').text(activeRooms);
             });
-            // ------------------------------------------------
 
             function setEngineLevel() {
                 if (isPracticeMode) {
@@ -518,13 +540,16 @@
 
             function timeOut(color) {
                 clearInterval(timerInterval);
-                var winner = color === 'w' ? (isOnlineMode ? blackUsername : 'A Dum') : (isOnlineMode ? whiteUsername : 'A Var');
-                endGameWithMessage('Hun a tawp! ' + winner + ' a chak.');
+                var winnerColor = color === 'w' ? 'b' : 'w';
+                var winnerName = color === 'w' ? (isOnlineMode ? blackUsername : 'A Dum') : (isOnlineMode ? whiteUsername : 'A Var');
+                var myResult = (playerColor === winnerColor) ? 'win' : 'lose';
+                endGameWithMessage('Hun a tawp! ' + winnerName + ' a chak.', myResult);
             }
 
             function restartOnlineGame() {
                 manuallyEnded = false;
                 drawOfferPending = false;
+                gameResultSaved = false;
                 hideVerse();
                 $('#toggleSupportBtn').hide();
                 $('#supportBox').hide();
@@ -566,7 +591,7 @@
                             updateTimerDisplay();
                         }
 
-                        // --- REMATCH LOGIC (Khel leh ila) ---
+                        // --- REMATCH LOGIC ---
                         if (data.rematch && manuallyEnded) {
                             if (data.rematch.status === 'pending') {
                                 if (data.rematch.offerBy !== myUsername) {
@@ -589,7 +614,6 @@
                             }
                         }
 
-                        // Detect game reset for Rematch
                         if (data.pgn === "" && manuallyEnded && !isPracticeMode) {
                             if (data.whiteUser === myUsername) playerColor = 'w';
                             else if (data.blackUser === myUsername) playerColor = 'b';
@@ -597,7 +621,6 @@
                             restartOnlineGame();
                             return;
                         }
-                        // ----------------------------------
 
                         var incomingPgn = data.pgn || "";
                         
@@ -609,7 +632,7 @@
                                 updateMoveHistory();
                             }
                             if (!manuallyEnded) {
-                                endGameWithMessage('I khingpui a tlawm ta! I chak e.');
+                                endGameWithMessage('I khingpui a tlawm ta! I chak e.', 'win');
                             }
                             return; 
                         }
@@ -622,7 +645,7 @@
                                 updateMoveHistory();
                             }
                             if (!manuallyEnded) {
-                                endGameWithMessage('Inhneh tawk (Draw) a ni e!');
+                                endGameWithMessage('Inhneh tawk (Draw) a ni e!', 'draw');
                             }
                             return; 
                         }
@@ -640,7 +663,7 @@
                         // Room deleted (Opponent left)
                         if (isOnlineMode) {
                             if (!manuallyEnded) {
-                                endGameWithMessage("I khingpuiin app a chhuahsan! (Disconnected)");
+                                endGameWithMessage("I khingpuiin app a chhuahsan! (Disconnected)", 'win');
                             } else {
                                 $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">I khingpuiin a chhuahsan tawh.</div>`);
                             }
@@ -658,7 +681,6 @@
                     $('#authBox').hide();
                     if(isMatchmakingState) showLobby();
 
-                    // --- PRESENCE SYSTEM (Current User) ---
                     var userStatusRef = database.ref('/status/' + myUsername);
                     var isOfflineForDatabase = { state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP };
                     var isOnlineForDatabase = { state: 'online', last_changed: firebase.database.ServerValue.TIMESTAMP };
@@ -669,8 +691,6 @@
                             userStatusRef.set(isOnlineForDatabase);
                         });
                     });
-                    // ---------------------------------------
-
                 } else {
                     myUsername = null;
                     $('#lobbyBox').hide();
@@ -683,7 +703,15 @@
                 if(u.length < 3 || p.length < 6) return $('#authError').text("Username tawi lutuk emaw password 6 letters tling lo.");
                 $('#authError').text("Nghak lawk...");
                 auth.createUserWithEmailAndPassword(getEmail(u), p).then(() => {
-                    database.ref('users/' + u.toLowerCase().trim()).set({ joined: Date.now() });
+                    database.ref('users/' + u.toLowerCase().trim()).set({ 
+                        joined: Date.now(), 
+                        points: {
+                            'Rang lutuk': 0,
+                            'Rang vak lo': 0,
+                            'Rang pangngai': 0,
+                            'A muang chi': 0
+                        }
+                    });
                     $('#authError').text("");
                 }).catch(e => $('#authError').text(e.message));
             });
@@ -709,10 +737,76 @@
                 listenToChallenges();
             }
 
+            // --- LEADERBOARD CATEGORY LOGIC ---
+            function loadLeaderboard() {
+                var $list = $('#mmLeaderboardList');
+                var category = $('#leaderboardCategoryFilter').val();
+                $list.html('<div style="padding:10px; text-align:center;"><i>Data lakchhuah mek a ni...</i></div>').slideDown();
+
+                database.ref('users').once('value').then(function(snapshot) {
+                    var leaders = [];
+                    snapshot.forEach(function(child) {
+                        var data = child.val();
+                        var pts = 0;
+                        if (data.points && typeof data.points === 'object') {
+                            pts = data.points[category] || 0;
+                        } else if (typeof data.points === 'number' && category === 'Rang pangngai') {
+                            // Hmanlai data fallback (10 mins default vangin)
+                            pts = data.points;
+                        }
+                        
+                        if (pts > 0) { 
+                            leaders.push({ username: child.key, points: pts });
+                        }
+                    });
+
+                    leaders.sort((a, b) => b.points - a.points);
+                    leaders = leaders.slice(0, 10); // Top 10 chauh
+
+                    if(leaders.length === 0) {
+                        $list.html('<div style="padding:10px; text-align:center;"><i>Tumah an la awm lo.</i></div>');
+                    } else {
+                        var html = '<table style="width:100%; text-align:left; border-collapse:collapse;">';
+                        html += '<tr style="background:#f39c12; color:#fff;"><th style="padding:6px 8px;">Rank</th><th style="padding:6px 8px;">Hming</th><th style="padding:6px 8px;">Points</th></tr>';
+                        leaders.forEach(function(l, index) {
+                            var medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : ('#' + (index + 1));
+                            html += `<tr style="border-bottom:1px solid #ecf0f1;">
+                                <td style="padding:8px; font-weight:bold;">${medal}</td>
+                                <td style="padding:8px; font-weight:bold; color:#2c3e50;">${l.username}</td>
+                                <td style="padding:8px; font-weight:bold; color:#d35400;">${l.points}</td>
+                            </tr>`;
+                        });
+                        html += '</table>';
+                        $list.html(html);
+                    }
+                });
+            }
+
+            $('#mmShowLeaderboardBtn').click(function() {
+                var $list = $('#mmLeaderboardList');
+                if($list.is(':visible')) {
+                    $list.slideUp();
+                    return;
+                }
+                loadLeaderboard();
+            });
+
+            $('#leaderboardCategoryFilter').change(function() {
+                if($('#mmLeaderboardList').is(':visible')) {
+                    loadLeaderboard();
+                }
+            });
+
             // --- GAME HISTORY FETCHING ---
             $('#mmLoadHistoryBtn').click(function() {
                 if(!myUsername) return;
-                $('#mmHistoryList').html('<div style="padding:10px; text-align:center;"><i>Record zawn mek a ni...</i></div>').show();
+                var $list = $('#mmHistoryList');
+                if($list.is(':visible')) {
+                    $list.slideUp();
+                    return;
+                }
+
+                $list.html('<div style="padding:10px; text-align:center;"><i>Record zawn mek a ni...</i></div>').slideDown();
 
                 database.ref('users/' + myUsername + '/games').orderByChild('date').limitToLast(15).once('value').then(function(snapshot) {
                     var html = '';
@@ -736,7 +830,7 @@
                             </div>`;
                         });
                     }
-                    $('#mmHistoryList').html(html);
+                    $list.html(html);
                 });
             });
 
@@ -748,7 +842,6 @@
                 $('#pgnText').val(pastPgn);
                 alert("Game hlui PGN lakchhuah a ni e!\n'Zirna-ah lut nghal rawh' tih hmangin i chetsualna te i enlet thei ang.");
             });
-            // ------------------------------
 
             // --- REMATCH BUTTON HANDLERS ---
             $(document).on('click', '#rematchBtn', function() {
@@ -784,19 +877,20 @@
                     });
                 }
             });
-            // --------------------------------
 
             $('#mmChallengeBtn').click(function() {
                 var opp = $('#mmSearchUser').val().toLowerCase().trim();
                 if(!opp || opp === myUsername) return $('#mmChallengeMsg').text("Username dik chhut rawh.");
                 $('#mmChallengeMsg').text("Zawn mek a ni...");
                 
+                var myTime = $('#timeSelect').val() || "10";
+
                 database.ref('users/' + opp).once('value').then(snap => {
                     if(snap.exists()) {
                         $('#mmChallengeMsg').text(opp + " sawm mek a ni, a pawm hun nghak rawh...");
                         var roomId = Math.random().toString(36).substring(2,10);
                         var chal = database.ref('challenges').push();
-                        chal.set({ from: myUsername, to: opp, status: 'pending', room: roomId, time: Date.now() });
+                        chal.set({ from: myUsername, to: opp, status: 'pending', room: roomId, time: Date.now(), gameTime: myTime });
                         
                         chal.on('value', function(cSnap) {
                             var data = cSnap.val();
@@ -833,9 +927,9 @@
                         var c = child.val();
                         if(c.status === 'pending') {
                             html += `<div style="background:#fff; border:1px solid #ccc; padding:8px; border-radius:4px; margin-bottom:5px;">
-                                <b>${c.from}</b> in a rawn sawm che!
+                                <b>${c.from}</b> in a rawn sawm che! (Hun: ${c.gameTime} Mins)
                                 <div style="display:flex; gap:5px; margin-top:5px;">
-                                    <button class="btn-green mm-accept-btn" data-id="${child.key}" data-room="${c.room}" data-from="${c.from}" style="padding:6px; flex:1;">Pawmna</button>
+                                    <button class="btn-green mm-accept-btn" data-id="${child.key}" data-room="${c.room}" data-from="${c.from}" data-time="${c.gameTime}" style="padding:6px; flex:1;">Pawmna</button>
                                     <button class="btn-red mm-reject-btn" data-id="${child.key}" style="padding:6px; flex:1;">Hnawl</button>
                                 </div>
                             </div>`;
@@ -853,6 +947,10 @@
                 var cId = $(this).data('id'); 
                 var rId = $(this).data('room');
                 var challenger = $(this).data('from');
+                var challengeTime = $(this).data('time');
+                
+                $('#timeSelect').val(challengeTime); // Sync time setting
+
                 database.ref('challenges/' + cId).update({status: 'accepted'});
                 startMatch(rId, 'b', challenger, myUsername); 
             });
@@ -892,9 +990,9 @@
                     rematch: null
                 });
 
-                // App a close emaw a chhuah veleh Room hi delete nghal zel turin
                 roomRefDb.onDisconnect().remove();
                 
+                gameResultSaved = false;
                 game.reset(); board.start(); selectedSquare = null; removeHighlights();
                 updateStatus(); updateMoveHistory(); 
                 
@@ -1003,7 +1101,7 @@
                         if (engineDeclines) {
                             $status.html("Khawl in a chak zawk tih a hria a, Draw a pawm lo! Chet chhunzawm rawh le.");
                         } else {
-                            endGameWithMessage('Khawl in Inhneh tawk (Draw) a pawm e!');
+                            endGameWithMessage('Khawl in Inhneh tawk (Draw) a pawm e!', 'draw');
                         }
                         return;
                     }
@@ -1266,7 +1364,7 @@
                 }
             }
 
-            function endGameWithMessage(msg) {
+            function endGameWithMessage(msg, resultOverride = null) {
                 manuallyEnded = true;
                 if (timerInterval) clearInterval(timerInterval);
                 finalStatusMsg = msg; 
@@ -1282,6 +1380,58 @@
                         opponent: oppName,
                         result: msg
                     });
+                }
+
+                // --- POINT SYSTEM UPDATE (Leaderboard w/ Categories) ---
+                if (isOnlineMode && myUsername && !gameResultSaved) {
+                    var myResult = resultOverride;
+
+                    if (!myResult) {
+                        if (game.in_checkmate()) {
+                            myResult = (game.turn() === playerColor) ? 'lose' : 'win';
+                        } else if (game.in_draw() || game.in_stalemate() || game.in_threefold_repetition()) {
+                            myResult = 'draw';
+                        }
+                    }
+
+                    if (myResult) {
+                        var pointsToAdd = 0;
+                        if (myResult === 'win') pointsToAdd = 10;
+                        else if (myResult === 'draw') pointsToAdd = 5;
+                        else if (myResult === 'lose') pointsToAdd = -5;
+
+                        if (pointsToAdd !== 0) {
+                            var initialMinutes = parseInt($('#timeSelect').val() || 10);
+                            var category = getTimeControlCategory(initialMinutes);
+                            var userRef = database.ref('users/' + myUsername + '/points');
+                            
+                            userRef.transaction(function(currentPoints) {
+                                var newPointsObj = {};
+                                if (typeof currentPoints === 'number') {
+                                    newPointsObj = {
+                                        'Rang lutuk': 0,
+                                        'Rang vak lo': 0,
+                                        'Rang pangngai': currentPoints, // Hmanlai points fallback
+                                        'A muang chi': 0
+                                    };
+                                } else if (currentPoints && typeof currentPoints === 'object') {
+                                    newPointsObj = currentPoints;
+                                } else {
+                                    newPointsObj = {
+                                        'Rang lutuk': 0,
+                                        'Rang vak lo': 0,
+                                        'Rang pangngai': 0,
+                                        'A muang chi': 0
+                                    };
+                                }
+                                
+                                var newVal = (newPointsObj[category] || 0) + pointsToAdd;
+                                newPointsObj[category] = newVal < 0 ? 0 : newVal;
+                                return newPointsObj;
+                            });
+                        }
+                        gameResultSaved = true; 
+                    }
                 }
                 // -------------------------------------------
 
@@ -1386,6 +1536,7 @@
 
                 manuallyEnded = false; drawOfferPending = false; practiceEngineState = 'none';
                 isMatchmakingState = false;
+                gameResultSaved = false;
                 
                 $('#toggleSupportBtn').hide();
                 $('#supportBox').hide();
@@ -1541,7 +1692,6 @@
             });
 
             $(document).on('click', '#exitOnlineBtn', function() {
-                // Button a hmeh a a chhuah theihna hrim hrimah pawh a room hman mek delete theihna
                 if (onlineRoomId) {
                     database.ref('rooms/' + onlineRoomId).remove();
                 }
@@ -1635,7 +1785,7 @@
                 if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) return;
                 if (isOnlineMode) {
                     database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Resign}"}); 
-                    endGameWithMessage('Ka tlawm ta!');
+                    endGameWithMessage('Ka tlawm ta!', 'lose');
                 } else {
                     endGameWithMessage('I tlawm ta!');
                 }
@@ -1646,7 +1796,7 @@
                 
                 if (isOnlineMode) { 
                     database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Draw}"}); 
-                    endGameWithMessage('Inhneh tawk (Draw) a ni e!'); 
+                    endGameWithMessage('Inhneh tawk (Draw) a ni e!', 'draw'); 
                     return; 
                 } else if (isTwoPlayer) {
                     endGameWithMessage('Inhneh tawk (Draw) in pawm dun e!');
