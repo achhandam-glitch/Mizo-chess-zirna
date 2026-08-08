@@ -193,6 +193,15 @@
                 <div id="mmIncomingList"></div>
             </div>
 
+            <!-- GAME HISTORY BOX (Thar) -->
+            <div style="background:#fdfefe; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #d5dbdb;">
+                <div style="font-size:13px; font-weight:bold; margin-bottom:8px; color:#2c3e50;">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Ka Game Khelh Tawhte (History)
+                </div>
+                <button id="mmLoadHistoryBtn" class="btn-purple" style="width:100%; padding:8px; margin-bottom:5px;">Game Record La Chhuak Rawh</button>
+                <div id="mmHistoryList" style="display:none; max-height:160px; overflow-y:auto; font-size:12px; margin-top:5px; background:#fff; border:1px solid #bdc3c7; border-radius:4px;"></div>
+            </div>
+
             <button id="mmLogoutBtn" class="btn-red" style="width:100%;">Logout (Chhuahna)</button>
         </div>
     </div>
@@ -605,6 +614,47 @@
                 $('#lblMyUsername').text(myUsername);
                 listenToChallenges();
             }
+
+            // --- GAME HISTORY FETCHING ---
+            $('#mmLoadHistoryBtn').click(function() {
+                if(!myUsername) return;
+                $('#mmHistoryList').html('<div style="padding:10px; text-align:center;"><i>Record zawn mek a ni...</i></div>').show();
+
+                database.ref('users/' + myUsername + '/games').orderByChild('date').limitToLast(15).once('value').then(function(snapshot) {
+                    var html = '';
+                    var games = [];
+                    snapshot.forEach(function(child) {
+                        games.push({id: child.key, data: child.val()});
+                    });
+                    games.reverse();
+
+                    if(games.length === 0) {
+                        html = '<div style="padding:10px; text-align:center;"><i>Game khelh tawh record i la nei lo.</i></div>';
+                    } else {
+                        games.forEach(function(g) {
+                            var d = new Date(g.data.date).toLocaleDateString('en-GB');
+                            html += `<div style="padding:8px; border-bottom:1px solid #ecf0f1; display:flex; justify-content:space-between; align-items:center;">
+                                <div style="flex:1;">
+                                    <b style="color:#2980b9;">vs ${g.data.opponent}</b> <br>
+                                    <span style="font-size:10px; color:#7f8c8d;">${d} | ${g.data.result.substring(0, 20)}</span>
+                                </div>
+                                <button class="btn-teal btn-load-past-game" data-pgn="${encodeURIComponent(g.data.pgn)}" style="padding:5px 10px; font-size:11px; min-width:60px;">Enna</button>
+                            </div>`;
+                        });
+                    }
+                    $('#mmHistoryList').html(html);
+                });
+            });
+
+            $(document).on('click', '.btn-load-past-game', function() {
+                var pastPgn = decodeURIComponent($(this).data('pgn'));
+                $('#matchmakingPanel').hide();
+                $('#gameControls').show();
+                $('#pgnContainer').show();
+                $('#pgnText').val(pastPgn);
+                alert("Game hlui PGN lakchhuah a ni e!\n'Zirna-ah lut nghal rawh' tih hmangin i chetsualna te i enlet thei ang.");
+            });
+            // ------------------------------
 
             $('#mmChallengeBtn').click(function() {
                 var opp = $('#mmSearchUser').val().toLowerCase().trim();
@@ -1092,6 +1142,18 @@
                 $status.html(msg); showRandomVerse();
                 savedGameHistory = game.history(); 
                 
+                // --- NEW: Save Game History to Firebase ---
+                if (myUsername && savedGameHistory.length > 2) {
+                    var oppName = isOnlineMode ? (playerColor === 'w' ? blackUsername : whiteUsername) : $('#difficultySelect option:selected').text();
+                    database.ref('users/' + myUsername + '/games').push({
+                        date: firebase.database.ServerValue.TIMESTAMP,
+                        pgn: game.pgn(),
+                        opponent: oppName,
+                        result: msg
+                    });
+                }
+                // -------------------------------------------
+
                 $('#actionButtons').hide(); 
                 $('#moveHistoryBox').hide(); 
                 
