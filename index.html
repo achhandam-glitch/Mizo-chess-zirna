@@ -702,13 +702,17 @@
 
                 board.orientation(playerColor === 'w' ? 'white' : 'black');
                 
-                database.ref('rooms/' + onlineRoomId).update({
+                var roomRefDb = database.ref('rooms/' + onlineRoomId);
+                roomRefDb.update({
                     pgn: "",
                     whiteTime: whiteTime,
                     blackTime: blackTime,
                     whiteUser: whiteUsername,
                     blackUser: blackUsername
                 });
+
+                // App a close emaw a chhuah veleh Room hi delete nghal zel turin
+                roomRefDb.onDisconnect().remove();
                 
                 game.reset(); board.start(); selectedSquare = null; removeHighlights();
                 updateStatus(); updateMoveHistory(); 
@@ -1266,11 +1270,16 @@
 
                     $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide();
 
-                    database.ref('rooms/' + onlineRoomId).set({
+                    var roomRefDb = database.ref('rooms/' + onlineRoomId);
+                    roomRefDb.set({
                         pgn: "",
                         whiteTime: whiteTime,
                         blackTime: blackTime
                     });
+                    
+                    // App a close rualin Link Room pawh in-delete nghal zel turin
+                    roomRefDb.onDisconnect().remove();
+
                     listenToRoom();
                 } else {
                     if (roomRef) { roomRef.off(); roomRef = null; }
@@ -1331,6 +1340,10 @@
             });
 
             $(document).on('click', '#exitOnlineBtn', function() {
+                // Button a hmeh a a chhuah theihna hrim hrimah pawh a room hman mek delete theihna
+                if (onlineRoomId) {
+                    database.ref('rooms/' + onlineRoomId).remove();
+                }
                 window.location.href = window.location.href.split('?')[0];
             });
 
