@@ -156,6 +156,27 @@
             <div style="font-size:14px; margin-bottom:12px; color: #2c3e50; font-weight: bold;">
                 I Username: <span id="lblMyUsername" style="color:#e67e22; font-size: 16px;"></span>
             </div>
+
+            <!-- ONLINE STATS BOX -->
+            <div style="background:#f4f6f7; padding:10px; border-radius:6px; margin-bottom:12px; border: 1px solid #d5dbdb;">
+                <div style="font-size:13px; font-weight:bold; color:#2c3e50; margin-bottom:8px;">
+                    <i class="fa-solid fa-chart-line"></i> Tualzawl Chanchin (Live Stats)
+                </div>
+                <div style="font-size:12px; color:#34495e; margin-bottom: 6px;">
+                    👁️ App hmang mek (Total): <strong id="totalVisitorsCount" style="color:#8e44ad; font-size:14px;">0</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #bdc3c7; padding-bottom: 6px; margin-bottom: 6px;">
+                    <div style="font-size:12px; color:#34495e;">
+                        🟢 Online (Log-in): <strong id="onlineCount" style="color:#27ae60; font-size:14px;">0</strong>
+                    </div>
+                    <div style="font-size:12px; color:#34495e;">
+                        🎮 Inkhel mek: <strong id="activeGamesCount" style="color:#d35400; font-size:14px;">0</strong>
+                    </div>
+                </div>
+                <div style="font-size:12px; color:#34495e;">
+                    <b>Online te:</b> <span id="onlineUsersList" style="color:#2980b9; font-style:italic;">Tuman an rawn tlawh rih lo</span>
+                </div>
+            </div>
             
             <div style="background:#f4f6f7; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #d5dbdb;">
                 <div style="font-size:13px; font-weight:bold; margin-bottom:8px;">Khelhpui tur zawng rawh:</div>
@@ -369,6 +390,49 @@
             var stockfish = new Worker(URL.createObjectURL(blob));
             stockfish.postMessage('uci');
 
+            // --- TOTAL VISITORS PRESENCE SYSTEM ---
+            var visitorsRef = database.ref('/online_visitors');
+            var myVisitorRef = visitorsRef.push(); 
+
+            database.ref('.info/connected').on('value', function(snapshot) {
+                if (snapshot.val() == false) { return; }
+                myVisitorRef.onDisconnect().remove().then(function() {
+                    myVisitorRef.set(true);
+                });
+            });
+
+            visitorsRef.on('value', function(snapshot) {
+                $('#totalVisitorsCount').text(snapshot.numChildren());
+            });
+            // ----------------------------------------
+
+            // --- PRESENCE SYSTEM (Online Stats Listeners) ---
+            database.ref('/status/').on('value', function(snapshot) {
+                var count = 0;
+                var onlineUsers = [];
+                snapshot.forEach(function(child) {
+                    if (child.val().state === 'online') {
+                        count++;
+                        onlineUsers.push(child.key);
+                    }
+                });
+                $('#onlineCount').text(count);
+                if (onlineUsers.length > 0) {
+                    $('#onlineUsersList').text(onlineUsers.join(', '));
+                } else {
+                    $('#onlineUsersList').text('Tumah an awm lo');
+                }
+            });
+
+            database.ref('rooms/').on('value', function(snapshot) {
+                var activeRooms = 0;
+                snapshot.forEach(function(child) {
+                    if (child.val()) { activeRooms++; }
+                });
+                $('#activeGamesCount').text(activeRooms);
+            });
+            // ------------------------------------------------
+
             function setEngineLevel() {
                 if (isPracticeMode) {
                     stockfish.postMessage('setoption name Skill Level value 20');
@@ -488,6 +552,20 @@
                     myUsername = user.email.split('@')[0];
                     $('#authBox').hide();
                     if(isMatchmakingState) showLobby();
+
+                    // --- PRESENCE SYSTEM (Current User) ---
+                    var userStatusRef = database.ref('/status/' + myUsername);
+                    var isOfflineForDatabase = { state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP };
+                    var isOnlineForDatabase = { state: 'online', last_changed: firebase.database.ServerValue.TIMESTAMP };
+
+                    database.ref('.info/connected').on('value', function(snapshot) {
+                        if (snapshot.val() == false) { return; }
+                        userStatusRef.onDisconnect().set(isOfflineForDatabase).then(function() {
+                            userStatusRef.set(isOnlineForDatabase);
+                        });
+                    });
+                    // ---------------------------------------
+
                 } else {
                     myUsername = null;
                     $('#lobbyBox').hide();
@@ -513,7 +591,13 @@
                 .catch(e => $('#authError').text("Login theih loh. Username/Password dik lo."));
             });
 
-            $('#mmLogoutBtn').click(function() { auth.signOut(); });
+            $('#mmLogoutBtn').click(function() { 
+                if(myUsername) {
+                    // Update to offline before signing out
+                    database.ref('/status/' + myUsername).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
+                }
+                auth.signOut(); 
+            });
 
             function showLobby() {
                 $('#authBox').hide(); $('#lobbyBox').show();
