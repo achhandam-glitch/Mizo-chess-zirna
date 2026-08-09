@@ -163,9 +163,9 @@
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; font-size: 12px; color: #34495e; border-bottom: 1px dashed #ecf0f1; padding-bottom: 6px; margin-bottom: 6px;">
             <div style="flex: 1 1 45%;">👁️ Hmang mek: <strong id="totalVisitorsCount" style="color:#8e44ad; font-size:14px;">0</strong></div>
-            <div style="flex: 1 1 45%; text-align: right;">📈 Vawiin: <strong id="todayVisitorsCount" style="color:#e67e22; font-size:14px;">0</strong></div>
+            <div style="flex: 1 1 45%; text-align: right;">📈 Hmang tawh: <strong id="allTimeVisitorsCount" style="color:#e67e22; font-size:14px;">0</strong></div>
             <div style="flex: 1 1 45%;">🟢 Log-in: <strong id="onlineCount" style="color:#27ae60; font-size:14px;">0</strong></div>
-            <div style="flex: 1 1 45%; text-align: right;">🎮 Inkhel: <strong id="activeGamesCount" style="color:#d35400; font-size:14px;">0</strong></div>
+            <div style="flex: 1 1 45%; text-align: right;">🎮 Inkhel mek: <strong id="activeGamesCount" style="color:#d35400; font-size:14px;">0</strong></div>
         </div>
         <div style="font-size: 11px; color: #7f8c8d; text-align:center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
             <b>Online:</b> <span id="onlineUsersList" style="color:#2980b9;">Tumah an awm lo</span>
@@ -503,17 +503,15 @@
                 return 'A muang chi';
             }
 
-            // --- DAILY VISITORS SYSTEM ---
-            var today = new Date();
-            var dateString = today.getFullYear() + '-' + (today.getMonth()+1).toString().padStart(2, '0') + '-' + today.getDate().toString().padStart(2, '0');
-            var visitedKey = 'visited_' + dateString;
-            var dailyRef = database.ref('daily_visitors/' + dateString);
+            // --- ALL-TIME VISITORS SYSTEM ---
+            var visitedKey = 'visited_ever';
+            var allTimeRef = database.ref('all_time_visitors');
             
             if (!localStorage.getItem(visitedKey)) {
-                dailyRef.transaction(current_value => (current_value || 0) + 1);
+                allTimeRef.transaction(current_value => (current_value || 0) + 1);
                 localStorage.setItem(visitedKey, 'true');
             }
-            dailyRef.on('value', snap => $('#todayVisitorsCount').text(snap.val() || 0));
+            allTimeRef.on('value', snap => $('#allTimeVisitorsCount').text(snap.val() || 0));
 
             // --- TOTAL VISITORS PRESENCE SYSTEM ---
             var visitorsRef = database.ref('/online_visitors');
