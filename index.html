@@ -676,13 +676,17 @@
                 allTimeRef.on('value', snap => $('#allTimeVisitorsCount').text(snap.val() || 0));
 
                 // --- TOTAL VISITORS PRESENCE SYSTEM ---
+                var currentVisitorsCount = 0; // Visitors zat chhinchhiahna
                 var visitorsRef = database.ref('/online_visitors');
                 var myVisitorRef = visitorsRef.push(); 
                 database.ref('.info/connected').on('value', snap => {
                     if (snap.val() == false) return;
                     myVisitorRef.onDisconnect().remove().then(() => myVisitorRef.set(true));
                 });
-                visitorsRef.on('value', snap => $('#totalVisitorsCount').text(snap.numChildren()));
+                visitorsRef.on('value', snap => {
+                    currentVisitorsCount = snap.numChildren();
+                    $('#totalVisitorsCount').text(currentVisitorsCount);
+                });
 
                 // --- PRESENCE SYSTEM ---
                 database.ref('/status/').on('value', function(snapshot) {
@@ -694,6 +698,7 @@
                     $('#onlineUsersList').text(onlineUsers.length > 0 ? onlineUsers.join(', ') : 'Tumah an awm lo');
                 });
                 
+                // --- ACTIVE ROOMS SYSTEM ---
                 database.ref('rooms/').on('value', function(snapshot) {
                     var activeRooms = 0;
                     var currentTime = Date.now();
@@ -701,14 +706,25 @@
                         var room = child.val();
                         if (room) { 
                             var lastActive = room.lastUpdated || currentTime;
-                            var hoursIdle = (currentTime - lastActive) / (1000 * 60 * 60);
-                            if (hoursIdle < 2) { 
+                            // Minute engzatnge an chet tawh loh (idle) tih chhutna
+                            var minutesIdle = (currentTime - lastActive) / (1000 * 60); 
+                            
+                            // Minute 10 chhunga la active (la in-move) te chauh Game nung anga chhiar tur
+                            if (minutesIdle < 10) { 
                                 activeRooms++; 
-                            } else if (hoursIdle > 12) {
+                            } 
+                            // Darkar 12 a liam tawh erawh chuan database atanga tihfai (delete) tur (12 hr * 60 min = 720 mins)
+                            if (minutesIdle > 720) {
                                 database.ref('rooms/' + child.key).remove();
                             }
                         } 
                     });
+                    
+                    // LOGIC: Hmang mek (Visitors) aiin Inkhel mek (Rooms) a tam thei lo hrim hrim
+                    if (activeRooms > currentVisitorsCount) {
+                        activeRooms = currentVisitorsCount;
+                    }
+                    
                     $('#activeGamesCount').text(activeRooms);
                 });
             }
