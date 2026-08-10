@@ -435,6 +435,9 @@
 
         <!-- SRS (Mistake Learning) Controls -->
         <div class="srs-controls" id="srsControls" style="display: none; width: 100%;">
+            <!-- ZAWNNA TARLANNA TUR THAR -->
+            <div id="srsQuestionText" style="width: 100%; text-align: center; margin-bottom: 10px; background: #e8f8f5; border: 1px solid #1abc9c; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: bold; color: #2c3e50; line-height: 1.4;"></div>
+            
             <div id="mcqContainer" style="display: flex; flex-wrap: wrap; width: 100%; gap: 6px; margin-bottom: 10px;"></div>
             <div style="display: flex; width: 100%; gap: 6px; margin-bottom: 6px;">
                 <button id="showAnswerBtn" class="btn-yellow btn-half">Chhanna Enna</button>
@@ -1539,7 +1542,9 @@
                             $('#mcqContainer').html(mcqHtml);
 
                             var phaseHtml = "<span style='color:#8e44ad; font-size: 13px; display:block; margin-bottom:4px; font-weight: bold;'>🧠 ZIRNA: " + qText + "</span>";
-                            $status.html(phaseHtml + "A hnuai ami atang hian a dik ber thlang rawh le.");
+                            var fullText = phaseHtml + "A hnuai ami atang hian a dik ber thlang rawh le.";
+                            $status.html(fullText);
+                            $('#srsQuestionText').html(fullText).show();
                         } 
                         return; 
                     }
@@ -1586,7 +1591,9 @@
                         currentPos.nextReviewTime = Date.now() + (intervalMultiplier * 3600 * 1000);
                         try { localStorage.setItem('mizo_chess_srs_' + currentPos.fen, JSON.stringify(currentPos)); } catch(e) {}
                     }
-                    $status.html("<span style='color:#27ae60; font-size: 13px;'><b>Dik lutuk!</b> Zirna dawtlehah kan insawn mek... <br>(Current Score: " + sessionScore + ")</span>");
+                    var correctMsg = "<span style='color:#27ae60; font-size: 13px;'><b>Dik lutuk!</b> Zirna dawtlehah kan insawn mek... <br>(Current Score: " + sessionScore + ")</span>";
+                    $status.html(correctMsg);
+                    $('#srsQuestionText').html(correctMsg);
                     autoAdvanceTimer = setTimeout(function() { $('#nextMistakeBtn').click(); }, 2000);
                 } else {
                     $(this).removeClass('btn-gray').addClass('btn-red'); $(this).prop('disabled', true);
@@ -1596,7 +1603,9 @@
                         try { localStorage.setItem('mizo_chess_srs_' + currentPos.fen, JSON.stringify(currentPos)); } catch(e) {}
                         hasMadeMistakeInCurrent = true;
                     }
-                    $status.html("<span style='color:#c0392b;'><b>A dik lo:</b> Ti leh rawh! I beidawn chuan 'Chhanna Enna' kha hmet mai rawh.</span>");
+                    var wrongMsg = "<span style='color:#c0392b;'><b>A dik lo:</b> Ti leh rawh! I beidawn chuan 'Chhanna Enna' kha hmet mai rawh.</span>";
+                    $status.html(wrongMsg);
+                    $('#srsQuestionText').html(wrongMsg);
                 }
             });
 
@@ -1620,7 +1629,9 @@
                         game.move({from: from, to: to, promotion: prom}); board.position(game.fen());
                     }
                     $('.mcq-btn').prop('disabled', true);
-                    $status.html("<span style='color:#27ae60;'><b>Chhanna chu:</b> A hring rawnga inrin hi a ni e. <b>Chhan:</b> Hemi hmunhma ah hian attack leh defense a in-balancein, hmelma tan remchang awm miah loin hma a sawn tir a ni. Zir chian hnuah 'A dawt leh' hmet rawh. <br>(Current Score: " + sessionScore + ")</span>");
+                    var ansMsg = "<span style='color:#27ae60;'><b>Chhanna chu:</b> A hring rawnga inrin hi a ni e. <b>Chhan:</b> Hemi hmunhma ah hian attack leh defense a in-balancein, hmelma tan remchang awm miah loin hma a sawn tir a ni. Zir chian hnuah 'A dawt leh' hmet rawh. <br>(Current Score: " + sessionScore + ")</span>";
+                    $status.html(ansMsg);
+                    $('#srsQuestionText').html(ansMsg);
                 }
             });
 
@@ -2079,7 +2090,7 @@
                     setTimeout(function() {
                         $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #onlineRoomBox, #matchmakingPanel, #showPgnBtn, #gameEndControls, #gameSettingsPanel, #quitGameBtn, #learnMistakesBtn, #chatBoxContainer, #voiceChatContainer').hide();
                         $('#srsControls').css('display', 'flex');
-                        $('#status').show(); // HETAH HIAN STATUS HI KA RAHN BELH E
+                        $('#status').show(); 
                         currentMistakeIndex = 0; loadMistake();
                     }, 50);
 
@@ -2138,7 +2149,7 @@
                     if (timerInterval) clearInterval(timerInterval);
                     $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer, #voiceChatContainer').hide(); 
                     $('#srsControls').css('display', 'flex');
-                    $('#status').show(); // HETAH HIAN STATUS HI KA RAHN BELH BAWK E
+                    $('#status').show(); 
                     currentMistakeIndex = 0; loadMistake();
                 } else {
                     alert("Game tha tak a ni! Tactic hlah emaw tihsual lian tham i nei lo.");
@@ -2156,12 +2167,15 @@
                     game.load(currentPos.fen); board.position(game.fen()); board.orientation(currentPos.orientation);
                     setEngineLevel(); practiceEngineState = 'analyzing_base'; mcqRawMoves = [];
                     
-                    $('#status').show(); // HETAH HIAN STATUS HI CHIANG LEHZUALIN KA DAH E
+                    $('#status').show();
 
                     var levelInfo = currentPos.srsLevel ? " (SRS: Lvl " + currentPos.srsLevel + ")" : "";
                     var typeInfo = currentPos.mistakeType ? " <br><b style='color:#c0392b;'>[" + currentPos.mistakeType + "]</b>" : "";
                     
-                    $status.html("ZIRNA (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ")" + levelInfo + typeInfo + "<br>Position zir chian leh zawhna siam mek a ni...");
+                    var loadMsg = "ZIRNA (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ")" + levelInfo + typeInfo + "<br>Position zir chian leh zawhna siam mek a ni...";
+                    $status.html(loadMsg);
+                    $('#srsQuestionText').html(loadMsg);
+
                     if(stockfish.postMessage) { stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 14'); }
                 } else {
                     var percentage = maxSessionScore > 0 ? Math.round((sessionScore / maxSessionScore) * 100) : 0;
