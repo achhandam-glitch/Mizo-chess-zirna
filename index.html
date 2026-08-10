@@ -498,12 +498,12 @@
             console.error("Firebase a fail:", e);
         }
 
-        // --- AGORA VOICE CHAT SETUP (ERROR MESSAGES WITH ALERTS ADDED) ---
+        // --- AGORA VOICE CHAT SETUP (SIAMTHAT SA) ---
         const AGORA_APP_ID = "4ac801fbdbe64453a5e85cff870c3bfc";
         let agoraClient = null;
         let localAudioTrack = null;
         let isMicMuted = true;
-        
+
         try {
             if (typeof AgoraRTC !== 'undefined') {
                 agoraClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
@@ -515,15 +515,9 @@
         async function initVoiceChat(channelName) {
             try {
                 if(!agoraClient || !AGORA_APP_ID) return;
-                
-                await agoraClient.join(AGORA_APP_ID, channelName, null, null);
-                
-                localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-                await localAudioTrack.setEnabled(false);
-                isMicMuted = true;
-                $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
 
-                await agoraClient.publish([localAudioTrack]);
+                // Room-ah lut ringawt se, Mic chu an hmeh (click) hunah chauh kan request ang
+                await agoraClient.join(AGORA_APP_ID, channelName, null, null);
 
                 agoraClient.on("user-published", async (user, mediaType) => {
                     if (mediaType === "audio") {
@@ -533,22 +527,28 @@
                 });
             } catch (e) {
                 console.error("Voice chat initialization error:", e);
-                if (e.message && e.message.includes("PERMISSION_DENIED")) {
-                    alert("Voice Chat a fail: Microphone hman phalna (permission) pek a ni lo.");
-                } else if (e.code === "CAN_NOT_GET_GATEWAY_SERVER") {
-                    alert("Voice Chat a fail: Agora App ID a dik lo emaw, 'Token' ngai chi (Secure mode) in i siam vang a ni thei.");
-                } else {
-                    alert("Voice Chat a theih loh! WhatsApp chhung atanga hawng i nih chuan 'Open in Chrome/Safari' hmang rawh.");
+                if (e.code === "CAN_NOT_GET_GATEWAY_SERVER") {
+                    console.error("Agora App ID a dik lo emaw, Token ngai chi a ni.");
                 }
             }
         }
 
         async function toggleMicrophone() {
-            if (!localAudioTrack) {
-                alert("Voice chat a in-connect lo emaw, Mic hman phalna i la pe lo.");
-                return;
-            }
             try {
+                // Mic a la awm loh chuan (vawikhat hmehna), hetah hian kan request chauh ang
+                if (!localAudioTrack) {
+                    $('#toggleMicBtn').html("⏳ Nghak lawk...").removeClass('btn-whatsapp btn-red').css('background-color', '#f39c12');
+
+                    // Microphone permission a dil ang
+                    localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+                    await agoraClient.publish([localAudioTrack]);
+
+                    isMicMuted = false;
+                    $('#toggleMicBtn').html("🎙️ Microphone: ON").css('background-color', '').removeClass('btn-whatsapp').addClass('btn-red');
+                    return;
+                }
+
+                // A awm sa tawh chuan On/Off ringawt tur
                 if (isMicMuted) {
                     await localAudioTrack.setEnabled(true);
                     isMicMuted = false;
@@ -559,7 +559,9 @@
                     $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
                 }
             } catch (e) {
-                alert("Microphone on/off laiin buaina a awm.");
+                console.error("Mic error:", e);
+                alert("Microphone tihnun theih a ni lo! Browser-in phalna a pe lo che emaw a ni thei. 'Open in Chrome/Safari' in lut la, Microphone hman phalna (Allow) i pe dawn nia.");
+                $('#toggleMicBtn').html("🎙️ Microphone: OFF").css('background-color', '').removeClass('btn-red').addClass('btn-whatsapp');
             }
         }
 
@@ -576,6 +578,7 @@
                 $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
             } catch (e) {}
         }
+        // --- AGORA VOICE CHAT SETUP A TAWP ---
 
         // --- AUDIO SOUND EFFECTS ---
         const moveSnd = new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3');
