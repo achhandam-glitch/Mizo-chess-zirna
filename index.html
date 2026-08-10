@@ -735,6 +735,26 @@
                 document.execCommand("copy");
                 $(this).html("✅ Copy tawh!"); setTimeout(() => $(this).html("📋 Copy PGN"), 2000);
             });
+            
+            // ==========================================
+            // ONLINE LINK (WHATSAPP/COPY) SHARE LOGIC
+            // ==========================================
+            $(document).on('click', '#copyLinkBtn', function() {
+                var copyText = document.getElementById("roomLinkInput");
+                copyText.select();
+                copyText.setSelectionRange(0, 99999); 
+                document.execCommand("copy");
+                
+                var $btn = $(this);
+                $btn.html("✅ Copy tawh!"); 
+                setTimeout(() => $btn.html("🔗 Copy"), 2000);
+            });
+
+            $(document).on('click', '#whatsappShareBtn', function() {
+                var linkToShare = $('#roomLinkInput').val();
+                var text = encodeURIComponent("Chess min rawn khelhpui rawh! He link ah hian lut la: " + linkToShare);
+                window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
+            });
 
             // REFRESH SETTINGS WHEN CHANGED FROM GAME SCREEN
             $('#colorSelect, #engineLevelSelect, #timeSelect').on('change', function() {
