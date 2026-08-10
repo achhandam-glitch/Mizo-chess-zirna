@@ -573,12 +573,24 @@
                 audioEl = document.createElement('audio');
                 audioEl.id = 'remoteAudio';
                 audioEl.autoplay = true;
+                audioEl.playsInline = true; /* HEI HI PHONE ATANA PAWIMAWH CHU A NI */
                 document.body.appendChild(audioEl);
             }
             if (audioEl.srcObject !== stream) {
                 audioEl.srcObject = stream;
             }
-            audioEl.play().catch(e => console.log("Audio a play theih loh (Browser restriction)", e));
+            
+            /* User in a hmeh (click) hmaa a lo rik theih nan a hnuaia mi hi kan belh bawk ang */
+            let playPromise = audioEl.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    // A play thei e
+                }).catch(error => {
+                    console.log("Audio a play theih loh: ", error);
+                    // A rik theih loh chuan screen-ah a hmeh rikna kan tarlang ang
+                    $('#status').html("<button onclick='document.getElementById(\"remoteAudio\").play()' class='btn-green' style='padding:5px; font-size:11px;'>🔊 Audio tihrikna hmet rawh</button>");
+                });
+            }
         }
 
         function leaveVoiceChat() {
