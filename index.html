@@ -1573,7 +1573,7 @@
 
                             var phaseHtml = "<span style='color:#8e44ad; font-size: 13px; display:block; margin-bottom:4px; font-weight: bold;'>🧠 ZIRNA: " + qText + "</span>";
                             var fullText = phaseHtml + "A hnuai ami atang hian a dik ber thlang rawh le.";
-                            $status.html(fullText);
+                            
                             $('#srsQuestionText').html(fullText).show();
                         } 
                         return; 
@@ -1622,7 +1622,6 @@
                         try { localStorage.setItem('mizo_chess_srs_' + currentPos.fen, JSON.stringify(currentPos)); } catch(e) {}
                     }
                     var correctMsg = "<span style='color:#27ae60; font-size: 13px;'><b>Dik lutuk!</b> Zirna dawtlehah kan insawn mek... <br>(Current Score: " + sessionScore + ")</span>";
-                    $status.html(correctMsg);
                     $('#srsQuestionText').html(correctMsg);
                     autoAdvanceTimer = setTimeout(function() { $('#nextMistakeBtn').click(); }, 2000);
                 } else {
@@ -1634,7 +1633,6 @@
                         hasMadeMistakeInCurrent = true;
                     }
                     var wrongMsg = "<span style='color:#c0392b;'><b>A dik lo:</b> Ti leh rawh! I beidawn chuan 'Chhanna Enna' kha hmet mai rawh.</span>";
-                    $status.html(wrongMsg);
                     $('#srsQuestionText').html(wrongMsg);
                 }
             });
@@ -1660,7 +1658,6 @@
                     }
                     $('.mcq-btn').prop('disabled', true);
                     var ansMsg = "<span style='color:#27ae60;'><b>Chhanna chu:</b> A hring rawnga inrin hi a ni e. <b>Chhan:</b> Hemi hmunhma ah hian attack leh defense a in-balancein, hmelma tan remchang awm miah loin hma a sawn tir a ni. Zir chian hnuah 'A dawt leh' hmet rawh. <br>(Current Score: " + sessionScore + ")</span>";
-                    $status.html(ansMsg);
                     $('#srsQuestionText').html(ansMsg);
                 }
             });
@@ -2120,7 +2117,7 @@
                     setTimeout(function() {
                         $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #onlineRoomBox, #matchmakingPanel, #showPgnBtn, #gameEndControls, #gameSettingsPanel, #quitGameBtn, #learnMistakesBtn, #chatBoxContainer, #voiceChatContainer').hide();
                         $('#srsControls').css('display', 'flex');
-                        $('#status').show(); 
+                        $('#status').hide(); 
                         currentMistakeIndex = 0; loadMistake();
                     }, 50);
 
@@ -2179,7 +2176,7 @@
                     if (timerInterval) clearInterval(timerInterval);
                     $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer, #voiceChatContainer').hide(); 
                     $('#srsControls').css('display', 'flex');
-                    $('#status').show(); 
+                    $('#status').hide(); 
                     currentMistakeIndex = 0; loadMistake();
                 } else {
                     alert("Game tha tak a ni! Tactic hlah emaw tihsual lian tham i nei lo.");
@@ -2197,13 +2194,12 @@
                     game.load(currentPos.fen); board.position(game.fen()); board.orientation(currentPos.orientation);
                     setEngineLevel(); practiceEngineState = 'analyzing_base'; mcqRawMoves = [];
                     
-                    $('#status').show();
+                    $('#status').hide(); 
 
                     var levelInfo = currentPos.srsLevel ? " (SRS: Lvl " + currentPos.srsLevel + ")" : "";
                     var typeInfo = currentPos.mistakeType ? " <br><b style='color:#c0392b;'>[" + currentPos.mistakeType + "]</b>" : "";
                     
                     var loadMsg = "ZIRNA (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ")" + levelInfo + typeInfo + "<br>Position zir chian leh zawhna siam mek a ni...";
-                    $status.html(loadMsg);
                     $('#srsQuestionText').html(loadMsg);
 
                     if(stockfish.postMessage) { stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 14'); }
