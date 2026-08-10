@@ -11,8 +11,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- AGORA VOICE CHAT SDK -->
-    <script src="https://download.agora.io/sdk/web/AgoraRTC_N-4.19.3.js"></script>
+    
+    <!-- PEERJS VOICE CHAT SDK -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
     <style>
         * { box-sizing: border-box; }
@@ -501,87 +502,104 @@
             console.error("Firebase a fail:", e);
         }
 
-        // --- AGORA VOICE CHAT SETUP (SIAMTHAT SA) ---
-        const AGORA_APP_ID = "4ac801fbdbe64453a5e85cff870c3bfc";
-        let agoraClient = null;
-        let localAudioTrack = null;
+        // --- PEERJS VOICE CHAT SETUP (AGORA THLAKNA) ---
+        let peer = null;
+        let localStream = null;
+        let existingCall = null;
         let isMicMuted = true;
-
-        try {
-            if (typeof AgoraRTC !== 'undefined') {
-                agoraClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-            }
-        } catch (e) {
-            console.warn("AgoraRTC load a theih loh, adblocker vang a ni thei.", e);
-        }
+        let myPeerId = null;
+        let oppPeerId = null;
 
         async function initVoiceChat(channelName) {
-            try {
-                if(!agoraClient || !AGORA_APP_ID) return;
+            if (peer) return; 
+            
+            myPeerId = channelName + '_' + playerColor;
+            oppPeerId = channelName + '_' + (playerColor === 'w' ? 'b' : 'w');
 
-                // Room-ah lut ringawt se, Mic chu an hmeh (click) hunah chauh kan request ang
-                await agoraClient.join(AGORA_APP_ID, channelName, null, null);
+            peer = new Peer(myPeerId); 
 
-                agoraClient.on("user-published", async (user, mediaType) => {
-                    if (mediaType === "audio") {
-                        await agoraClient.subscribe(user, mediaType);
-                        user.audioTrack.play();
-                    }
+            peer.on('call', function(call) {
+                // Incoming call kan dawnin, kan local stream kan thawn let ve nghal ang
+                call.answer(localStream || undefined); 
+                existingCall = call;
+                call.on('stream', function(remoteStream) {
+                    playRemoteStream(remoteStream);
                 });
-            } catch (e) {
-                console.error("Voice chat initialization error:", e);
-                if (e.code === "CAN_NOT_GET_GATEWAY_SERVER") {
-                    console.error("Agora App ID a dik lo emaw, Token ngai chi a ni.");
-                }
-            }
+            });
         }
 
         async function toggleMicrophone() {
             try {
-                // Mic a la awm loh chuan (vawikhat hmehna), hetah hian kan request chauh ang
-                if (!localAudioTrack) {
+                if (!localStream) {
                     $('#toggleMicBtn').html("⏳ Nghak lawk...").removeClass('btn-whatsapp btn-red').css('background-color', '#f39c12');
-
-                    // Microphone permission a dil ang
-                    localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-                    await agoraClient.publish([localAudioTrack]);
-
+                    
+                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                     isMicMuted = false;
+                    
+                    // Mic a neih rual rualin khingpui a call nghal ang
+                    if (peer && oppPeerId) {
+                        let call = peer.call(oppPeerId, localStream);
+                        if (call) {
+                            existingCall = call;
+                            call.on('stream', function(remoteStream) {
+                                playRemoteStream(remoteStream);
+                            });
+                        }
+                    }
+                    
                     $('#toggleMicBtn').html("🎙️ Microphone: ON").css('background-color', '').removeClass('btn-whatsapp').addClass('btn-red');
                     return;
                 }
 
-                // A awm sa tawh chuan On/Off ringawt tur
                 if (isMicMuted) {
-                    await localAudioTrack.setEnabled(true);
+                    localStream.getAudioTracks()[0].enabled = true;
                     isMicMuted = false;
                     $('#toggleMicBtn').html("🎙️ Microphone: ON").removeClass('btn-whatsapp').addClass('btn-red');
                 } else {
-                    await localAudioTrack.setEnabled(false);
+                    localStream.getAudioTracks()[0].enabled = false;
                     isMicMuted = true;
                     $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
                 }
-            } catch (e) {
+            } catch(e) {
                 console.error("Mic error:", e);
-                alert("Microphone tihnun theih a ni lo! Browser-in phalna a pe lo che emaw a ni thei. 'Open in Chrome/Safari' in lut la, Microphone hman phalna (Allow) i pe dawn nia.");
+                alert("Microphone tihnun theih a ni lo! Browser-in phalna a pe lo che emaw a ni thei.");
                 $('#toggleMicBtn').html("🎙️ Microphone: OFF").css('background-color', '').removeClass('btn-red').addClass('btn-whatsapp');
             }
         }
 
-        async function leaveVoiceChat() {
-            try {
-                if (localAudioTrack) {
-                    localAudioTrack.close();
-                    localAudioTrack = null;
-                }
-                if (agoraClient) {
-                    await agoraClient.leave();
-                }
-                isMicMuted = true;
-                $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
-            } catch (e) {}
+        function playRemoteStream(stream) {
+            let audioEl = document.getElementById('remoteAudio');
+            if (!audioEl) {
+                audioEl = document.createElement('audio');
+                audioEl.id = 'remoteAudio';
+                audioEl.autoplay = true;
+                document.body.appendChild(audioEl);
+            }
+            if (audioEl.srcObject !== stream) {
+                audioEl.srcObject = stream;
+            }
+            audioEl.play().catch(e => console.log("Audio a play theih loh (Browser restriction)", e));
         }
-        // --- AGORA VOICE CHAT SETUP A TAWP ---
+
+        function leaveVoiceChat() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            if (existingCall) {
+                existingCall.close();
+                existingCall = null;
+            }
+            if (peer) {
+                peer.destroy();
+                peer = null;
+            }
+            isMicMuted = true;
+            let audioEl = document.getElementById('remoteAudio');
+            if (audioEl) audioEl.remove();
+            $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
+        }
+        // --- PEERJS VOICE CHAT SETUP A TAWP ---
 
         // --- AUDIO SOUND EFFECTS ---
         const moveSnd = new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3');
