@@ -11,6 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- AGORA VOICE CHAT SDK -->
+    <script src="https://download.agora.io/sdk/web/AgoraRTC_N-4.19.3.js"></script>
 
     <style>
         * { box-sizing: border-box; }
@@ -23,11 +25,13 @@
         h2 { color: #2c3e50; text-align: center; margin-bottom: 2px; margin-top: 5px; font-size: 22px; font-weight: 800;}
         .subtitle { font-size: 14px; color: #7f8c8d; margin-bottom: 12px; text-align: center; max-width: 400px; line-height: 1.2; width: 100%; font-weight: 600;}
         
-        /* HOME SCREEN WRAPPER */
+        /* HOME SCREEN WRAPPER - FIXED LAYERING & CLICK ISSUE */
         #homeScreen { 
             width: 100%; max-width: 400px; 
-            margin: auto 0; 
+            margin: 10px auto; 
             display: flex; flex-direction: column; align-items: center; text-align: center;
+            position: relative;
+            z-index: 10;
         }
 
         /* GAME SCREEN WRAPPER */
@@ -35,6 +39,8 @@
             display: none; width: 100%; max-width: 400px; 
             flex-direction: column; align-items: center; 
             margin-top: 5px; 
+            position: relative;
+            z-index: 5;
         }
 
         #mainStatsBox {
@@ -69,12 +75,14 @@
 
         .controls, .srs-controls { display: flex; flex-wrap: wrap; justify-content: center; width: 100%; }
         
-        /* MAIN MENU BUTTONS CSS */
+        /* MAIN MENU BUTTONS CSS - FIXED Z-INDEX FOR CLICK RESPONSE */
         .menu-btn {
             width: 100%; padding: 12px; font-size: 14px; font-weight: bold; color: white;
             border: none; border-radius: 8px; cursor: pointer; margin-bottom: 8px;
             box-shadow: 0 3px 6px rgba(0,0,0,0.15); transition: transform 0.1s, background 0.3s;
             display: flex; align-items: center; justify-content: left; gap: 12px;
+            position: relative;
+            z-index: 20;
         }
         .menu-btn i { font-size: 18px; width: 25px; text-align: center; }
         .menu-btn:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
@@ -177,6 +185,12 @@
         .chat-input-area { display: flex; border-top: 1px solid #bdc3c7; }
         .chat-input-area input { flex: 1; border: none; padding: 10px; outline: none; font-size: 13px; }
         .chat-input-area button { background: #2ecc71; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 0; min-width: unset; flex: none;}
+
+        /* VOICE CHAT SECTION CSS */
+        #voiceChatContainer {
+            display: none; width: 100%; background: #2c3e50; color: #fff; border-radius: 6px;
+            padding: 10px; margin-bottom: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -365,7 +379,17 @@
             </select>
         </div>
 
-        <!-- CHAT BOX -->
+        <!-- VOICE CHAT BOX (WHATSAPP/FRIENDS MODE CHAUHA LANG TUR) -->
+        <div id="voiceChatContainer">
+            <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px;">
+                <i class="fa-solid fa-microphone"></i> Live Voice Chat (Friends Only)
+            </div>
+            <button id="toggleMicBtn" class="btn-whatsapp btn-full" onclick="toggleMicrophone()">
+                🎙️ Microphone: OFF
+            </button>
+        </div>
+
+        <!-- CHAT BOX (USERNAME/PUBLIC MODE CHAUHA LANG TUR) -->
         <div id="chatBoxContainer">
             <div style="background: #2980b9; color: #fff; padding: 6px 10px; font-size: 13px; font-weight: bold;">
                 <i class="fa-solid fa-comments"></i> Inbiakna (Live Chat)
@@ -454,6 +478,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <script>
+        // FIREBASE SETUP
         const firebaseConfig = {
             apiKey: "AIzaSyByN8ttbJhtPNcac_ciaQ1d_fMXE2gul20",
             authDomain: "mizo-chess-khelhna.firebaseapp.com",
@@ -463,9 +488,73 @@
             messagingSenderId: "867114638540",
             appId: "1:867114638540:web:e0b989985f6619e91b3669"
         };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
+        
+        let auth, database;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            database = firebase.database();
+        } catch (e) {
+            console.error("Firebase a fail:", e);
+        }
+
+        // --- AGORA VOICE CHAT SETUP (TRY...CATCH IN KA VEN HIM) ---
+        const AGORA_APP_ID = "4ac801fbdbe64453a5e85cff870c3bfc";
+        let agoraClient = null;
+        let localAudioTrack = null;
+        let isMicMuted = true;
+        
+        try {
+            if (typeof AgoraRTC !== 'undefined') {
+                agoraClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+            }
+        } catch (e) {
+            console.warn("AgoraRTC load a theih loh, adblocker vang a ni thei.", e);
+        }
+
+        async function initVoiceChat(channelName) {
+            try {
+                if(!agoraClient || !AGORA_APP_ID || AGORA_APP_ID === "YOUR_AGORA_APP_ID") return;
+                await agoraClient.join(AGORA_APP_ID, channelName, null, null);
+                localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+                await localAudioTrack.setEnabled(false);
+                await agoraClient.publish([localAudioTrack]);
+
+                agoraClient.on("user-published", async (user, mediaType) => {
+                    if (mediaType === "audio") {
+                        await agoraClient.subscribe(user, mediaType);
+                        user.audioTrack.play();
+                    }
+                });
+            } catch (e) {
+                console.log("Voice chat initialization error:", e);
+            }
+        }
+
+        async function toggleMicrophone() {
+            if (!localAudioTrack) return;
+            if (isMicMuted) {
+                await localAudioTrack.setEnabled(true);
+                isMicMuted = false;
+                $('#toggleMicBtn').html("🎙️ Microphone: ON").removeClass('btn-whatsapp').addClass('btn-red');
+            } else {
+                await localAudioTrack.setEnabled(false);
+                isMicMuted = true;
+                $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
+            }
+        }
+
+        async function leaveVoiceChat() {
+            if (localAudioTrack) {
+                localAudioTrack.close();
+                localAudioTrack = null;
+            }
+            if (agoraClient) {
+                try { await agoraClient.leave(); } catch (e) {}
+            }
+            isMicMuted = true;
+            $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
+        }
 
         // --- AUDIO SOUND EFFECTS ---
         const moveSnd = new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3');
@@ -496,7 +585,7 @@
             var isMatchmakingState = false;
             var gameResultSaved = false;
 
-            var currentMode = 'engine'; // Tracker for game mode
+            var currentMode = 'engine';
             
             var onlineRoomId = null;
             var roomRef = null;
@@ -509,6 +598,7 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             var hasRoom = urlParams.has('room');
+            var roomMode = urlParams.get('mode') || 'public'; 
             
             var drawOfferPending = false;
             var lastEngineScore = 0;
@@ -564,43 +654,51 @@
             }
             function hideVerse() { $('#verseDisplay').hide(); }
             
-            var blob = new Blob(["importScripts('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');"], {type: 'application/javascript'});
-            var stockfish = new Worker(URL.createObjectURL(blob));
-            stockfish.postMessage('uci');
+            // --- STOCKFISH WEB WORKER SETUP (TRY...CATCH IN KA VEN HIM) ---
+            var stockfish = { postMessage: function(){} };
+            try {
+                var blob = new Blob(["importScripts('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');"], {type: 'application/javascript'});
+                stockfish = new Worker(URL.createObjectURL(blob));
+                stockfish.postMessage('uci');
+            } catch(e) {
+                console.warn("Stockfish load theih loh, browser policy emaw adblocker vang a ni.", e);
+            }
 
             // --- ALL-TIME VISITORS SYSTEM ---
-            var visitedKey = 'visited_ever';
-            var allTimeRef = database.ref('all_time_visitors');
-            
-            if (!localStorage.getItem(visitedKey)) {
-                allTimeRef.transaction(current_value => (current_value || 0) + 1);
-                localStorage.setItem(visitedKey, 'true');
-            }
-            allTimeRef.on('value', snap => $('#allTimeVisitorsCount').text(snap.val() || 0));
+            if(database) {
+                var visitedKey = 'visited_ever';
+                var allTimeRef = database.ref('all_time_visitors');
+                
+                if (!localStorage.getItem(visitedKey)) {
+                    allTimeRef.transaction(current_value => (current_value || 0) + 1);
+                    localStorage.setItem(visitedKey, 'true');
+                }
+                allTimeRef.on('value', snap => $('#allTimeVisitorsCount').text(snap.val() || 0));
 
-            // --- TOTAL VISITORS PRESENCE SYSTEM ---
-            var visitorsRef = database.ref('/online_visitors');
-            var myVisitorRef = visitorsRef.push(); 
-            database.ref('.info/connected').on('value', snap => {
-                if (snap.val() == false) return;
-                myVisitorRef.onDisconnect().remove().then(() => myVisitorRef.set(true));
-            });
-            visitorsRef.on('value', snap => $('#totalVisitorsCount').text(snap.numChildren()));
-
-            // --- PRESENCE SYSTEM ---
-            database.ref('/status/').on('value', function(snapshot) {
-                var count = 0; var onlineUsers = [];
-                snapshot.forEach(function(child) {
-                    if (child.val().state === 'online') { count++; onlineUsers.push(child.key); }
+                // --- TOTAL VISITORS PRESENCE SYSTEM ---
+                var visitorsRef = database.ref('/online_visitors');
+                var myVisitorRef = visitorsRef.push(); 
+                database.ref('.info/connected').on('value', snap => {
+                    if (snap.val() == false) return;
+                    myVisitorRef.onDisconnect().remove().then(() => myVisitorRef.set(true));
                 });
-                $('#onlineCount').text(count);
-                $('#onlineUsersList').text(onlineUsers.length > 0 ? onlineUsers.join(', ') : 'Tumah an awm lo');
-            });
-            database.ref('rooms/').on('value', function(snapshot) {
-                var activeRooms = 0;
-                snapshot.forEach(child => { if (child.val()) activeRooms++; });
-                $('#activeGamesCount').text(activeRooms);
-            });
+                visitorsRef.on('value', snap => $('#totalVisitorsCount').text(snap.numChildren()));
+
+                // --- PRESENCE SYSTEM ---
+                database.ref('/status/').on('value', function(snapshot) {
+                    var count = 0; var onlineUsers = [];
+                    snapshot.forEach(function(child) {
+                        if (child.val().state === 'online') { count++; onlineUsers.push(child.key); }
+                    });
+                    $('#onlineCount').text(count);
+                    $('#onlineUsersList').text(onlineUsers.length > 0 ? onlineUsers.join(', ') : 'Tumah an awm lo');
+                });
+                database.ref('rooms/').on('value', function(snapshot) {
+                    var activeRooms = 0;
+                    snapshot.forEach(child => { if (child.val()) activeRooms++; });
+                    $('#activeGamesCount').text(activeRooms);
+                });
+            }
 
             // CHESSBOARD INITIALIZATION FUNCTION
             var config = {
@@ -620,28 +718,27 @@
                 $('#homeScreen').hide();
                 $('#gameSection').css('display', 'flex');
                 
-                // Matchmaking (Online username) mode a nih chuan board thup rih tur
                 if (currentMode === 'matchmaking') {
                     $('#mainBoardWrapper').hide();
                 } else {
-                    $('#mainBoardWrapper').show(); // Show hmasa phawt
+                    $('#mainBoardWrapper').show();
                     setTimeout(function() { initBoardIfNeeded(); }, 50);
                 }
             }
 
-            // MENU BUTTON CLICKS
-            $('#playEngineBtn').click(function() { currentMode = 'engine'; initGame('engine'); showGameScreen(); });
-            $('#playLinkBtn').click(function() { currentMode = 'online'; initGame('online'); showGameScreen(); });
-            $('#playOnlineBtn').click(function() { currentMode = 'matchmaking'; initGame('matchmaking'); showGameScreen(); });
-            $('#playLocalBtn').click(function() { currentMode = 'human'; initGame('human'); showGameScreen(); });
+            // MENU BUTTON CLICKS (DYNAMIC EVENT DELEGATION FOR ABSOLUTE RESPONSIVENESS)
+            $(document).on('click', '#playEngineBtn', function() { currentMode = 'engine'; initGame('engine'); showGameScreen(); });
+            $(document).on('click', '#playLinkBtn', function() { currentMode = 'online'; initGame('online'); showGameScreen(); });
+            $(document).on('click', '#playOnlineBtn', function() { currentMode = 'matchmaking'; initGame('matchmaking'); showGameScreen(); });
+            $(document).on('click', '#playLocalBtn', function() { currentMode = 'human'; initGame('human'); showGameScreen(); });
 
-            // Initialize directly to Game Screen if coming from multiplayer link
             if (hasRoom) { showGameScreen(); initGame('online_join'); }
 
             // RETURN TO HOME ACTION
             $(document).on('click', '.backToHomeBtn', function() {
                 if (timerInterval) clearInterval(timerInterval);
-                if (onlineRoomId) { database.ref('rooms/' + onlineRoomId).remove(); onlineRoomId = null; }
+                leaveVoiceChat();
+                if (onlineRoomId && database) { database.ref('rooms/' + onlineRoomId).remove(); onlineRoomId = null; }
                 if(hasRoom) { window.history.replaceState(null, null, window.location.pathname); hasRoom = false; }
                 $('#gameSection').hide();
                 $('#homeScreen').fadeIn();
@@ -652,9 +749,7 @@
                 initGame(currentMode);
             });
 
-            // ==========================================
-            // DEVELOPER SUPPORT & CONTACT ME BUTTONS LOGIC 
-            // ==========================================
+            // DEVELOPER SUPPORT & CONTACT ME LOGIC 
             $(document).on('click', '#toggleSupportBtn', function(e) {
                 e.preventDefault();
                 var $box = $('#supportBox');
@@ -695,7 +790,6 @@
                 setTimeout(() => $btn.html("📋 UPI ID Copy rawh"), 2000);
             });
 
-            // Min be duh tan button logic
             $(document).on('click', '#toggleContactBtn', function(e) {
                 e.preventDefault();
                 var $box = $('#contactBox');
@@ -712,11 +806,10 @@
                 $('#contactBox').slideUp(200); 
             });
 
-
             // GUIDE & PGN (Home Screen)
-            $('#guideMenuBtn').click(function() { $('#guideBox').slideToggle(); });
-            $('#closeGuideBtn').click(function() { $('#guideBox').slideUp(); });
-            $('#togglePgnBoxBtn').on('click', function() { $('#pgnContainer').slideToggle(); });
+            $(document).on('click', '#guideMenuBtn', function() { $('#guideBox').slideToggle(); });
+            $(document).on('click', '#closeGuideBtn', function() { $('#guideBox').slideUp(); });
+            $(document).on('click', '#togglePgnBoxBtn', function() { $('#pgnContainer').slideToggle(); });
             
             $('#importPgnFileBtn').on('click', function() { $('#pgnFileInput').click(); });
             $('#pgnFileInput').on('change', function(e) {
@@ -736,9 +829,7 @@
                 $(this).html("✅ Copy tawh!"); setTimeout(() => $(this).html("📋 Copy PGN"), 2000);
             });
             
-            // ==========================================
-            // ONLINE LINK (WHATSAPP/COPY) SHARE LOGIC
-            // ==========================================
+            // ONLINE LINK SHARE LOGIC
             $(document).on('click', '#copyLinkBtn', function() {
                 var copyText = document.getElementById("roomLinkInput");
                 copyText.select();
@@ -756,7 +847,6 @@
                 window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
             });
 
-            // REFRESH SETTINGS WHEN CHANGED FROM GAME SCREEN
             $('#colorSelect, #engineLevelSelect, #timeSelect').on('change', function() {
                 if (!isOnlineMode && !isMatchmakingState && !isPracticeMode) {
                     initGame(currentMode);
@@ -852,6 +942,7 @@
             }
 
             function listenToRoom() {
+                if(!database) return;
                 if(roomRef) roomRef.off();
                 roomRef = database.ref('rooms/' + onlineRoomId);
                 roomRef.on('value', function(snapshot) {
@@ -860,9 +951,17 @@
                         if (data.whiteUser) whiteUsername = data.whiteUser;
                         if (data.blackUser) blackUsername = data.blackUser;
                         
+                        var isFriendsMode = (data.mode === 'friends') || (roomMode === 'friends');
+                        if (isFriendsMode) {
+                            $('#voiceChatContainer').show();
+                            $('#chatBoxContainer').hide();
+                        } else {
+                            $('#chatBoxContainer').show();
+                            $('#voiceChatContainer').hide();
+                        }
+
                         if (!manuallyEnded) updateTimerDisplay();
 
-                        // --- REMATCH LOGIC ---
                         if (data.rematch && manuallyEnded) {
                             if (data.rematch.status === 'pending') {
                                 if (data.rematch.offerBy !== myUsername) {
@@ -919,7 +1018,6 @@
                             updateTimerDisplay(); updateStatus(); updateMoveHistory();
                         }
                         
-                        // --- DRAW OFFER LOGIC ---
                         if (data.drawOffer && !manuallyEnded) {
                             if (data.drawOffer.status === 'pending') {
                                 var amISender = (myUsername) ? (data.drawOffer.offerBy === myUsername) : (data.drawOffer.offerBy === playerColor);
@@ -966,7 +1064,6 @@
                     }
                 });
 
-                // --- LIVE CHAT LISTENER ---
                 if (chatRef) chatRef.off();
                 chatRef = database.ref('rooms/' + onlineRoomId + '/chat');
                 chatRef.on('child_added', function(snapshot) {
@@ -979,10 +1076,9 @@
                 });
             }
 
-            // Chat send event
             $('#chatSendBtn').click(function() {
                 var text = $('#chatInput').val().trim();
-                if (text && onlineRoomId) {
+                if (text && onlineRoomId && database) {
                     var myName = myUsername || (playerColor==='w'?'A Var':'A Dum');
                     database.ref('rooms/' + onlineRoomId + '/chat').push({sender: myName, text: text});
                     $('#chatInput').val('');
@@ -990,33 +1086,33 @@
             });
             $('#chatInput').keypress(function(e) { if(e.which == 13) $('#chatSendBtn').click(); });
 
-            // --- AUTH & LOBBY LOGIC ---
             function getEmail(u) { return u.toLowerCase().trim() + "@mizochess.com"; }
 
-            auth.onAuthStateChanged(function(user) {
-                if(user) {
-                    myUsername = user.email.split('@')[0];
-                    $('#authBox').hide();
-                    if(isMatchmakingState) showLobby();
+            if(auth) {
+                auth.onAuthStateChanged(function(user) {
+                    if(user) {
+                        myUsername = user.email.split('@')[0];
+                        $('#authBox').hide();
+                        if(isMatchmakingState) showLobby();
 
-                    var userStatusRef = database.ref('/status/' + myUsername);
-                    var isOfflineForDatabase = { state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP };
-                    var isOnlineForDatabase = { state: 'online', last_changed: firebase.database.ServerValue.TIMESTAMP };
+                        var userStatusRef = database.ref('/status/' + myUsername);
+                        var isOfflineForDatabase = { state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP };
+                        var isOnlineForDatabase = { state: 'online', last_changed: firebase.database.ServerValue.TIMESTAMP };
 
-                    database.ref('.info/connected').on('value', function(snapshot) {
-                        if (snapshot.val() == false) { return; }
-                        userStatusRef.onDisconnect().set(isOfflineForDatabase).then(function() {
-                            userStatusRef.set(isOnlineForDatabase);
+                        database.ref('.info/connected').on('value', function(snapshot) {
+                            if (snapshot.val() == false) { return; }
+                            userStatusRef.onDisconnect().set(isOfflineForDatabase).then(function() {
+                                userStatusRef.set(isOnlineForDatabase);
+                            });
                         });
-                    });
-                } else {
-                    myUsername = null;
-                    $('#lobbyBox').hide();
-                    if(isMatchmakingState) $('#authBox').show();
-                }
-            });
+                    } else {
+                        myUsername = null;
+                        $('#lobbyBox').hide();
+                        if(isMatchmakingState) $('#authBox').show();
+                    }
+                });
+            }
 
-            // Toggle Login / Register
             var isLoginMode = true;
             $('#authToggleLink').click(function(e) {
                 e.preventDefault();
@@ -1037,10 +1133,10 @@
                 }
             });
 
-            // Action Button (Login OR Register based on state)
             $('#mmAuthActionBtn').click(function() {
                 var u = $('#mmUsername').val(); var p = $('#mmPassword').val();
                 if(!u || !p) return $('#authError').html("Username leh Password chhut luh ngei ngei tur.");
+                if(!auth) return $('#authError').html("Database a chesual.");
                 
                 if (isLoginMode) {
                     $('#authError').text("Nghak lawk...");
@@ -1062,8 +1158,8 @@
             });
 
             $('#mmLogoutBtn').click(function() { 
-                if(myUsername) database.ref('/status/' + myUsername).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
-                auth.signOut(); 
+                if(myUsername && database) database.ref('/status/' + myUsername).set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
+                if(auth) auth.signOut(); 
             });
 
             function showLobby() {
@@ -1073,6 +1169,7 @@
             }
 
             function loadLeaderboard() {
+                if(!database) return;
                 var $list = $('#mmLeaderboardList');
                 var category = $('#leaderboardCategoryFilter').val();
                 $list.html('<div style="padding:10px; text-align:center;"><i>Data lakchhuah mek a ni...</i></div>').slideDown();
@@ -1116,7 +1213,7 @@
             $('#leaderboardCategoryFilter').change(function() { if($('#mmLeaderboardList').is(':visible')) loadLeaderboard(); });
 
             $('#mmLoadHistoryBtn').click(function() {
-                if(!myUsername) return;
+                if(!myUsername || !database) return;
                 var $list = $('#mmHistoryList');
                 if($list.is(':visible')) { $list.slideUp(); return; }
                 $list.html('<div style="padding:10px; text-align:center;"><i>Record zawn mek a ni...</i></div>').slideDown();
@@ -1141,10 +1238,9 @@
                 });
             });
 
-            // GAME HLUI ENLEHTNA
             $(document).on('click', '.btn-load-past-game', function() {
                 var pastPgn = decodeURIComponent($(this).data('pgn'));
-                currentMode = 'practice'; // Board a lan theih nan mode thlak tur
+                currentMode = 'practice';
                 showGameScreen();
                 
                 setTimeout(function() {
@@ -1155,11 +1251,11 @@
             });
 
             $(document).on('click', '#rematchBtn', function() {
-                if(onlineRoomId) database.ref('rooms/' + onlineRoomId + '/rematch').set({ offerBy: myUsername, status: 'pending' });
+                if(onlineRoomId && database) database.ref('rooms/' + onlineRoomId + '/rematch').set({ offerBy: myUsername, status: 'pending' });
             });
 
             $(document).on('click', '#acceptRematchBtn', function() {
-                if(onlineRoomId) {
+                if(onlineRoomId && database) {
                     var newWhiteUser = blackUsername; var newBlackUser = whiteUsername;
                     var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
                     database.ref('rooms/' + onlineRoomId).update({
@@ -1169,21 +1265,22 @@
             });
 
             $(document).on('click', '#rejectRematchBtn', function() {
-                if(onlineRoomId) database.ref('rooms/' + onlineRoomId + '/rematch').update({ status: 'rejected' });
+                if(onlineRoomId && database) database.ref('rooms/' + onlineRoomId + '/rematch').update({ status: 'rejected' });
             });
 
             $(document).on('click', '#acceptDrawBtn', function() {
-                if (onlineRoomId) database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Draw}", drawOffer: null });
+                if (onlineRoomId && database) database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Draw}", drawOffer: null });
             });
 
             $(document).on('click', '#rejectDrawBtn', function() {
-                if (onlineRoomId) {
+                if (onlineRoomId && database) {
                     database.ref('rooms/' + onlineRoomId + '/drawOffer').update({ status: 'rejected' });
                     setTimeout(function() { database.ref('rooms/' + onlineRoomId + '/drawOffer').remove(); }, 3000);
                 }
             });
 
             $('#mmChallengeBtn').click(function() {
+                if(!database) return;
                 var opp = $('#mmSearchUser').val().toLowerCase().trim();
                 if(!opp || opp === myUsername) return $('#mmChallengeMsg').text("Username dik chhut rawh.");
                 $('#mmChallengeMsg').text("Zawn mek a ni...");
@@ -1218,6 +1315,7 @@
             });
 
             function listenToChallenges() {
+                if(!database) return;
                 if(incomingChallengeRef) incomingChallengeRef.off();
                 incomingChallengeRef = database.ref('challenges').orderByChild('to').equalTo(myUsername);
                 incomingChallengeRef.on('value', function(snap) {
@@ -1242,12 +1340,12 @@
             $(document).on('click', '.mm-accept-btn', function() {
                 var cId = $(this).data('id'); var rId = $(this).data('room'); var challenger = $(this).data('from'); var challengeTime = $(this).data('time');
                 $('#timeSelect').val(challengeTime); 
-                database.ref('challenges/' + cId).update({status: 'accepted'});
+                if(database) database.ref('challenges/' + cId).update({status: 'accepted'});
                 startMatch(rId, 'b', challenger, myUsername); 
             });
 
             $(document).on('click', '.mm-reject-btn', function() {
-                var cId = $(this).data('id'); database.ref('challenges/' + cId).update({status: 'rejected'});
+                var cId = $(this).data('id'); if(database) database.ref('challenges/' + cId).update({status: 'rejected'});
             });
 
             function startMatch(roomId, color, wUser, bUser) {
@@ -1258,20 +1356,23 @@
                 $('#matchmakingPanel').hide();
                 
                 $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
+                
                 $('#chatBoxContainer').show(); $('#chatMessages').empty();
+                $('#voiceChatContainer').hide();
                 
                 var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
                 whiteTime = timeVal; blackTime = timeVal;
 
-                // BOARD LANG HMASA RAWHTSE
                 $('#timerContainer, #mainBoardWrapper, #status, #moveHistoryBox').show(); 
                 
                 board.orientation(playerColor === 'w' ? 'white' : 'black');
                 if(board) board.resize();
                 
-                var roomRefDb = database.ref('rooms/' + onlineRoomId);
-                roomRefDb.update({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, whiteUser: whiteUsername, blackUser: blackUsername, rematch: null, drawOffer: null });
-                roomRefDb.onDisconnect().remove();
+                if(database) {
+                    var roomRefDb = database.ref('rooms/' + onlineRoomId);
+                    roomRefDb.update({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, whiteUser: whiteUsername, blackUser: blackUsername, mode: "public", rematch: null, drawOffer: null });
+                    roomRefDb.onDisconnect().remove();
+                }
                 
                 gameResultSaved = false; lowTimePlayedW = false; lowTimePlayedB = false;
                 game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
@@ -1281,7 +1382,6 @@
                 listenToRoom();
             }
 
-            // --- ENGINE LOGIC ---
             stockfish.onmessage = function(event) {
                 var line = event.data; var currentScore = 0; var hasScore = false;
 
@@ -1440,7 +1540,6 @@
                 }
             });
 
-            // --- INDICATOR LOGIC ---
             function showLegalMoves(square) {
                 removeDots();
                 var moves = game.moves({ square: square, verbose: true });
@@ -1453,7 +1552,6 @@
             }
             function removeDots() { $('.legal-move-dot, .legal-move-capture').remove(); }
 
-            // --- MOVE ATTEMPT AND PROMOTION LOGIC ---
             function attemptMove(source, target, promotionChoice) {
                 var move = game.move({ from: source, to: target, promotion: promotionChoice });
                 if (move === null) return false;
@@ -1464,11 +1562,11 @@
                 updateStatus(); updateMoveHistory(); 
 
                 if (isOnlineMode) {
-                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn(), whiteTime: whiteTime, blackTime: blackTime });
+                    if(database) database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn(), whiteTime: whiteTime, blackTime: blackTime });
                 } else if (!isTwoPlayer) {
                     window.setTimeout(makeEngineMove, 250);
                 } else {
-                    stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 8'); 
+                    if(stockfish.postMessage) { stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 8'); }
                 }
                 return true;
             }
@@ -1493,7 +1591,6 @@
                 board.position(game.fen()); 
             });
 
-
             function onDragStart (source, piece) {
                 if (game.game_over() || manuallyEnded || drawOfferPending || isPracticeMode || isMatchmakingState) return false;
                 if (isOnlineMode) {
@@ -1515,7 +1612,7 @@
                     var isLegal = game.moves({verbose: true}).some(m => m.from === source && m.to === target);
                     if (isLegal) {
                         showPromotionModal(piece.color, source, target);
-                        return 'snapback'; // Wait for selection
+                        return 'snapback';
                     }
                 }
 
@@ -1571,13 +1668,13 @@
             function removeHighlights() { $('#board .square-55d63').removeClass('highlight-square'); }
 
             function makeEngineMove() {
+                if(!stockfish || !stockfish.postMessage) return;
                 setEngineLevel(); stockfish.postMessage('position fen ' + game.fen());
                 var aiTimeLeft = (game.turn() === 'w') ? whiteTime : blackTime;
                 
                 var level = parseInt($('#engineLevelSelect').val() || "20");
                 
                 if (level === 0) {
-                    // Bul tan mek tan (ELO 500-1000 vel) - Limit depth to simulate beginner mistakes
                     stockfish.postMessage('go depth 2');
                 } else {
                     var moveTimeMs = 2000; 
@@ -1603,7 +1700,7 @@
 
             function updateMoveHistory() {
                 if (game.history().length > 0) {
-                    $('#gameSettingsPanel').hide(); // Hide settings mid-game
+                    $('#gameSettingsPanel').hide(); 
                     $('#quitGameBtn').hide(); 
                     if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) {
                         $('#actionButtons').hide(); 
@@ -1635,19 +1732,20 @@
             function endGameWithMessage(msg, resultOverride = null) {
                 manuallyEnded = true;
                 if (timerInterval) clearInterval(timerInterval);
+                leaveVoiceChat();
                 finalStatusMsg = msg; 
                 gameEndSnd.play().catch(e=>{}); 
                 $status.html(msg); showRandomVerse();
                 savedGameHistory = game.history(); 
                 
-                if (isOnlineMode && myUsername && savedGameHistory.length > 2) {
+                if (isOnlineMode && myUsername && savedGameHistory.length > 2 && database) {
                     var oppName = playerColor === 'w' ? blackUsername : whiteUsername;
                     database.ref('users/' + myUsername + '/games').push({
                         date: firebase.database.ServerValue.TIMESTAMP, pgn: game.pgn(), opponent: oppName, result: msg
                     });
                 }
 
-                if (isOnlineMode && myUsername && !gameResultSaved) {
+                if (isOnlineMode && myUsername && !gameResultSaved && database) {
                     var myResult = resultOverride;
                     if (!myResult) {
                         if (game.in_checkmate()) myResult = (game.turn() === playerColor) ? 'lose' : 'win';
@@ -1680,10 +1778,10 @@
                     }
                 }
 
-                $('#actionButtons, #drawOfferBox, #moveHistoryBox, #gameSettingsPanel, #quitGameBtn').hide();
+                $('#actionButtons, #drawOfferBox, #moveHistoryBox, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer, #voiceChatContainer').hide();
                 
                 if (!isOnlineMode) {
-                    $('#gameEndControls').css('display', 'flex'); // Play Again + Home
+                    $('#gameEndControls').css('display', 'flex');
                 } else {
                     var rematchHtml = '';
                     if (myUsername) rematchHtml = `<div id="rematchArea" style="margin-bottom:8px;"><button id="rematchBtn" class="btn-green btn-full">🔄 Khel leh ila (Rematch)</button></div>`;
@@ -1693,7 +1791,6 @@
                 $('#showPgnBtn').fadeIn();
                 if (savedGameHistory.length > 4) $('#learnMistakesBtn').fadeIn(); 
                 
-                // Show Support/Contact buttons at the end of the game
                 $('#toggleSupportBtn, #toggleContactBtn').fadeIn();
             }
 
@@ -1722,11 +1819,11 @@
                 game.reset(); for (var i = 0; i < savedGameHistory.length; i++) game.move(savedGameHistory[i]);
                 board.position(game.fen()); board.orientation((playerColor === 'w') ? 'white' : 'black');
                 
-                $('#srsControls, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameSettingsPanel, #quitGameBtn').hide(); 
+                $('#srsControls, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer, #voiceChatContainer').hide(); 
                 $('#timerContainer, #status').show();
                 
                 if (!isOnlineMode) {
-                    $('#gameEndControls').css('display', 'flex'); // Shows back home
+                    $('#gameEndControls').css('display', 'flex');
                 } else {
                     $('#onlineRoomBox').show();
                 }
@@ -1734,7 +1831,6 @@
                 $('#showPgnBtn').fadeIn(); $('#learnMistakesBtn').hide();
                 showRandomVerse(); $status.html(finalStatusMsg);
                 
-                // Show Support/Contact buttons after returning from mistake learning
                 $('#toggleSupportBtn, #toggleContactBtn').fadeIn();
             }
 
@@ -1746,15 +1842,14 @@
                 manuallyEnded = false; drawOfferPending = false; practiceEngineState = 'none'; isMatchmakingState = false; gameResultSaved = false;
                 lowTimePlayedW = false; lowTimePlayedB = false;
                 
-                // Hide a bunch of stuff initially
-                $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox, #matchmakingPanel, #chatBoxContainer, #srsControls, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #actionButtons, #drawOfferBox, #onlineRoomBox, #pgnExportContainer, #quitGameBtn').hide();
+                $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox, #matchmakingPanel, #chatBoxContainer, #voiceChatContainer, #srsControls, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #actionButtons, #drawOfferBox, #onlineRoomBox, #pgnExportContainer, #quitGameBtn').hide();
                 $('#mainBoardWrapper, #timerContainer, #moveHistoryBox, #status, #openingDisplay').hide();
 
                 if (mode === 'matchmaking') {
                     isMatchmakingState = true;
                     $('#gameSettingsPanel').hide();
                     $('#matchmakingPanel').show();
-                    if(auth.currentUser) { myUsername = auth.currentUser.email.split('@')[0]; showLobby(); } 
+                    if(auth && auth.currentUser) { myUsername = auth.currentUser.email.split('@')[0]; showLobby(); } 
                     else { $('#authBox').show(); $('#lobbyBox').hide(); }
 
                     game.reset(); initBoardIfNeeded(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
@@ -1772,7 +1867,6 @@
 
                 playerColor = $('#colorSelect').val();
 
-                // Settings visibility control
                 if (mode === 'human' || mode === 'engine') {
                     $('#gameSettingsPanel').css('display', 'flex');
                     if (mode === 'human') $('#engineLevelSelect').hide();
@@ -1785,13 +1879,20 @@
                     isOnlineMode = true; isTwoPlayer = false;
                     onlineRoomId = urlParams.get('room'); playerColor = urlParams.get('color') || 'b';
                     
-                    // SHOW WRAPPER FIRST FOR CORRECT RESIZING
                     $('#timerContainer, #mainBoardWrapper, #status, #moveHistoryBox').show();
                     initBoardIfNeeded(); board.orientation((playerColor === 'w') ? 'white' : 'black');
                     if(board) board.resize();
                     
                     $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'>Online Game (Link hmangin)</div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
-                    $('#chatBoxContainer').show(); $('#chatMessages').empty();
+                    
+                    if (roomMode === 'friends') {
+                        $('#voiceChatContainer').show();
+                        $('#chatBoxContainer').hide();
+                        initVoiceChat(onlineRoomId);
+                    } else {
+                        $('#chatBoxContainer').show(); $('#chatMessages').empty();
+                        $('#voiceChatContainer').hide();
+                    }
                     
                     updateTimerDisplay(); startTimer();
                     listenToRoom();
@@ -1799,13 +1900,12 @@
                 else if (mode === 'online') {
                     onlineRoomId = Math.random().toString(36).substring(2, 8);
                     
-                    // SHOW WRAPPER FIRST
                     $('#timerContainer, #mainBoardWrapper, #status, #moveHistoryBox').show();
                     initBoardIfNeeded(); board.orientation((playerColor === 'w') ? 'white' : 'black');
                     if(board) board.resize();
                     
                     var oppColor = (playerColor === 'w') ? 'b' : 'w';
-                    var joinLink = window.location.href.split('?')[0] + '?room=' + onlineRoomId + '&color=' + oppColor;
+                    var joinLink = window.location.href.split('?')[0] + '?room=' + onlineRoomId + '&color=' + oppColor + '&mode=friends';
                     
                     $('#onlineRoomBox').html(`
                         <div style="font-size: 12px; font-weight: bold; color: #16a085; margin-bottom: 4px;">I thian thawn tur Link:</div>
@@ -1817,18 +1917,21 @@
                         <button class='backToHomeBtn btn-red btn-full'>Cancel (Sutna)</button>
                     `).show();
 
-                    $('#chatBoxContainer').show(); $('#chatMessages').empty();
+                    $('#voiceChatContainer').show();
+                    $('#chatBoxContainer').hide();
+                    initVoiceChat(onlineRoomId);
 
-                    var roomRefDb = database.ref('rooms/' + onlineRoomId);
-                    roomRefDb.set({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, drawOffer: null });
-                    roomRefDb.onDisconnect().remove();
+                    if(database) {
+                        var roomRefDb = database.ref('rooms/' + onlineRoomId);
+                        roomRefDb.set({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, mode: "friends", drawOffer: null });
+                        roomRefDb.onDisconnect().remove();
+                    }
                     
                     updateTimerDisplay(); startTimer();
                     listenToRoom();
                 } else {
                     if (roomRef) { roomRef.off(); roomRef = null; }
                     
-                    // SHOW WRAPPER FIRST
                     $('#timerContainer, #mainBoardWrapper, #status, #moveHistoryBox').show();
                     initBoardIfNeeded(); board.orientation((playerColor === 'w') ? 'white' : 'black');
                     if(board) board.resize();
@@ -1839,7 +1942,6 @@
                 game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
                 setEngineLevel(); updateStatus(); updateMoveHistory(); 
                 
-                // Offline mode-ah chuan an khelh hma in 'Let lehna' a la lang theih ang a, an khelh tak tak veleh a inthup ang
                 if (!isOnlineMode && !isMatchmakingState) { $('#quitGameBtn').show(); }
                 
                 if (!isTwoPlayer && !isOnlineMode && playerColor === 'b') window.setTimeout(makeEngineMove, 250);
@@ -1886,14 +1988,12 @@
                     isPracticeMode = true; hideVerse(); manuallyEnded = false; sessionScore = 0; maxSessionScore = mistakePositions.length * 10;
                     if (timerInterval) clearInterval(timerInterval);
                     
-                    // Hide support stuff during learning
                     $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox').hide();
                     
-                    // Transition to game section explicitly for SRS
                     showGameScreen();
 
                     setTimeout(function() {
-                        $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #onlineRoomBox, #matchmakingPanel, #showPgnBtn, #gameEndControls, #gameSettingsPanel, #quitGameBtn, #learnMistakesBtn').hide();
+                        $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #onlineRoomBox, #matchmakingPanel, #showPgnBtn, #gameEndControls, #gameSettingsPanel, #quitGameBtn, #learnMistakesBtn, #chatBoxContainer, #voiceChatContainer').hide();
                         $('#srsControls').css('display', 'flex');
                         currentMistakeIndex = 0; loadMistake();
                     }, 50);
@@ -1902,7 +2002,6 @@
             });
 
             $('#learnMistakesBtn').on('click', function() {
-                // Hide support stuff during learning
                 $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox').hide();
                 
                 var tempGame = new Chess(); var history = savedGameHistory; mistakePositions = []; var lastWhiteScore = 0; 
@@ -1937,7 +2036,7 @@
                     for (var i = 0; i < history.length; i++) {
                         var fenBefore = tempGame.fen(); tempGame.move(history[i]);
                         if (i >= 2) {
-                            var posObj = { fen: fenBefore, moveNumber: Math.floor(i / 2) + 1, orientation: (tempGame.turn() === 'w') ? 'white' : 'black', srsLevel: 1, nextReviewTime: 0 };
+                            var posObj = { fen: fenBefore, moveNumber: Math.floor(i / 2) + 1, orientation: (tempGame.turn() === 'w') ? 'black' : 'white', srsLevel: 1, nextReviewTime: 0 };
                             try {
                                 var savedData = localStorage.getItem('mizo_chess_srs_' + fenBefore);
                                 if (savedData) { var parsed = JSON.parse(savedData); posObj.srsLevel = parsed.srsLevel || 1; posObj.nextReviewTime = parsed.nextReviewTime || 0; }
@@ -1952,7 +2051,7 @@
                     isPracticeMode = true; hideVerse(); manuallyEnded = false;
                     sessionScore = 0; maxSessionScore = mistakePositions.length * 10;
                     if (timerInterval) clearInterval(timerInterval);
-                    $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn').hide(); 
+                    $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer, #voiceChatContainer').hide(); 
                     $('#srsControls').css('display', 'flex');
                     currentMistakeIndex = 0; loadMistake();
                 } else {
@@ -1975,7 +2074,7 @@
                     var typeInfo = currentPos.mistakeType ? " <br><b style='color:#c0392b;'>[" + currentPos.mistakeType + "]</b>" : "";
                     
                     $status.html("ZIRNA (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ")" + levelInfo + typeInfo + "<br>Position zir chian leh zawhna siam mek a ni...");
-                    stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 14'); 
+                    if(stockfish.postMessage) { stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 14'); }
                 } else {
                     var percentage = maxSessionScore > 0 ? Math.round((sessionScore / maxSessionScore) * 100) : 0;
                     if (percentage < 0) percentage = 0;
@@ -1992,11 +2091,10 @@
                 currentMistakeIndex++; loadMistake(); 
             });
 
-            // DRAW LEH RESIGN ACTIONS
             $('#resignBtn').on('click', function() {
                 if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) return;
                 if (isOnlineMode) {
-                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Resign}"}); endGameWithMessage('Ka tlawm ta!', 'lose');
+                    if(database) database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Resign}"}); endGameWithMessage('Ka tlawm ta!', 'lose');
                 } else {
                     endGameWithMessage('I tlawm ta!', 'lose');
                 }
@@ -2006,7 +2104,7 @@
                 if (game.game_over() || manuallyEnded || isPracticeMode || drawOfferPending || isMatchmakingState) return;
                 if (isOnlineMode) { 
                     var offerSender = myUsername ? myUsername : playerColor;
-                    database.ref('rooms/' + onlineRoomId + '/drawOffer').set({ offerBy: offerSender, status: 'pending' });
+                    if(database) database.ref('rooms/' + onlineRoomId + '/drawOffer').set({ offerBy: offerSender, status: 'pending' });
                     return; 
                 } else if (isTwoPlayer) {
                     endGameWithMessage('Inhneh tawk (Draw) in pawm dun e!', 'draw'); return;
@@ -2014,7 +2112,7 @@
                 if (game.turn() !== playerColor) { alert("Khawl chet hun a ni a, a lo chet hunah i sawm chauh dawn nia."); return; }
                 
                 drawOfferPending = true; $status.html("Khawl in i draw sawmna a ngaihtuah mek...");
-                stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 10'); 
+                if(stockfish.postMessage) { stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 10'); }
             });
 
         });
