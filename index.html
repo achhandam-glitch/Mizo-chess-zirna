@@ -964,7 +964,10 @@
 
                         if (data.rematch && manuallyEnded) {
                             if (data.rematch.status === 'pending') {
-                                if (data.rematch.offerBy !== myUsername) {
+                                var offerSender = data.rematch.offerBy;
+                                var amISender = myUsername ? (offerSender === myUsername) : (offerSender === playerColor);
+                                
+                                if (!amISender) {
                                     $('#rematchArea').html(`
                                         <div style="font-size:13px; font-weight:bold; color:#16a085; margin-bottom:5px;">I khingpuiin khelh nawn a duh!</div>
                                         <div style="display:flex; gap:5px; margin-bottom:5px; width:100%;">
@@ -976,14 +979,22 @@
                                     $('#rematchArea').html(`<div style="font-size:13px; color:#d35400; font-weight:bold; margin-bottom:10px;">Sawmna thawn mek a ni...</div>`);
                                 }
                             } else if (data.rematch.status === 'rejected') {
-                                if (data.rematch.offerBy === myUsername) $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">A hnawl ta! (Rejected)</div>`);
+                                var offerSender = data.rematch.offerBy;
+                                var amISender = myUsername ? (offerSender === myUsername) : (offerSender === playerColor);
+                                
+                                if (amISender) $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">A hnawl ta! (Rejected)</div>`);
                                 else $('#rematchArea').html(`<div style="font-size:13px; color:#7f8c8d; font-weight:bold; margin-bottom:10px;">I hnawl ta.</div>`);
                             }
                         }
 
                         if (data.pgn === "" && manuallyEnded && !isPracticeMode) {
-                            if (data.whiteUser === myUsername) playerColor = 'w';
-                            else if (data.blackUser === myUsername) playerColor = 'b';
+                            if (myUsername) {
+                                if (data.whiteUser === myUsername) playerColor = 'w';
+                                else if (data.blackUser === myUsername) playerColor = 'b';
+                            } else {
+                                // Swap colors for anonymous WhatsApp link users
+                                playerColor = (playerColor === 'w') ? 'b' : 'w';
+                            }
                             board.orientation(playerColor === 'w' ? 'white' : 'black');
                             restartOnlineGame(); return;
                         }
@@ -1251,7 +1262,8 @@
             });
 
             $(document).on('click', '#rematchBtn', function() {
-                if(onlineRoomId && database) database.ref('rooms/' + onlineRoomId + '/rematch').set({ offerBy: myUsername, status: 'pending' });
+                var sender = myUsername ? myUsername : playerColor;
+                if(onlineRoomId && database) database.ref('rooms/' + onlineRoomId + '/rematch').set({ offerBy: sender, status: 'pending' });
             });
 
             $(document).on('click', '#acceptRematchBtn', function() {
@@ -1375,7 +1387,7 @@
                 if(database) {
                     var roomRefDb = database.ref('rooms/' + onlineRoomId);
                     roomRefDb.update({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, whiteUser: whiteUsername, blackUser: blackUsername, mode: "public", rematch: null, drawOffer: null });
-                    roomRefDb.onDisconnect().remove();
+                    // roomRefDb.onDisconnect().remove(); // Removed to prevent accidental room deletion on mobile app switch
                 }
                 
                 gameResultSaved = false; lowTimePlayedW = false; lowTimePlayedB = false;
@@ -1787,8 +1799,7 @@
                 if (!isOnlineMode) {
                     $('#gameEndControls').css('display', 'flex');
                 } else {
-                    var rematchHtml = '';
-                    if (myUsername) rematchHtml = `<div id="rematchArea" style="margin-bottom:8px;"><button id="rematchBtn" class="btn-green btn-full">🔄 Khel leh ila (Rematch)</button></div>`;
+                    var rematchHtml = `<div id="rematchArea" style="margin-bottom:8px;"><button id="rematchBtn" class="btn-green btn-full">🔄 Khel leh ila (Rematch)</button></div>`;
                     $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:8px;'><i class='fa-solid fa-circle-check'></i> Game a tawp ta!</div>" + rematchHtml + "<button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
                 }
 
@@ -1929,7 +1940,7 @@
                     if(database) {
                         var roomRefDb = database.ref('rooms/' + onlineRoomId);
                         roomRefDb.set({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, mode: "friends", drawOffer: null });
-                        roomRefDb.onDisconnect().remove();
+                        // roomRefDb.onDisconnect().remove(); // Removed to prevent accidental room deletion on mobile app switch
                     }
                     
                     updateTimerDisplay(); startTimer();
