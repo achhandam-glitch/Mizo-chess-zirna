@@ -1523,9 +1523,9 @@
                             mcqSanOptions.sort(() => Math.random() - 0.5);
 
                             var currentPos = mistakePositions[currentMistakeIndex]; var qText = "";
-                            if (currentPos.mistakeType === "Tihsual pawi (Blunder)") qText = "He position-ah hian tihsual pawi (blunder) i nei a, a aia chet tha ber (best move) engnge?";
-                            else if (currentPos.mistakeType === "Tihsual (Mistake)") qText = "He position-ah hian tihsual pangngai (mistake) i nei a, a aia chet tha ber (best move) engnge?";
-                            else if (currentPos.mistakeType === "Dik lo hlek (Inaccuracy)") qText = "He position-ah hian tih dik loh chhe te (small inaccuracies) a awm a, a aia chet tha ber (best move) engnge?";
+                            if (currentPos && currentPos.mistakeType === "Tihsual pawi (Blunder)") qText = "He position-ah hian tihsual pawi (blunder) i nei a, a aia chet tha ber (best move) engnge?";
+                            else if (currentPos && currentPos.mistakeType === "Tihsual (Mistake)") qText = "He position-ah hian tihsual pangngai (mistake) i nei a, a aia chet tha ber (best move) engnge?";
+                            else if (currentPos && currentPos.mistakeType === "Dik lo hlek (Inaccuracy)") qText = "He position-ah hian tih dik loh chhe te (small inaccuracies) a awm a, a aia chet tha ber (best move) engnge?";
                             else {
                                 var randQ = Math.random();
                                 if (randQ < 0.5) qText = (game.turn() === 'w') ? "A var chet a ni a, chet tha ber (best move) engnge?" : "A dum chet a ni a, chet tha ber (best move) engnge?";
@@ -2079,6 +2079,7 @@
                     setTimeout(function() {
                         $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #onlineRoomBox, #matchmakingPanel, #showPgnBtn, #gameEndControls, #gameSettingsPanel, #quitGameBtn, #learnMistakesBtn, #chatBoxContainer, #voiceChatContainer').hide();
                         $('#srsControls').css('display', 'flex');
+                        $('#status').show(); // HETAH HIAN STATUS HI KA RAHN BELH E
                         currentMistakeIndex = 0; loadMistake();
                     }, 50);
 
@@ -2137,6 +2138,7 @@
                     if (timerInterval) clearInterval(timerInterval);
                     $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer, #voiceChatContainer').hide(); 
                     $('#srsControls').css('display', 'flex');
+                    $('#status').show(); // HETAH HIAN STATUS HI KA RAHN BELH BAWK E
                     currentMistakeIndex = 0; loadMistake();
                 } else {
                     alert("Game tha tak a ni! Tactic hlah emaw tihsual lian tham i nei lo.");
@@ -2154,6 +2156,8 @@
                     game.load(currentPos.fen); board.position(game.fen()); board.orientation(currentPos.orientation);
                     setEngineLevel(); practiceEngineState = 'analyzing_base'; mcqRawMoves = [];
                     
+                    $('#status').show(); // HETAH HIAN STATUS HI CHIANG LEHZUALIN KA DAH E
+
                     var levelInfo = currentPos.srsLevel ? " (SRS: Lvl " + currentPos.srsLevel + ")" : "";
                     var typeInfo = currentPos.mistakeType ? " <br><b style='color:#c0392b;'>[" + currentPos.mistakeType + "]</b>" : "";
                     
