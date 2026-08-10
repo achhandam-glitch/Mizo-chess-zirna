@@ -319,7 +319,7 @@
                         <i class="fa-solid fa-clock-rotate-left"></i> Ka Game Khelh Tawhte
                     </div>
                     <button id="mmLoadHistoryBtn" class="btn-purple btn-full" style="margin-bottom:6px;">Game Record La Chhuak Rawh</button>
-                    <div id="mmHistoryList" style="display:none; max-height:140px; overflow-y:auto; font-size:12px; margin-top:6px; background:#fff; border:1px solid #bdc3c7; border-radius:4px;"></div>
+                    <div id="mmHistoryList" style="display:none; max-height:200px; overflow-y:auto; font-size:12px; margin-top:6px; background:#fff; border:1px solid #bdc3c7; border-radius:4px;"></div>
                 </div>
 
                 <div style="display: flex; gap: 10px; width: 100%;">
@@ -1291,9 +1291,12 @@
                     } else {
                         games.forEach(function(g) {
                             var d = new Date(g.data.date).toLocaleDateString('en-GB');
-                            html += `<div style="padding:6px; border-bottom:1px solid #ecf0f1; display:flex; justify-content:space-between; align-items:center;">
-                                <div style="flex:1;"><b style="color:#2980b9;">vs ${g.data.opponent}</b> <br><span style="font-size:10px; color:#7f8c8d;">${d} | ${g.data.result.substring(0, 20)}</span></div>
-                                <button class="btn-teal btn-load-past-game" data-pgn="${encodeURIComponent(g.data.pgn)}" style="padding:4px 8px; font-size:11px; min-width:50px;">Enna</button>
+                            html += `<div class="hist-item-row" style="padding:6px; border-bottom:1px solid #ecf0f1; display:flex; justify-content:space-between; align-items:center;">
+                                <div style="flex:1; overflow:hidden; padding-right:5px;"><b style="color:#2980b9;">vs ${g.data.opponent}</b> <br><span style="font-size:10px; color:#7f8c8d; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${d} | ${g.data.result.substring(0, 20)}</span></div>
+                                <div style="display:flex; gap:4px; flex-shrink:0;">
+                                    <button class="btn-teal btn-load-past-game" data-pgn="${encodeURIComponent(g.data.pgn)}" style="padding:4px 8px; font-size:11px; min-width:45px;">Enna</button>
+                                    <button class="btn-red btn-delete-past-game" data-id="${g.id}" style="padding:4px 8px; font-size:11px; min-width:35px;"><i class="fa-solid fa-trash"></i></button>
+                                </div>
                             </div>`;
                         });
                     }
@@ -1311,6 +1314,20 @@
                     alert("Game hlui PGN lakchhuah a ni e!\n'Zirna-ah lut' hmangin i chetsualna te i enlet thei ang.");
                     $('#loadAndLearnPgnBtn').click();
                 }, 50);
+            });
+
+            // GAME HISTORY DELETE LOGIC THAR
+            $(document).on('click', '.btn-delete-past-game', function() {
+                var gameId = $(this).data('id');
+                var $row = $(this).closest('.hist-item-row');
+                
+                if(confirm("He record hi i delete duh chiang em?")) {
+                    if(myUsername && database) {
+                        database.ref('users/' + myUsername + '/games/' + gameId).remove().then(function() {
+                            $row.slideUp(200, function(){ $(this).remove(); });
+                        });
+                    }
+                }
             });
 
             $(document).on('click', '#rematchBtn', function() {
