@@ -498,7 +498,7 @@
             console.error("Firebase a fail:", e);
         }
 
-        // --- AGORA VOICE CHAT SETUP (TRY...CATCH IN KA VEN HIM) ---
+        // --- AGORA VOICE CHAT SETUP (ERROR MESSAGES WITH ALERTS ADDED) ---
         const AGORA_APP_ID = "4ac801fbdbe64453a5e85cff870c3bfc";
         let agoraClient = null;
         let localAudioTrack = null;
@@ -514,10 +514,15 @@
 
         async function initVoiceChat(channelName) {
             try {
-                if(!agoraClient || !AGORA_APP_ID || AGORA_APP_ID === "YOUR_AGORA_APP_ID") return;
+                if(!agoraClient || !AGORA_APP_ID) return;
+                
                 await agoraClient.join(AGORA_APP_ID, channelName, null, null);
+                
                 localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
                 await localAudioTrack.setEnabled(false);
+                isMicMuted = true;
+                $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
+
                 await agoraClient.publish([localAudioTrack]);
 
                 agoraClient.on("user-published", async (user, mediaType) => {
@@ -527,33 +532,49 @@
                     }
                 });
             } catch (e) {
-                console.log("Voice chat initialization error:", e);
+                console.error("Voice chat initialization error:", e);
+                if (e.message && e.message.includes("PERMISSION_DENIED")) {
+                    alert("Voice Chat a fail: Microphone hman phalna (permission) pek a ni lo.");
+                } else if (e.code === "CAN_NOT_GET_GATEWAY_SERVER") {
+                    alert("Voice Chat a fail: Agora App ID a dik lo emaw, 'Token' ngai chi (Secure mode) in i siam vang a ni thei.");
+                } else {
+                    alert("Voice Chat a theih loh! WhatsApp chhung atanga hawng i nih chuan 'Open in Chrome/Safari' hmang rawh.");
+                }
             }
         }
 
         async function toggleMicrophone() {
-            if (!localAudioTrack) return;
-            if (isMicMuted) {
-                await localAudioTrack.setEnabled(true);
-                isMicMuted = false;
-                $('#toggleMicBtn').html("🎙️ Microphone: ON").removeClass('btn-whatsapp').addClass('btn-red');
-            } else {
-                await localAudioTrack.setEnabled(false);
-                isMicMuted = true;
-                $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
+            if (!localAudioTrack) {
+                alert("Voice chat a in-connect lo emaw, Mic hman phalna i la pe lo.");
+                return;
+            }
+            try {
+                if (isMicMuted) {
+                    await localAudioTrack.setEnabled(true);
+                    isMicMuted = false;
+                    $('#toggleMicBtn').html("🎙️ Microphone: ON").removeClass('btn-whatsapp').addClass('btn-red');
+                } else {
+                    await localAudioTrack.setEnabled(false);
+                    isMicMuted = true;
+                    $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
+                }
+            } catch (e) {
+                alert("Microphone on/off laiin buaina a awm.");
             }
         }
 
         async function leaveVoiceChat() {
-            if (localAudioTrack) {
-                localAudioTrack.close();
-                localAudioTrack = null;
-            }
-            if (agoraClient) {
-                try { await agoraClient.leave(); } catch (e) {}
-            }
-            isMicMuted = true;
-            $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
+            try {
+                if (localAudioTrack) {
+                    localAudioTrack.close();
+                    localAudioTrack = null;
+                }
+                if (agoraClient) {
+                    await agoraClient.leave();
+                }
+                isMicMuted = true;
+                $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
+            } catch (e) {}
         }
 
         // --- AUDIO SOUND EFFECTS ---
@@ -1021,7 +1042,6 @@
                                 if (data.whiteUser === myUsername) playerColor = 'w';
                                 else if (data.blackUser === myUsername) playerColor = 'b';
                             } else {
-                                // Swap colors for anonymous WhatsApp link users
                                 playerColor = (playerColor === 'w') ? 'b' : 'w';
                             }
                             board.orientation(playerColor === 'w' ? 'white' : 'black');
