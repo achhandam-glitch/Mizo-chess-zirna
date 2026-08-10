@@ -693,9 +693,22 @@
                     $('#onlineCount').text(count);
                     $('#onlineUsersList').text(onlineUsers.length > 0 ? onlineUsers.join(', ') : 'Tumah an awm lo');
                 });
+                
                 database.ref('rooms/').on('value', function(snapshot) {
                     var activeRooms = 0;
-                    snapshot.forEach(child => { if (child.val()) activeRooms++; });
+                    var currentTime = Date.now();
+                    snapshot.forEach(child => { 
+                        var room = child.val();
+                        if (room) { 
+                            var lastActive = room.lastUpdated || currentTime;
+                            var hoursIdle = (currentTime - lastActive) / (1000 * 60 * 60);
+                            if (hoursIdle < 2) { 
+                                activeRooms++; 
+                            } else if (hoursIdle > 12) {
+                                database.ref('rooms/' + child.key).remove();
+                            }
+                        } 
+                    });
                     $('#activeGamesCount').text(activeRooms);
                 });
             }
@@ -1271,7 +1284,7 @@
                     var newWhiteUser = blackUsername; var newBlackUser = whiteUsername;
                     var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
                     database.ref('rooms/' + onlineRoomId).update({
-                        pgn: "", whiteTime: timeVal, blackTime: timeVal, whiteUser: newWhiteUser, blackUser: newBlackUser, rematch: null, drawOffer: null
+                        pgn: "", whiteTime: timeVal, blackTime: timeVal, whiteUser: newWhiteUser, blackUser: newBlackUser, rematch: null, drawOffer: null, lastUpdated: firebase.database.ServerValue.TIMESTAMP
                     });
                 }
             });
@@ -1386,8 +1399,7 @@
                 
                 if(database) {
                     var roomRefDb = database.ref('rooms/' + onlineRoomId);
-                    roomRefDb.update({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, whiteUser: whiteUsername, blackUser: blackUsername, mode: "public", rematch: null, drawOffer: null });
-                    // roomRefDb.onDisconnect().remove(); // Removed to prevent accidental room deletion on mobile app switch
+                    roomRefDb.update({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, whiteUser: whiteUsername, blackUser: blackUsername, mode: "public", rematch: null, drawOffer: null, lastUpdated: firebase.database.ServerValue.TIMESTAMP });
                 }
                 
                 gameResultSaved = false; lowTimePlayedW = false; lowTimePlayedB = false;
@@ -1578,7 +1590,7 @@
                 updateStatus(); updateMoveHistory(); 
 
                 if (isOnlineMode) {
-                    if(database) database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn(), whiteTime: whiteTime, blackTime: blackTime });
+                    if(database) database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn(), whiteTime: whiteTime, blackTime: blackTime, lastUpdated: firebase.database.ServerValue.TIMESTAMP });
                 } else if (!isTwoPlayer) {
                     window.setTimeout(makeEngineMove, 250);
                 } else {
@@ -1939,7 +1951,7 @@
 
                     if(database) {
                         var roomRefDb = database.ref('rooms/' + onlineRoomId);
-                        roomRefDb.set({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, mode: "friends", drawOffer: null });
+                        roomRefDb.set({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, mode: "friends", drawOffer: null, lastUpdated: firebase.database.ServerValue.TIMESTAMP });
                         // roomRefDb.onDisconnect().remove(); // Removed to prevent accidental room deletion on mobile app switch
                     }
                     
