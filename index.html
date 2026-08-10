@@ -14,26 +14,41 @@
 
     <style>
         * { box-sizing: border-box; }
+        html, body { height: 100%; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #eef2f3; margin: 0; padding: 5px 10px;
+            background-color: #eef2f3; margin: 0; padding: 10px;
             display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
         }
-        h2 { color: #2c3e50; text-align: center; margin-bottom: 2px; margin-top: 2px; font-size: 18px; }
-        .subtitle { font-size: 13px; color: #7f8c8d; margin-bottom: 5px; text-align: center; max-width: 400px; line-height: 1.2; width: 100%; }
+        h2 { color: #2c3e50; text-align: center; margin-bottom: 2px; margin-top: 5px; font-size: 22px; font-weight: 800;}
+        .subtitle { font-size: 14px; color: #7f8c8d; margin-bottom: 12px; text-align: center; max-width: 400px; line-height: 1.2; width: 100%; font-weight: 600;}
         
+        /* HOME SCREEN WRAPPER */
+        #homeScreen { 
+            width: 100%; max-width: 400px; 
+            margin: auto 0; 
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+
+        /* GAME SCREEN WRAPPER */
+        #gameSection { 
+            display: none; width: 100%; max-width: 400px; 
+            flex-direction: column; align-items: center; 
+            margin-top: 5px; 
+        }
+
         #mainStatsBox {
-            width: 100%; max-width: 400px; background:#fff; padding:5px 10px; 
-            border-radius:8px; margin-bottom:5px; border: 1px solid #bdc3c7; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            width: 100%; background:#fff; padding:10px 12px; 
+            border-radius:8px; margin-bottom:12px; border: 1px solid #bdc3c7; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
         }
         
         .timer-wrapper {
-            display: flex; justify-content: space-between; width: 100%; max-width: 400px; 
-            margin-bottom: 5px; font-weight: bold; font-size: 14px;
+            display: flex; justify-content: space-between; width: 100%; 
+            margin-bottom: 8px; font-weight: bold; font-size: 15px;
         }
         .timer-box {
-            padding: 4px 6px; border-radius: 6px; border: 2px solid #bdc3c7; 
+            padding: 6px 8px; border-radius: 6px; border: 2px solid #bdc3c7; 
             width: 48%; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
@@ -42,44 +57,58 @@
         .time-low { color: #e74c3c !important; animation: blinker 1s linear infinite; }
         @keyframes blinker { 50% { opacity: 0.5; } }
 
-        .board-wrapper { width: 100%; max-width: 400px; margin-bottom: 5px; position: relative; }
-        #board { width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1); touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        .board-wrapper { width: 100%; margin-bottom: 8px; position: relative; }
+        #board { width: 100%; box-shadow: 0 6px 12px rgba(0,0,0,0.15); touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; border-radius: 4px; overflow: hidden;}
         
         .move-history-wrapper {
-            width: 100%; max-width: 400px; background: #fff; border: 1px solid #bdc3c7; 
-            border-radius: 6px; padding: 5px; margin-bottom: 5px; 
-            max-height: 70px; overflow-y: auto; font-size: 14px; 
+            width: 100%; background: #fff; border: 1px solid #bdc3c7; 
+            border-radius: 6px; padding: 8px; margin-bottom: 8px; 
+            max-height: 80px; overflow-y: auto; font-size: 14px; 
             color: #34495e; text-align: left; line-height: 1.6; word-wrap: break-word;
         }
 
-        .controls, .srs-controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 10px; width: 100%; max-width: 400px; }
-        button {
-            padding: 8px; font-size: 13px; font-weight: bold; background-color: #2980b9;
-            color: white; border: none; border-radius: 6px; cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: background 0.3s;
-            flex: 1 1 calc(50% - 10px); min-width: 120px;
-            display: flex; align-items: center; justify-content: center; gap: 5px;
+        .controls, .srs-controls { display: flex; flex-wrap: wrap; justify-content: center; width: 100%; }
+        
+        /* MAIN MENU BUTTONS CSS */
+        .menu-btn {
+            width: 100%; padding: 12px; font-size: 14px; font-weight: bold; color: white;
+            border: none; border-radius: 8px; cursor: pointer; margin-bottom: 8px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15); transition: transform 0.1s, background 0.3s;
+            display: flex; align-items: center; justify-content: left; gap: 12px;
         }
-        button:hover { background-color: #2471a3; }
+        .menu-btn i { font-size: 18px; width: 25px; text-align: center; }
+        .menu-btn:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
+        /* GENERAL BUTTONS */
+        button {
+            padding: 10px; font-size: 13px; font-weight: bold; background-color: #2980b9;
+            color: white; border: none; border-radius: 6px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        .btn-green { background-color: #27ae60 !important; color: white !important;} 
-        .btn-red { background-color: #c0392b !important; color: white !important;} 
+        .btn-green { background-color: #27ae60 !important; } 
+        .btn-red { background-color: #c0392b !important; } 
         .btn-yellow { background-color: #f39c12; color: #fff;} 
         .btn-gray { background-color: #34495e; color: #fff;} 
-        .btn-full { flex: 1 1 100%; }
         .btn-blue { background-color: #2980b9; color: #fff;} 
         .btn-purple { background-color: #8e44ad; color: #fff; } 
         .btn-teal { background-color: #16a085; color: #fff; }
-        .btn-whatsapp { background-color: #25D366 !important; color: white !important; }
-        .btn-support { background-color: #d35400 !important; color: white !important; }
+        .btn-whatsapp { background-color: #25D366 !important; }
+        .btn-support { background-color: #d35400 !important; }
+        
+        .btn-full { width: 100%; }
+        .btn-half { flex: 1; min-width: 0; }
+
+        .mcq-btn { flex: 1 1 calc(50% - 10px); min-width: 120px; font-size: 15px; padding: 12px; margin: 0; text-align: center; }
 
         .color-dropdown {
-            padding: 8px; font-size: 13px; border-radius: 6px; border: 1px solid #bdc3c7;
-            font-weight: bold; color: #2c3e50; flex: 1 1 calc(33% - 10px); min-width: 100px;
+            padding: 8px; font-size: 12px; border-radius: 6px; border: 1px solid #bdc3c7;
+            font-weight: bold; color: #2c3e50; flex: 1; text-align: center; min-width: 0;
         }
+
+        input:focus { border-color: #2980b9; outline: none; box-shadow: 0 0 5px rgba(41, 128, 185, 0.3); }
         
-        /* CHESS PIECE AND BOARD INDICATORS CSS */
         .highlight-square { background-color: #f1c40f !important; opacity: 0.7; }
         .legal-move-dot {
             position: absolute; top: 50%; left: 50%; width: 25%; height: 25%;
@@ -93,290 +122,331 @@
         }
 
         #status { 
-            font-size: 13px; font-weight: bold; margin-bottom: 5px; 
+            font-size: 14px; font-weight: bold; margin-bottom: 8px; 
             color: #c0392b; text-align: center; background: #fff;
-            padding: 6px; border-radius: 8px; width: 100%; max-width: 400px;
+            padding: 8px; border-radius: 8px; width: 100%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         #openingDisplay {
-            font-size: 13px; font-weight: bold; color: #2980b9; margin-bottom: 5px; text-align: center; width: 100%; max-width: 400px; display: none; background: #d6eaf8; padding: 4px; border-radius: 5px;
+            font-size: 13px; font-weight: bold; color: #2980b9; margin-bottom: 8px; text-align: center; width: 100%; display: none; background: #d6eaf8; padding: 6px; border-radius: 5px;
         }
 
         #verseDisplay {
-            display: none; font-size: 13px; color: #145a32; background-color: #d5f5e3; border-left: 5px solid #27ae60; padding: 8px; border-radius: 4px; margin-bottom: 10px; width: 100%; max-width: 400px; text-align: center; font-style: italic; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none; font-size: 13px; color: #145a32; background-color: #d5f5e3; border-left: 5px solid #27ae60; padding: 10px; border-radius: 4px; margin-bottom: 12px; width: 100%; text-align: center; font-style: italic; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         #pgnContainer {
-            display: none; width: 100%; max-width: 400px; margin-bottom: 10px; background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #bdc3c7;
+            display: none; width: 100%; margin-bottom: 12px; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #bdc3c7; text-align: left;
         }
         #pgnText {
-            width: 100%; height: 100px; padding: 6px; font-size: 11px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px; resize: none; margin-bottom: 5px;
+            width: 100%; height: 100px; padding: 8px; font-size: 12px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px; resize: none; margin-bottom: 8px;
         }
 
         #onlineRoomBox {
-            display: none; width: 100%; max-width: 400px; background: #e8f8f5; padding: 8px; border-radius: 6px; border: 1px solid #1abc9c; margin-bottom: 8px; text-align: center;
+            display: none; width: 100%; background: #e8f8f5; padding: 10px; border-radius: 6px; border: 1px solid #1abc9c; margin-bottom: 10px; text-align: center;
         }
 
         #matchmakingPanel {
-            display: none; width: 100%; max-width: 400px; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #3498db; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none; width: 100%; background: #fff; padding: 20px; border-radius: 12px; 
+            border: none; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;
         }
 
-        #supportBox {
-            display: none; width: 100%; max-width: 400px; background: #fdfefe; padding: 8px; border-radius: 6px; border: 1px solid #d35400; margin-top: -3px; margin-bottom: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        #supportBox, #contactBox {
+            display: none; width: 100%; background: #fdfefe; padding: 10px; border-radius: 6px; border: 1px solid #d35400; margin-bottom: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        #contactBox { border-color: #2980b9; }
 
-        /* PROMOTION MODAL */
         #promotionModal {
             display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            background: #fff; padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             z-index: 1000; text-align: center; border: 2px solid #2980b9;
         }
         .promo-piece {
-            width: 40px; cursor: pointer; background: #ecf0f1; border-radius: 4px; padding: 3px; transition: transform 0.2s;
+            width: 45px; cursor: pointer; background: #ecf0f1; border-radius: 4px; padding: 4px; transition: transform 0.2s;
         }
         .promo-piece:hover { transform: scale(1.1); background: #d6eaf8; }
 
-        /* CHAT BOX */
         #chatBoxContainer {
-            display: none; width: 100%; max-width: 400px; background: #fff; border: 1px solid #bdc3c7; 
-            border-radius: 6px; margin-bottom: 8px; overflow: hidden;
+            display: none; width: 100%; background: #fff; border: 1px solid #bdc3c7; 
+            border-radius: 6px; margin-bottom: 10px; overflow: hidden;
         }
         #chatMessages {
-            height: 100px; overflow-y: auto; padding: 8px; font-size: 12px; background: #fafafa;
+            height: 110px; overflow-y: auto; padding: 10px; font-size: 13px; background: #fafafa;
         }
         .chat-input-area { display: flex; border-top: 1px solid #bdc3c7; }
-        .chat-input-area input { flex: 1; border: none; padding: 8px; outline: none; font-size: 12px; }
-        .chat-input-area button { background: #2ecc71; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 0; min-width: unset; flex: none;}
-
-        .footer-text { margin-top: 10px; font-size: 12px; color: #7f8c8d; text-align: center; line-height: 1.5; max-width: 400px; padding-bottom: 15px;}
+        .chat-input-area input { flex: 1; border: none; padding: 10px; outline: none; font-size: 13px; }
+        .chat-input-area button { background: #2ecc71; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 0; min-width: unset; flex: none;}
     </style>
 </head>
 <body>
 
-    <h2><u>CHESS : MIZOTE TAN</u></h2>
-    <marquee class="subtitle" scrollamount="4">Ngaihtuahna tichak a, hmathlir tha nei turin Chess khel rawh</marquee>
-    
-    <!-- MAIN SCREEN ONLINE STATS BOX (COMPACT) -->
-    <div id="mainStatsBox">
-        <div style="font-size:11px; font-weight:bold; color:#2980b9; margin-bottom:4px; text-align:center;">
-            <i class="fa-solid fa-chart-line"></i> Tun Dinhmun
-        </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: space-between; font-size: 10px; color: #34495e; border-bottom: 1px dashed #ecf0f1; padding-bottom: 4px; margin-bottom: 4px;">
-            <div style="flex: 1 1 45%;">👁️ Hmang mek: <strong id="totalVisitorsCount" style="color:#8e44ad; font-size:11px;">0</strong></div>
-            <div style="flex: 1 1 45%; text-align: right;">📈 Hmang tawh: <strong id="allTimeVisitorsCount" style="color:#e67e22; font-size:11px;">0</strong></div>
-            <div style="flex: 1 1 45%;">🟢 Log-in: <strong id="onlineCount" style="color:#27ae60; font-size:11px;">0</strong></div>
-            <div style="flex: 1 1 45%; text-align: right;">🎮 Inkhel mek: <strong id="activeGamesCount" style="color:#d35400; font-size:11px;">0</strong></div>
-        </div>
-        <div style="font-size: 10px; color: #7f8c8d; text-align:center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            <b>Online:</b> <span id="onlineUsersList" style="color:#2980b9;">Tumah an awm lo</span>
-        </div>
-    </div>
-    
-    <!-- GUIDE BUTTON AND BOX -->
-    <button id="guideBtn" class="btn-blue" style="width: 100%; max-width: 400px; margin-bottom: 5px; padding: 6px; font-size: 12px;">
-        <i class="fa-solid fa-book-open"></i> Hman Dan Kaihhruaina
-    </button>
-    
-    <div id="guideBox" style="display: none; width: 100%; max-width: 400px; background: #fdfefe; padding: 10px; border-radius: 6px; border: 1px solid #3498db; margin-bottom: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 12px; color: #2c3e50; line-height: 1.4;">
-        <h4 style="margin-top: 0; color: #2980b9; text-align: center; border-bottom: 1px dashed #bdc3c7; padding-bottom: 6px; font-size: 13px;">A Hman Dan Tlangpui</h4>
-        <ul style="padding-left: 20px; margin-bottom: 10px; margin-top: 5px;">
-            <li style="margin-bottom: 6px;"><b>Online Khelh (Point hmuhna):</b> 'Online (Register / Thian zawngin)' thlang la, account siam rawh. I thianpa/thiannu Username zawng chhuakin sawm (challenge) rawh. <br><i style="color:#d35400;">(Chak: +10 pts, Draw: +5 pts, Tlawm: -5 pts)</i></li>
-            <li style="margin-bottom: 6px;"><b>Link Hmanga Sawm (Awlsam):</b> Register kher lovin 'Online (Link - Whatsapp)' thlang la, Link inpe sa kha Whatsapp-ah i thianpa/thiannu thawn rawh.</li>
-            <li style="margin-bottom: 6px;"><b>Khawl / Mahnia Khelh:</b> Khawl thluak nei lakah emaw, phone pakhatah 'Mahnia inkhelhna' thlangin a khelh theih bawk.</li>
-            <li style="margin-bottom: 6px;"><b>Tihsual Atanga Zirna:</b> Game i khelh zawhah <i>'I tihsual atangin zir rawh'</i> tih kha hmet la, khawlin i chetsual dan a hrilhfiah ang che.</li>
-        </ul>
-        <button id="closeGuideBtn" class="btn-red" style="width: 100%; padding: 6px;"><i class="fa-solid fa-times"></i> Khar rawh</button>
-    </div>
-    
-    <div id="status">Board a in-load mek...</div>
-    
-    <div id="onlineRoomBox"></div>
-
-    <!-- MATCHMAKING PANEL -->
-    <div id="matchmakingPanel">
-        <div id="authBox">
-            <h4 style="margin-top:0; margin-bottom: 8px; font-size:13px; color:#2c3e50;"><i class="fa-solid fa-lock"></i> Online Khel turin lut rawh</h4>
-            <div id="authError" style="color:#c0392b; font-size:11px; margin-bottom:6px; font-weight:bold;"></div>
-            <input type="text" id="mmUsername" placeholder="I Username tur..." style="width:100%; padding:8px; margin-bottom:6px; border:1px solid #bdc3c7; border-radius:4px;">
-            <input type="password" id="mmPassword" placeholder="Password (Letter 6 tal)..." style="width:100%; padding:8px; margin-bottom:8px; border:1px solid #bdc3c7; border-radius:4px;">
-            <div style="display:flex; gap:6px;">
-                <button id="mmLogin" class="btn-green" style="flex:1; padding:6px;">Login</button>
-                <button id="mmRegister" class="btn-blue" style="flex:1; padding:6px;">Register</button>
+    <!-- ========================================== -->
+    <!-- A TIRA LANG TURTE (HOME SCREEN) -->
+    <!-- ========================================== -->
+    <div id="homeScreen">
+        <h2><u>CHESS : MIZOTE TAN</u></h2>
+        <marquee class="subtitle" scrollamount="4">I ngaihtuahna ti chak la, hmathlir tha nei turin Chess khel rawh...</marquee>
+        
+        <div id="mainStatsBox">
+            <div style="font-size:13px; font-weight:bold; color:#2980b9; margin-bottom:6px; text-align:center;">
+                <i class="fa-solid fa-chart-line"></i> Tun Dinhmun
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; font-size: 12px; color: #34495e; border-bottom: 1px dashed #ecf0f1; padding-bottom: 6px; margin-bottom: 6px;">
+                <div style="flex: 1 1 45%; text-align: left;">👁️ Hmang mek: <strong id="totalVisitorsCount" style="color:#8e44ad; font-size:13px;">0</strong></div>
+                <div style="flex: 1 1 45%; text-align: right;">📈 Hmang tawh: <strong id="allTimeVisitorsCount" style="color:#e67e22; font-size:13px;">0</strong></div>
+                <div style="flex: 1 1 45%; text-align: left;">🟢 Log-in: <strong id="onlineCount" style="color:#27ae60; font-size:13px;">0</strong></div>
+                <div style="flex: 1 1 45%; text-align: right;">🎮 Inkhel mek: <strong id="activeGamesCount" style="color:#d35400; font-size:13px;">0</strong></div>
+            </div>
+            <div style="font-size: 11px; color: #7f8c8d; text-align:center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <b>Online:</b> <span id="onlineUsersList" style="color:#2980b9;">Tumah an awm lo</span>
             </div>
         </div>
+        
+        <!-- MAIN MENU BUTTONS -->
+        <button id="guideMenuBtn" class="menu-btn btn-blue"><i class="fa-solid fa-book-open"></i> A Hman Dan kaihhruaina</button>
+        
+        <div id="guideBox" style="display: none; width: 100%; background: #fdfefe; padding: 12px; border-radius: 6px; border: 1px solid #3498db; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 13px; color: #2c3e50; line-height: 1.5; text-align: left;">
+            <h4 style="margin-top: 0; color: #2980b9; text-align: center; border-bottom: 1px dashed #bdc3c7; padding-bottom: 8px; font-size: 14px;">A Hman Dan Tlangpui</h4>
+            <ul style="padding-left: 20px; margin-bottom: 10px; margin-top: 8px;">
+                <li style="margin-bottom: 6px;"><b>Online (Username):</b> Account siam la, i thianpa/thiannu Username zawng chhuakin sawm (challenge) rawh. <i style="color:#d35400;">(Chak: +10 pts, Draw: +5 pts, Tlawm: -5 pts)</i></li>
+                <li style="margin-bottom: 6px;"><b>WhatsApp Link:</b> Register kher lovin he button hmang hian Link inpe sa kha Whatsapp-ah i thianpa/thiannu thawn la, in khel dun thei nghal.</li>
+                <li style="margin-bottom: 6px;"><b>Khawl & Mahnia Khelh:</b> Button atang khian i khelh duh dan thlang la, Settings atangin sa rawng, thiamna level leh khelh duh hun chhung thlang la,khel rawh le.</li>
+                <li style="margin-bottom: 6px;"><b>Tihsual Atanga Zirna:</b> Game i khelh zawhah <i>'I tihsual atangin zir rawh'</i> tih kha a lo lang ang a, khawlin i chetsual dan a hrilhfiah ang che.</li>
+            </ul>
+            <button id="closeGuideBtn" class="btn-red btn-full"><i class="fa-solid fa-times"></i> Khar rawh</button>
+        </div>
 
-        <div id="lobbyBox" style="display: none;">
-            <div style="font-size:13px; margin-bottom:10px; color: #2c3e50; font-weight: bold;">
-                I Username: <span id="lblMyUsername" style="color:#e67e22; font-size: 14px;"></span>
+        <button id="playEngineBtn" class="menu-btn btn-green"><i class="fa-solid fa-robot"></i> Khawl thluak nei khelhna</button>
+        <button id="playLinkBtn" class="menu-btn btn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp link hmanga khelhna</button>
+        <button id="playOnlineBtn" class="menu-btn btn-purple"><i class="fa-solid fa-globe"></i> Online (username) hmanga khelhna</button>
+        <button id="playLocalBtn" class="menu-btn btn-yellow"><i class="fa-solid fa-user-group"></i> Mahnia inkhelhna</button>
+        <button id="togglePgnBoxBtn" class="menu-btn btn-teal"><i class="fa-solid fa-file-import"></i> Hmundanga khelhna 'PGN' dahluhna</button>
+        
+        <div id="pgnContainer">
+            <div style="font-size: 13px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">Hmun danga i khelhna PGN Paste/Import rawh:</div>
+            <textarea id="pgnText" placeholder="Chess.com / Lichess PGN paste rawh..."></textarea>
+            <input type="file" id="pgnFileInput" accept=".pgn,.txt" style="display: none;">
+            <div style="display: flex; gap: 6px; margin-top: 6px; width: 100%;">
+                <button id="importPgnFileBtn" class="btn-purple btn-half">📁 File Import</button>
+                <button id="loadAndLearnPgnBtn" class="btn-green btn-half">🧠 Zirna-ah lut</button>
             </div>
+        </div>
+    </div>
+    <!-- A TIRA LANG TURTE A TAWP -->
 
-            <div style="background:#fdfefe; padding:8px; border-radius:6px; margin-bottom:8px; border: 1px solid #f1c40f;">
-                <div style="font-size:12px; font-weight:bold; margin-bottom:6px; color:#d35400; display:flex; justify-content:space-between; align-items:center;">
-                    <span><i class="fa-solid fa-trophy"></i> Point Hmu Sangte</span>
-                    <select id="leaderboardCategoryFilter" style="padding:2px; font-size:10px; border-radius:4px; border:1px solid #bdc3c7; background:#fff; font-weight:bold; color:#2c3e50;">
-                        <option value="Rang lutuk">Rang lutuk (1m)</option>
-                        <option value="Rang vak lo">Rang vak lo (3m, 5m)</option>
-                        <option value="Rang pangngai" selected>Rang pangngai (10m, 15m)</option>
-                        <option value="A muang chi">A muang chi (30m+)</option>
-                    </select>
+
+    <!-- ========================================== -->
+    <!-- INKHELH LAIA LANG TUR (GAME SECTION) -->
+    <!-- ========================================== -->
+    <div id="gameSection">
+        
+        <div id="onlineRoomBox"></div>
+
+        <!-- ONLINE MATCHMAKING/LOBBY PANEL -->
+        <div id="matchmakingPanel">
+            <!-- LOGIN/REGISTER BOX -->
+            <div id="authBox">
+                <i class="fa-solid fa-circle-user" style="font-size: 45px; color: #2980b9; margin-bottom: 12px;"></i>
+                <h4 id="authTitle" style="margin-top:0; margin-bottom: 5px; font-size:16px; color:#2c3e50;">Online Khel turin lut rawh</h4>
+                <div id="authSubtitle" style="font-size: 12px; color: #7f8c8d; margin-bottom: 15px;">I thiante nen khel turin i account hmangin lut rawh</div>
+
+                <div id="authError" style="color:#c0392b; font-size:13px; margin-bottom:10px; font-weight:bold; text-align:center;"></div>
+                
+                <input type="text" id="mmUsername" placeholder="I Username tur..." style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #bdc3c7; border-radius:6px; font-size:14px; text-align: center;">
+                <input type="password" id="mmPassword" placeholder="Password (Letter 6 tal)..." style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #bdc3c7; border-radius:6px; font-size:14px; text-align: center;">
+                
+                <button id="mmAuthActionBtn" class="btn-green btn-full" style="padding:12px; font-size:14px;">Login</button>
+                
+                <div style="margin-top:15px; font-size: 13px; color: #34495e; text-align: center;">
+                    <span id="authToggleText">Account i la nei lo em ni?</span> 
+                    <a href="#" id="authToggleLink" style="color: #2980b9; font-weight: bold; text-decoration: underline;">In-Register-na</a>
                 </div>
-                <button id="mmShowLeaderboardBtn" class="btn-yellow" style="width:100%; padding:6px; margin-bottom:4px; font-size:12px;">Top 10 Enna</button>
-                <div id="mmLeaderboardList" style="display:none; max-height:200px; overflow-y:auto; font-size:12px; margin-top:4px; background:#fff; border:1px solid #bdc3c7; border-radius:4px;"></div>
+
+                <button class="backToHomeBtn btn-gray btn-full" style="margin-top:15px; padding:12px; font-size:13px;"><i class="fa-solid fa-house"></i> Home screen-ah letna</button>
             </div>
-            
-            <div style="background:#f4f6f7; padding:8px; border-radius:6px; margin-bottom:8px; border: 1px solid #d5dbdb;">
-                <div style="font-size:12px; font-weight:bold; margin-bottom:6px;">Khelhpui tur zawng rawh:</div>
-                <div style="display:flex; gap:4px;">
-                    <input type="text" id="mmSearchUser" placeholder="Thianpa username..." style="flex:2; padding:8px; border:1px solid #bdc3c7; border-radius:4px; margin:0; font-size:12px;">
-                    <button id="mmChallengeBtn" class="btn-green" style="flex:1; margin:0; min-width: 60px; padding: 8px 4px; font-size:12px;">Sawmna</button>
+
+            <!-- LOBBY BOX -->
+            <div id="lobbyBox" style="display: none; text-align: left;">
+                <div style="font-size:14px; margin-bottom:12px; color: #2c3e50; font-weight: bold; text-align: center;">
+                    I Username: <span id="lblMyUsername" style="color:#e67e22; font-size: 16px;"></span>
                 </div>
-                <div id="mmChallengeMsg" style="font-size:11px; color:#c0392b; margin-top:6px; font-weight: bold;"></div>
-            </div>
-            
-            <div id="mmIncomingBox" style="display:none; background:#e8f8f5; border:1px solid #1abc9c; padding:8px; border-radius:6px; margin-bottom:8px;">
-                <div style="font-size:12px; font-weight:bold; color:#16a085; margin-bottom:4px;">Sawmna i dawng mek!</div>
-                <div id="mmIncomingList"></div>
-            </div>
 
-            <div style="background:#fdfefe; padding:8px; border-radius:6px; margin-bottom:8px; border: 1px solid #d5dbdb;">
-                <div style="font-size:12px; font-weight:bold; margin-bottom:6px; color:#2c3e50;">
-                    <i class="fa-solid fa-clock-rotate-left"></i> Ka Game Khelh Tawhte
+                <div style="background:#fdfefe; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #f1c40f;">
+                    <div style="font-size:13px; font-weight:bold; margin-bottom:8px; color:#d35400; display:flex; justify-content:space-between; align-items:center;">
+                        <span><i class="fa-solid fa-trophy"></i> Point Hmu Sangte</span>
+                        <select id="leaderboardCategoryFilter" style="padding:4px; font-size:11px; border-radius:4px; border:1px solid #bdc3c7; background:#fff; font-weight:bold; color:#2c3e50;">
+                            <option value="Rang lutuk">Rang lutuk (1m)</option>
+                            <option value="Rang vak lo">Rang vak lo (3m, 5m)</option>
+                            <option value="Rang pangngai" selected>Rang pangngai (10m, 15m)</option>
+                            <option value="A muang chi">A muang chi (30m+)</option>
+                        </select>
+                    </div>
+                    <button id="mmShowLeaderboardBtn" class="btn-yellow btn-full" style="margin-bottom:6px;">Top 10 Enna</button>
+                    <div id="mmLeaderboardList" style="display:none; max-height:200px; overflow-y:auto; font-size:13px; margin-top:6px; background:#fff; border:1px solid #bdc3c7; border-radius:4px;"></div>
                 </div>
-                <button id="mmLoadHistoryBtn" class="btn-purple" style="width:100%; padding:6px; margin-bottom:4px; font-size:12px;">Game Record La Chhuak Rawh</button>
-                <div id="mmHistoryList" style="display:none; max-height:140px; overflow-y:auto; font-size:11px; margin-top:4px; background:#fff; border:1px solid #bdc3c7; border-radius:4px;"></div>
+                
+                <div style="background:#f4f6f7; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #d5dbdb;">
+                    <div style="font-size:13px; font-weight:bold; margin-bottom:8px;">Khelhpui tur zawng rawh:</div>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="mmSearchUser" placeholder="Thianpa username..." style="flex:2; padding:10px; border:1px solid #bdc3c7; border-radius:4px; margin:0; font-size:13px;">
+                        <button id="mmChallengeBtn" class="btn-green" style="flex:1; margin:0;">Sawmna</button>
+                    </div>
+                    <div id="mmChallengeMsg" style="font-size:12px; color:#c0392b; margin-top:8px; font-weight: bold; text-align: center;"></div>
+                </div>
+                
+                <div id="mmIncomingBox" style="display:none; background:#e8f8f5; border:1px solid #1abc9c; padding:10px; border-radius:6px; margin-bottom:10px;">
+                    <div style="font-size:13px; font-weight:bold; color:#16a085; margin-bottom:6px;">Sawmna i dawng mek!</div>
+                    <div id="mmIncomingList"></div>
+                </div>
+
+                <div style="background:#fdfefe; padding:10px; border-radius:6px; margin-bottom:15px; border: 1px solid #d5dbdb;">
+                    <div style="font-size:13px; font-weight:bold; margin-bottom:8px; color:#2c3e50;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Ka Game Khelh Tawhte
+                    </div>
+                    <button id="mmLoadHistoryBtn" class="btn-purple btn-full" style="margin-bottom:6px;">Game Record La Chhuak Rawh</button>
+                    <div id="mmHistoryList" style="display:none; max-height:140px; overflow-y:auto; font-size:12px; margin-top:6px; background:#fff; border:1px solid #bdc3c7; border-radius:4px;"></div>
+                </div>
+
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <button id="mmLogoutBtn" class="btn-red btn-half" style="padding:12px;"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                    <button class="backToHomeBtn btn-gray btn-half" style="padding:12px;"><i class="fa-solid fa-house"></i> Home-ah let</button>
+                </div>
             </div>
-
-            <button id="mmLogoutBtn" class="btn-red" style="width:100%; padding:8px; font-size:13px;">Logout (Chhuahna)</button>
         </div>
-    </div>
 
-    <div id="openingDisplay"></div>
-    <div id="verseDisplay"></div>
+        <div id="openingDisplay"></div>
+        <div id="verseDisplay"></div>
 
-    <div class="timer-wrapper" id="timerContainer">
-        <div class="timer-box" id="whiteTimer">A Var: 10:00</div>
-        <div class="timer-box" id="blackTimer">A Dum: 10:00</div>
-    </div>
+        <div id="status">Board a in-load mek...</div>
 
-    <div class="board-wrapper">
-        <div id="board"></div>
-        <!-- PROMOTION MODAL -->
-        <div id="promotionModal">
-            <h4 style="margin-top:0; color:#2c3e50; font-size:13px; margin-bottom:8px;">Sipai Thlanna</h4>
-            <div style="display:flex; gap:8px; justify-content:center;">
-                <img src="" class="promo-piece" data-piece="q">
-                <img src="" class="promo-piece" data-piece="r">
-                <img src="" class="promo-piece" data-piece="b">
-                <img src="" class="promo-piece" data-piece="n">
+        <div class="timer-wrapper" id="timerContainer">
+            <div class="timer-box" id="whiteTimer">A Var: 10:00</div>
+            <div class="timer-box" id="blackTimer">A Dum: 10:00</div>
+        </div>
+
+        <div class="board-wrapper" id="mainBoardWrapper">
+            <div id="board"></div>
+            <!-- PROMOTION MODAL -->
+            <div id="promotionModal">
+                <h4 style="margin-top:0; color:#2c3e50; font-size:14px; margin-bottom:10px;">Sipai Thlanna</h4>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <img src="" class="promo-piece" data-piece="q">
+                    <img src="" class="promo-piece" data-piece="r">
+                    <img src="" class="promo-piece" data-piece="b">
+                    <img src="" class="promo-piece" data-piece="n">
+                </div>
+                <button id="cancelPromoBtn" class="btn-red btn-full" style="margin-top:12px;">Cancel (Sutna)</button>
             </div>
-            <button id="cancelPromoBtn" class="btn-red" style="margin-top:10px; width:100%; padding:6px; font-size:11px;">Cancel (Sutna)</button>
         </div>
-    </div>
-    
-    <!-- CHAT BOX -->
-    <div id="chatBoxContainer">
-        <div style="background: #2980b9; color: #fff; padding: 4px 8px; font-size: 12px; font-weight: bold;">
-            <i class="fa-solid fa-comments"></i> Inbiakna (Live Chat)
-        </div>
-        <div id="chatMessages"></div>
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" placeholder="Sawi tur ziak rawh...">
-            <button id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-    </div>
-    
-    <div class="move-history-wrapper" id="moveHistoryBox">
-        <span style="color:#7f8c8d; font-style:italic;">Chet dan record hetah a lo lang ang...</span>
-    </div>
-    
-    <div id="pgnContainer">
-        <div style="font-size: 12px; font-weight: bold; color: #2c3e50; margin-bottom: 4px;">Hmun danga i khelhna PGN Paste/Import rawh:</div>
-        <textarea id="pgnText" placeholder="Chess.com / Lichess PGN paste rawh..."></textarea>
-        <input type="file" id="pgnFileInput" accept=".pgn,.txt" style="display: none;">
-        <div style="display: flex; gap: 4px; margin-top: 4px;">
-            <button id="importPgnFileBtn" class="btn-purple" style="flex:1; padding:6px; font-size:11px;">📁 File Import</button>
-            <button id="loadAndLearnPgnBtn" class="btn-green" style="flex:1; padding:6px; font-size:11px;">🧠 Zirna-ah lut</button>
-        </div>
-    </div>
-
-    <div class="controls" id="gameControls">
-        <select id="colorSelect" class="color-dropdown">
-            <option value="w">Sa var</option>
-            <option value="b">Sa dum</option>
-        </select>
         
-        <select id="difficultySelect" class="color-dropdown">
-            <option value="5">Awl ber</option>
-            <option value="10">Awlsam</option>
-            <option value="15">Lai hawl</option>
-            <option value="20" selected>Har deuh</option>
-            <option value="human">Mahnia inkhelhna</option>
-            <option value="online">Online (Link hmangin)</option>
-            <option value="matchmaking" style="font-weight: bold; color: #2980b9;">Online (Thian zawngin)</option>
-        </select>
-        
-        <select id="timeSelect" class="color-dropdown">
-            <option value="1">1 Min</option>
-            <option value="3">3 Mins</option>
-            <option value="5">5 Mins</option>
-            <option value="10" selected>10 Mins</option>
-            <option value="15">15 Mins</option>
-            <option value="30">30 Mins</option>
-            <option value="60">60 Mins</option>
-            <option value="90">90 Mins</option>
-        </select>
-
-        <button id="togglePgnBoxBtn" class="btn-teal btn-full" style="margin-top: 2px;">📥 PGN Import-na</button>
-        
-        <!-- DRAW OFFER UI BOX -->
-        <div id="drawOfferBox" style="display: none; width: 100%; margin-bottom: 5px;"></div>
-        
-        <div id="actionButtons" style="display: none; width: 100%; gap: 5px;">
-            <button id="drawBtn" class="btn-gray" style="flex: 1 1 45%;">Inhneh tawk</button>
-            <button id="resignBtn" class="btn-red" style="flex: 1 1 45%;">Ka tlawm e</button>
+        <!-- Game Settings (Board hnuaia dah) -->
+        <div id="gameSettingsPanel" style="display: flex; gap: 5px; width: 100%; margin-bottom: 8px;">
+            <select id="colorSelect" class="color-dropdown">
+                <option value="w">Sa var</option>
+                <option value="b">Sa dum</option>
+            </select>
+            <select id="engineLevelSelect" class="color-dropdown">
+                <option value="0">Bul tan mek tan</option>
+                <option value="5">Awl ber</option>
+                <option value="10">Awlsam</option>
+                <option value="15">Lai hawl</option>
+                <option value="20" selected>Har deuh</option>
+            </select>
+            <select id="timeSelect" class="color-dropdown">
+                <option value="1">1 Min</option>
+                <option value="3">3 Mins</option>
+                <option value="5">5 Mins</option>
+                <option value="10" selected>10 Mins</option>
+                <option value="15">15 Mins</option>
+                <option value="30">30 Mins</option>
+                <option value="60">60 Mins</option>
+                <option value="90">90 Mins</option>
+            </select>
         </div>
 
-        <button id="learnMistakesBtn" class="btn-yellow btn-full" style="display: none; margin-top: 2px; font-size: 14px; padding: 10px;">I tihsual atangin zir rawh</button>
+        <!-- CHAT BOX -->
+        <div id="chatBoxContainer">
+            <div style="background: #2980b9; color: #fff; padding: 6px 10px; font-size: 13px; font-weight: bold;">
+                <i class="fa-solid fa-comments"></i> Inbiakna (Live Chat)
+            </div>
+            <div id="chatMessages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Sawi tur ziak rawh...">
+                <button id="chatSendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
         
-        <!-- Support Button -->
-        <button id="toggleSupportBtn" class="btn-support btn-full" style="display: none; margin-top: 2px; font-size: 13px; padding: 8px;">☕ Developer Thlawpna</button>
+        <div class="move-history-wrapper" id="moveHistoryBox">
+            <span style="color:#7f8c8d; font-style:italic;">Chet dan record hetah a lo lang ang...</span>
+        </div>
 
+        <div id="drawOfferBox" style="display: none; width: 100%; margin-bottom: 8px;"></div>
+        
+        <!-- Action Buttons (Resign / Draw) -->
+        <div id="actionButtons" style="display: none; width: 100%; gap: 8px; margin-bottom: 8px;">
+            <button id="drawBtn" class="btn-gray btn-half">Inhneh tawk</button>
+            <button id="resignBtn" class="btn-red btn-half">Ka tlawm e</button>
+        </div>
+
+        <!-- In game Back Button for Offline modes (Hide initially when playing) -->
+        <button id="quitGameBtn" class="backToHomeBtn btn-gray btn-full" style="display: none; margin-bottom: 8px;"><i class="fa-solid fa-arrow-left"></i> Chhuahna (Home)</button>
+
+        <button id="learnMistakesBtn" class="btn-yellow btn-full" style="display: none; margin-bottom: 8px; font-size: 15px; padding: 12px;">I tihsual atangin zir rawh</button>
+        
+        <button id="showPgnBtn" class="btn-teal btn-full" style="display: none; margin-bottom: 8px; padding: 10px;">📜 PGN Enna & Download</button>
+        
+        <!-- PGN EXPORT Container -->
+        <div id="pgnExportContainer" style="display: none; width: 100%; margin-bottom: 12px; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #bdc3c7; text-align: left;">
+            <div style="font-size: 13px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">He game PGN:</div>
+            <textarea id="pgnExportText" style="width: 100%; height: 120px; padding: 8px; font-size: 12px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px; resize: none; margin-bottom: 8px;" readonly></textarea>
+            <button id="copyPgnBtn" class="btn-gray btn-full">📋 Copy PGN</button>
+        </div>
+
+        <!-- Game End Controls (Play Again & Back to Home) -->
+        <div id="gameEndControls" style="display: none; width: 100%; margin-bottom: 10px; gap: 8px;">
+            <button id="playAgainBtn" class="btn-green btn-half"><i class="fa-solid fa-rotate-right"></i> A thar khel rawh</button>
+            <button class="backToHomeBtn btn-red btn-half"><i class="fa-solid fa-house"></i> Home Screen</button>
+        </div>
+
+        <!-- SRS (Mistake Learning) Controls -->
+        <div class="srs-controls" id="srsControls" style="display: none; width: 100%;">
+            <div id="mcqContainer" style="display: flex; flex-wrap: wrap; width: 100%; gap: 6px; margin-bottom: 10px;"></div>
+            <div style="display: flex; width: 100%; gap: 6px; margin-bottom: 6px;">
+                <button id="showAnswerBtn" class="btn-yellow btn-half">Chhanna Enna</button>
+                <button id="nextMistakeBtn" class="btn-green btn-half">A dawt leh</button>
+            </div>
+            <button class="backToHomeBtn btn-red btn-full"><i class="fa-solid fa-house"></i> Home screen-ah letna</button>
+        </div>
+
+        <!-- Developer Support -->
+        <button id="toggleSupportBtn" class="btn-support btn-full" style="display: none; margin-top: 15px; margin-bottom: 8px; font-size: 14px; padding: 12px; cursor: pointer; position: relative;">☕ Developer Thlawpna</button>
+        
         <div id="supportBox">
-            <div style="font-size: 12px; color: #555; margin-bottom: 8px; line-height: 1.3;">
-                He game hi i hlimpui a, min thlawp ve duh chuan:
-            </div>
-            
-            <div style="background: #f4f6f7; padding: 8px; border-radius: 6px; font-size: 12px; color: #2c3e50; margin-bottom: 8px; border: 1px dashed #bdc3c7;">
+            <div style="font-size: 13px; color: #555; margin-bottom: 10px; line-height: 1.4;">He game hi i hlimpui a, min thlawp ve duh chuan:</div>
+            <div style="background: #f4f6f7; padding: 10px; border-radius: 6px; font-size: 13px; color: #2c3e50; margin-bottom: 10px; border: 1px dashed #bdc3c7;">
                 <strong>UPI ID:</strong> <span id="upiIdText" style="color: #c0392b; font-weight: bold;">chhanajuly@oksbi</span>
-                <button id="copyUpiBtn" class="btn-gray" style="padding: 4px 6px; font-size: 10px; margin-top: 4px; width: 100%;">📋 UPI ID Copy rawh</button>
+                <button id="copyUpiBtn" class="btn-gray btn-full" style="margin-top: 6px; padding: 6px;">📋 UPI ID Copy rawh</button>
             </div>
-
-            <div style="font-size: 11px; color: #333; margin-bottom: 4px;">QR Code hmangin:</div>
-            <div id="qrcode" style="display: flex; justify-content: center; margin-bottom: 8px;"></div>
-
-            <button id="closeSupportBtn" class="btn-gray" style="width: 100%; padding: 6px; font-size: 11px;">Khar rawh</button>
+            <div style="font-size: 12px; color: #333; margin-bottom: 6px;">QR Code hmangin:</div>
+            <div id="qrcode" style="display: flex; justify-content: center; margin-bottom: 10px; min-height: 120px;"></div>
+            <button id="closeSupportBtn" class="btn-gray btn-full">Khar rawh</button>
         </div>
 
-        <button id="showPgnBtn" class="btn-teal btn-full" style="display: none; margin-top: 2px;">📜 PGN Enna & Download</button>
-
-        <button id="playAgainBtn" class="btn-green btn-full" style="display: none; margin-top: 10px; font-size: 14px; padding: 10px;">A thar khel rawh</button>
-    </div>
-
-    <div class="srs-controls" id="srsControls" style="display: none;">
-        <div id="mcqContainer" style="display: flex; flex-wrap: wrap; width: 100%; gap: 5px; margin-bottom: 8px;"></div>
+        <!-- Min be duh tan (Contact) -->
+        <button id="toggleContactBtn" class="btn-blue btn-full" style="display: none; margin-bottom: 8px; font-size: 14px; padding: 12px; cursor: pointer;">📞 Min be duh tan</button>
         
-        <button id="showAnswerBtn" class="btn-yellow" style="flex: 1 1 45%;">Chhanna Enna</button>
-        <button id="nextMistakeBtn" class="btn-green" style="flex: 1 1 45%;">A dawt leh</button>
-        <button id="exitPracticeBtn" class="btn-red btn-full" style="margin-top: 2px;">Chhuahna</button>
-    </div>
-
-    <div class="footer-text">
-        <b style="color: #2c3e50;">MIN BE DUH TAN</b>
-        <div style="display: flex; justify-content: center; gap: 15px; margin-top: 6px;">
-            <span><i class="fa-brands fa-whatsapp" style="color: #25D366; font-size: 16px; vertical-align: middle; margin-right: 3px;"></i><span style="vertical-align: middle; font-weight: bold;">8837469949</span></span>
-            <span><i class="fa-solid fa-envelope" style="color: #c0392b; font-size: 14px; vertical-align: middle; margin-right: 3px;"></i><span style="vertical-align: middle; font-weight: bold;">achhandam@gmail.com</span></span>
+        <div id="contactBox">
+            <div style="font-size: 13px; color: #555; margin-bottom: 10px;">Thurawn pe duh emaw, harsatna nei tan a hnuaiah hian biak theih ka ni e:</div>
+            <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                <a href="https://wa.me/918837469949" target="_blank" style="text-decoration: none; background: #25D366; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 14px;"><i class="fa-brands fa-whatsapp"></i> WhatsApp: 8837469949</a>
+                <a href="mailto:achhandam@gmail.com" style="text-decoration: none; background: #c0392b; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 14px;"><i class="fa-solid fa-envelope"></i> Email: achhandam@gmail.com</a>
+            </div>
+            <button id="closeContactBtn" class="btn-gray btn-full" style="margin-top: 10px;">Khar rawh</button>
         </div>
+
     </div>
+    <!-- INKHELH LAIA LANG TUR A TAWP -->
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
@@ -426,6 +496,8 @@
             var isMatchmakingState = false;
             var gameResultSaved = false;
 
+            var currentMode = 'engine'; // Tracker for game mode
+            
             var onlineRoomId = null;
             var roomRef = null;
             var chatRef = null;
@@ -436,6 +508,7 @@
             var blackUsername = "A Dum";
 
             const urlParams = new URLSearchParams(window.location.search);
+            var hasRoom = urlParams.has('room');
             
             var drawOfferPending = false;
             var lastEngineScore = 0;
@@ -495,18 +568,6 @@
             var stockfish = new Worker(URL.createObjectURL(blob));
             stockfish.postMessage('uci');
 
-            // --- GUIDE BOX TOGGLE ---
-            $('#guideBtn').click(function() { $('#guideBox').slideToggle(); });
-            $('#closeGuideBtn').click(function() { $('#guideBox').slideUp(); });
-
-            function getTimeControlCategory(minutes) {
-                var m = parseInt(minutes);
-                if (m <= 1) return 'Rang lutuk';
-                if (m <= 5) return 'Rang vak lo';
-                if (m <= 15) return 'Rang pangngai';
-                return 'A muang chi';
-            }
-
             // --- ALL-TIME VISITORS SYSTEM ---
             var visitedKey = 'visited_ever';
             var allTimeRef = database.ref('all_time_visitors');
@@ -541,20 +602,165 @@
                 $('#activeGamesCount').text(activeRooms);
             });
 
+            // CHESSBOARD INITIALIZATION FUNCTION
+            var config = {
+                draggable: true, position: 'start', onDragStart: onDragStart, onDrop: onDrop, onSnapEnd: onSnapEnd,
+                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+            };
+
+            function initBoardIfNeeded() {
+                if (!board) { board = Chessboard('board', config); }
+                if(board) board.resize();
+            }
+
+            $(window).resize(function() { if(board) board.resize(); });
+
+            // SCREEN TRANSITIONS
+            function showGameScreen() {
+                $('#homeScreen').hide();
+                $('#gameSection').css('display', 'flex');
+                
+                // Matchmaking (Online username) mode a nih chuan board thup rih tur
+                if (currentMode === 'matchmaking') {
+                    $('#mainBoardWrapper').hide();
+                } else {
+                    $('#mainBoardWrapper').show(); // Show hmasa phawt
+                    setTimeout(function() { initBoardIfNeeded(); }, 50);
+                }
+            }
+
+            // MENU BUTTON CLICKS
+            $('#playEngineBtn').click(function() { currentMode = 'engine'; initGame('engine'); showGameScreen(); });
+            $('#playLinkBtn').click(function() { currentMode = 'online'; initGame('online'); showGameScreen(); });
+            $('#playOnlineBtn').click(function() { currentMode = 'matchmaking'; initGame('matchmaking'); showGameScreen(); });
+            $('#playLocalBtn').click(function() { currentMode = 'human'; initGame('human'); showGameScreen(); });
+
+            // Initialize directly to Game Screen if coming from multiplayer link
+            if (hasRoom) { showGameScreen(); initGame('online_join'); }
+
+            // RETURN TO HOME ACTION
+            $(document).on('click', '.backToHomeBtn', function() {
+                if (timerInterval) clearInterval(timerInterval);
+                if (onlineRoomId) { database.ref('rooms/' + onlineRoomId).remove(); onlineRoomId = null; }
+                if(hasRoom) { window.history.replaceState(null, null, window.location.pathname); hasRoom = false; }
+                $('#gameSection').hide();
+                $('#homeScreen').fadeIn();
+                $status.html("Board a in-load mek...");
+            });
+
+            $('#playAgainBtn').on('click', function() {
+                initGame(currentMode);
+            });
+
+            // ==========================================
+            // DEVELOPER SUPPORT & CONTACT ME BUTTONS LOGIC 
+            // ==========================================
+            $(document).on('click', '#toggleSupportBtn', function(e) {
+                e.preventDefault();
+                var $box = $('#supportBox');
+                if ($box.is(':visible')) {
+                    $box.slideUp(200);
+                } else {
+                    $box.slideDown(300, function() {
+                        if (!qrCodeGenerated) {
+                            $('#qrcode').empty(); 
+                            new QRCode(document.getElementById("qrcode"), { 
+                                text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=MizoChessSupport&cu=INR", 
+                                width: 120, 
+                                height: 120, 
+                                colorDark : "#000000", 
+                                colorLight : "#ffffff", 
+                                correctLevel : QRCode.CorrectLevel.M 
+                            });
+                            qrCodeGenerated = true;
+                        }
+                        window.scrollTo(0, document.body.scrollHeight);
+                    });
+                }
+            });
+
+            $('#closeSupportBtn').on('click', function() { 
+                $('#supportBox').slideUp(200); 
+            });
+
+            $('#copyUpiBtn').on('click', function() {
+                var tempInput = $("<input>");
+                $("body").append(tempInput);
+                tempInput.val("chhanajuly@oksbi").select();
+                document.execCommand("copy");
+                tempInput.remove();
+                
+                var $btn = $(this);
+                $btn.html("✅ Copy tawh!"); 
+                setTimeout(() => $btn.html("📋 UPI ID Copy rawh"), 2000);
+            });
+
+            // Min be duh tan button logic
+            $(document).on('click', '#toggleContactBtn', function(e) {
+                e.preventDefault();
+                var $box = $('#contactBox');
+                if ($box.is(':visible')) {
+                    $box.slideUp(200);
+                } else {
+                    $box.slideDown(300, function() {
+                        window.scrollTo(0, document.body.scrollHeight);
+                    });
+                }
+            });
+
+            $('#closeContactBtn').on('click', function() { 
+                $('#contactBox').slideUp(200); 
+            });
+
+
+            // GUIDE & PGN (Home Screen)
+            $('#guideMenuBtn').click(function() { $('#guideBox').slideToggle(); });
+            $('#closeGuideBtn').click(function() { $('#guideBox').slideUp(); });
+            $('#togglePgnBoxBtn').on('click', function() { $('#pgnContainer').slideToggle(); });
+            
+            $('#importPgnFileBtn').on('click', function() { $('#pgnFileInput').click(); });
+            $('#pgnFileInput').on('change', function(e) {
+                var file = e.target.files[0]; if (!file) return;
+                var reader = new FileReader(); reader.onload = function(evt) { $('#pgnText').val(evt.target.result); }; reader.readAsText(file);
+            });
+
+            // Game End PGN Copy 
+            $('#showPgnBtn').on('click', function() {
+                var pgnData = game.pgn(); if(pgnData) $('#pgnExportText').val(pgnData);
+                $('#pgnExportContainer').slideToggle();
+            });
+
+            $(document).on('click', '#copyPgnBtn', function() {
+                var copyText = document.getElementById("pgnExportText"); copyText.select(); copyText.setSelectionRange(0, 99999); 
+                document.execCommand("copy");
+                $(this).html("✅ Copy tawh!"); setTimeout(() => $(this).html("📋 Copy PGN"), 2000);
+            });
+
+            // REFRESH SETTINGS WHEN CHANGED FROM GAME SCREEN
+            $('#colorSelect, #engineLevelSelect, #timeSelect').on('change', function() {
+                if (!isOnlineMode && !isMatchmakingState && !isPracticeMode) {
+                    initGame(currentMode);
+                }
+            });
+
+            function getTimeControlCategory(minutes) {
+                var m = parseInt(minutes);
+                if (m <= 1) return 'Rang lutuk';
+                if (m <= 5) return 'Rang vak lo';
+                if (m <= 15) return 'Rang pangngai';
+                return 'A muang chi';
+            }
+
             function setEngineLevel() {
                 if (isPracticeMode) {
                     stockfish.postMessage('setoption name Skill Level value 20');
                     stockfish.postMessage('setoption name MultiPV value 4'); 
                 } else if (!isTwoPlayer && !isOnlineMode && !isMatchmakingState) {
                     stockfish.postMessage('setoption name MultiPV value 1'); 
-                    var level = parseInt($('#difficultySelect').val() || "20");
+                    var level = parseInt($('#engineLevelSelect').val() || "20");
                     stockfish.postMessage('setoption name Skill Level value ' + level);
                 }
             }
-
-            $('#difficultySelect').on('change', function() { initGame(); });
-            $('#colorSelect').on('change', function() { initGame(); });
-            $('#timeSelect').on('change', function() { initGame(); });
             
             function formatTime(seconds) {
                 var m = Math.floor(seconds / 60);
@@ -608,15 +814,16 @@
             function restartOnlineGame() {
                 manuallyEnded = false; drawOfferPending = false; gameResultSaved = false;
                 lowTimePlayedW = false; lowTimePlayedB = false;
-                hideVerse(); $('#toggleSupportBtn').hide(); $('#supportBox').hide();
+                hideVerse(); 
+                $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox').hide();
                 
                 game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
                 
-                $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
+                $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
                 
                 $('#moveHistoryBox').show(); $('#actionButtons').hide(); $('#drawOfferBox').hide();
-                $('#drawBtn').prop('disabled', false); $('#playAgainBtn').hide(); $('#showPgnBtn').hide();
-                $('#learnMistakesBtn').hide(); $('#pgnContainer').hide();
+                $('#drawBtn, #resignBtn').prop('disabled', false); $('#gameEndControls').hide(); $('#showPgnBtn').hide();
+                $('#learnMistakesBtn').hide(); $('#pgnExportContainer').hide();
                 
                 var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
                 whiteTime = timeVal; blackTime = timeVal;
@@ -641,9 +848,9 @@
                                 if (data.rematch.offerBy !== myUsername) {
                                     $('#rematchArea').html(`
                                         <div style="font-size:13px; font-weight:bold; color:#16a085; margin-bottom:5px;">I khingpuiin khelh nawn a duh!</div>
-                                        <div style="display:flex; gap:5px; margin-bottom:5px;">
-                                            <button id="acceptRematchBtn" class="btn-green" style="flex:1;">Pawmna</button>
-                                            <button id="rejectRematchBtn" class="btn-red" style="flex:1;">Hnial</button>
+                                        <div style="display:flex; gap:5px; margin-bottom:5px; width:100%;">
+                                            <button id="acceptRematchBtn" class="btn-green btn-half">Pawmna</button>
+                                            <button id="rejectRematchBtn" class="btn-red btn-half">Hnial</button>
                                         </div>
                                     `);
                                 } else {
@@ -684,7 +891,6 @@
                         if (incomingPgn !== game.pgn()) {
                             game.load_pgn(incomingPgn); board.position(game.fen());
                             
-                            // Play sound for opponent move
                             var hist = game.history({verbose: true});
                             if(hist.length > 0) playMoveSound(hist[hist.length-1]);
 
@@ -702,9 +908,9 @@
                                     $('#drawOfferBox').html(`
                                         <div style="background:#f39c12; color:#fff; padding:10px; border-radius:6px; margin-bottom:10px; text-align:center; width:100%;">
                                             <b style="font-size: 14px;">I khingpuiin Inhneh tawk (Draw) a rawt!</b>
-                                            <div style="display:flex; gap:5px; margin-top:8px;">
-                                                <button id="acceptDrawBtn" class="btn-green" style="flex:1; padding:8px; font-size:14px; margin:0;">Pawmna</button>
-                                                <button id="rejectDrawBtn" class="btn-red" style="flex:1; padding:8px; font-size:14px; margin:0;">Hnawl</button>
+                                            <div style="display:flex; gap:5px; margin-top:8px; width:100%;">
+                                                <button id="acceptDrawBtn" class="btn-green btn-half">Pawmna</button>
+                                                <button id="rejectDrawBtn" class="btn-red btn-half">Hnawl</button>
                                             </div>
                                         </div>
                                     `).show();
@@ -790,25 +996,49 @@
                 }
             });
 
-            $('#mmRegister').click(function() {
-                var u = $('#mmUsername').val(); var p = $('#mmPassword').val();
-                if(u.length < 3 || p.length < 6) return $('#authError').text("Username tawi lutuk emaw password 6 letters tling lo.");
-                $('#authError').text("Nghak lawk...");
-                auth.createUserWithEmailAndPassword(getEmail(u), p).then(() => {
-                    database.ref('users/' + u.toLowerCase().trim()).set({ 
-                        joined: Date.now(), 
-                        points: { 'Rang lutuk': 0, 'Rang vak lo': 0, 'Rang pangngai': 0, 'A muang chi': 0 }
-                    });
-                    $('#authError').text("");
-                }).catch(e => $('#authError').text(e.message));
+            // Toggle Login / Register
+            var isLoginMode = true;
+            $('#authToggleLink').click(function(e) {
+                e.preventDefault();
+                isLoginMode = !isLoginMode;
+                $('#authError').html("");
+                if(isLoginMode) {
+                    $('#authTitle').text("Online Khel turin lut rawh");
+                    $('#authSubtitle').text("I thiante nen khel turin i account hmangin lut rawh");
+                    $('#mmAuthActionBtn').text("Login").removeClass('btn-blue').addClass('btn-green');
+                    $('#authToggleText').text("Account i la nei lo em ni?");
+                    $(this).text("In-Register-na");
+                } else {
+                    $('#authTitle').text("Account Thar Siamna");
+                    $('#authSubtitle').text("Username thar leh Password phuah rawh");
+                    $('#mmAuthActionBtn').text("Register").removeClass('btn-green').addClass('btn-blue');
+                    $('#authToggleText').text("Account i nei sa tawh em?");
+                    $(this).text("Lut rawh (Login)");
+                }
             });
 
-            $('#mmLogin').click(function() {
+            // Action Button (Login OR Register based on state)
+            $('#mmAuthActionBtn').click(function() {
                 var u = $('#mmUsername').val(); var p = $('#mmPassword').val();
-                if(!u || !p) return;
-                $('#authError').text("Nghak lawk...");
-                auth.signInWithEmailAndPassword(getEmail(u), p).then(() => $('#authError').text(""))
-                .catch(e => $('#authError').text("Login theih loh. Username/Password dik lo."));
+                if(!u || !p) return $('#authError').html("Username leh Password chhut luh ngei ngei tur.");
+                
+                if (isLoginMode) {
+                    $('#authError').text("Nghak lawk...");
+                    auth.signInWithEmailAndPassword(getEmail(u), p).then(() => $('#authError').text(""))
+                    .catch(e => {
+                        $('#authError').html("I in register lo emaw i username/password a dik lo a ni ang.<br><a href='#' onclick='$(\"#authToggleLink\").click(); return false;' style='color:#2980b9; text-decoration:underline; display:inline-block; margin-top:5px;'>In-Register phawt rawh</a>");
+                    });
+                } else {
+                    if(u.length < 3 || p.length < 6) return $('#authError').text("Username tawi lutuk emaw password 6 letters tling lo.");
+                    $('#authError').text("Nghak lawk...");
+                    auth.createUserWithEmailAndPassword(getEmail(u), p).then(() => {
+                        database.ref('users/' + u.toLowerCase().trim()).set({ 
+                            joined: Date.now(), 
+                            points: { 'Rang lutuk': 0, 'Rang vak lo': 0, 'Rang pangngai': 0, 'A muang chi': 0 }
+                        });
+                        $('#authError').text("");
+                    }).catch(e => $('#authError').text(e.message));
+                }
             });
 
             $('#mmLogoutBtn').click(function() { 
@@ -891,11 +1121,17 @@
                 });
             });
 
+            // GAME HLUI ENLEHTNA
             $(document).on('click', '.btn-load-past-game', function() {
                 var pastPgn = decodeURIComponent($(this).data('pgn'));
-                $('#matchmakingPanel').hide(); $('#gameControls').show(); $('#pgnContainer').show();
-                $('#pgnText').val(pastPgn);
-                alert("Game hlui PGN lakchhuah a ni e!\n'Zirna-ah lut nghal rawh' tih hmangin i chetsualna te i enlet thei ang.");
+                currentMode = 'practice'; // Board a lan theih nan mode thlak tur
+                showGameScreen();
+                
+                setTimeout(function() {
+                    $('#pgnText').val(pastPgn);
+                    alert("Game hlui PGN lakchhuah a ni e!\n'Zirna-ah lut' hmangin i chetsualna te i enlet thei ang.");
+                    $('#loadAndLearnPgnBtn').click();
+                }, 50);
             });
 
             $(document).on('click', '#rematchBtn', function() {
@@ -971,9 +1207,9 @@
                         if(c.status === 'pending') {
                             html += `<div style="background:#fff; border:1px solid #ccc; padding:6px; border-radius:4px; margin-bottom:4px;">
                                 <b>${c.from}</b> in a rawn sawm che! (Hun: ${c.gameTime} Mins)
-                                <div style="display:flex; gap:4px; margin-top:4px;">
-                                    <button class="btn-green mm-accept-btn" data-id="${child.key}" data-room="${c.room}" data-from="${c.from}" data-time="${c.gameTime}" style="padding:4px; flex:1;">Pawmna</button>
-                                    <button class="btn-red mm-reject-btn" data-id="${child.key}" style="padding:4px; flex:1;">Hnawl</button>
+                                <div style="display:flex; gap:4px; margin-top:4px; width:100%;">
+                                    <button class="btn-green mm-accept-btn btn-half" data-id="${child.key}" data-room="${c.room}" data-from="${c.from}" data-time="${c.gameTime}">Pawmna</button>
+                                    <button class="btn-red mm-reject-btn btn-half" data-id="${child.key}">Hnawl</button>
                                 </div>
                             </div>`;
                         }
@@ -999,15 +1235,19 @@
                 onlineRoomId = roomId; playerColor = color;
                 whiteUsername = wUser; blackUsername = bUser;
 
-                $('#matchmakingPanel').hide(); $('#colorSelect, #difficultySelect, #timeSelect, #togglePgnBoxBtn').hide(); $('#guideBtn').hide(); 
+                $('#matchmakingPanel').hide();
                 
-                $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
+                $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
                 $('#chatBoxContainer').show(); $('#chatMessages').empty();
                 
                 var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
                 whiteTime = timeVal; blackTime = timeVal;
 
+                // BOARD LANG HMASA RAWHTSE
+                $('#timerContainer, #mainBoardWrapper, #status, #moveHistoryBox').show(); 
+                
                 board.orientation(playerColor === 'w' ? 'white' : 'black');
+                if(board) board.resize();
                 
                 var roomRefDb = database.ref('rooms/' + onlineRoomId);
                 roomRefDb.update({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, whiteUser: whiteUsername, blackUser: blackUsername, rematch: null, drawOffer: null });
@@ -1017,7 +1257,7 @@
                 game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
                 updateStatus(); updateMoveHistory(); 
                 
-                $('#timerContainer').show(); updateTimerDisplay(); startTimer();
+                updateTimerDisplay(); startTimer();
                 listenToRoom();
             }
 
@@ -1090,7 +1330,7 @@
                             
                             var mcqHtml = '';
                             mcqSanOptions.forEach(function(opt) {
-                                mcqHtml += '<button class="mcq-btn btn-gray" data-raw="'+opt.raw+'" style="flex: 1 1 45%; font-size: 14px; padding: 10px;">'+opt.san+'</button>';
+                                mcqHtml += '<button class="mcq-btn btn-gray" data-raw="'+opt.raw+'">'+opt.san+'</button>';
                             });
                             $('#mcqContainer').html(mcqHtml);
 
@@ -1313,15 +1553,22 @@
             function makeEngineMove() {
                 setEngineLevel(); stockfish.postMessage('position fen ' + game.fen());
                 var aiTimeLeft = (game.turn() === 'w') ? whiteTime : blackTime;
-                var moveTimeMs = 2000; 
                 
-                if (aiTimeLeft <= 5) moveTimeMs = 200; 
-                else if (aiTimeLeft <= 15) moveTimeMs = 500; 
-                else if (aiTimeLeft <= 30) moveTimeMs = 1000; 
-                else if (aiTimeLeft <= 60) moveTimeMs = 1500; 
-                else moveTimeMs = Math.min(3000, Math.floor((aiTimeLeft * 1000) * 0.05)); 
+                var level = parseInt($('#engineLevelSelect').val() || "20");
                 
-                stockfish.postMessage('go movetime ' + moveTimeMs); 
+                if (level === 0) {
+                    // Bul tan mek tan (ELO 500-1000 vel) - Limit depth to simulate beginner mistakes
+                    stockfish.postMessage('go depth 2');
+                } else {
+                    var moveTimeMs = 2000; 
+                    if (aiTimeLeft <= 5) moveTimeMs = 200; 
+                    else if (aiTimeLeft <= 15) moveTimeMs = 500; 
+                    else if (aiTimeLeft <= 30) moveTimeMs = 1000; 
+                    else if (aiTimeLeft <= 60) moveTimeMs = 1500; 
+                    else moveTimeMs = Math.min(3000, Math.floor((aiTimeLeft * 1000) * 0.05)); 
+                    
+                    stockfish.postMessage('go movetime ' + moveTimeMs); 
+                }
             }
 
             function updateOpeningName() {
@@ -1336,14 +1583,17 @@
 
             function updateMoveHistory() {
                 if (game.history().length > 0) {
-                    $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide();
-                    $('#guideBtn').hide(); $('#guideBox').hide();
-                    
-                    if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) $('#actionButtons').hide(); 
-                    else $('#actionButtons').css('display', 'flex'); 
+                    $('#gameSettingsPanel').hide(); // Hide settings mid-game
+                    $('#quitGameBtn').hide(); 
+                    if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) {
+                        $('#actionButtons').hide(); 
+                    } else {
+                        $('#actionButtons').css('display', 'flex'); 
+                        $('#drawBtn, #resignBtn').prop('disabled', false);
+                    }
                 } else {
-                    if (!isOnlineMode && !isMatchmakingState) {
-                        $('#colorSelect').show(); $('#difficultySelect').show(); $('#timeSelect').show(); $('#togglePgnBoxBtn').show(); $('#guideBtn').show();
+                    if (!isOnlineMode && !isMatchmakingState && !isPracticeMode) {
+                        $('#gameSettingsPanel').css('display', 'flex');
                     }
                     $('#actionButtons').hide(); 
                 }
@@ -1355,15 +1605,18 @@
                     html += '<b>' + moveNum + '.</b> ' + whiteMove + ' ' + blackMove + ' ';
                 }
                 var $box = $('#moveHistoryBox');
-                if (html === '') $box.html('<span style="color:#7f8c8d; font-style:italic;">Chet dan record hetah a lo lang ang...</span>');
-                else { $box.html(html); setTimeout(function() { $box.scrollTop($box[0].scrollHeight); }, 10); }
+                if (html === '') {
+                    $box.html('<span style="color:#7f8c8d; font-style:italic;">Chet dan record hetah a lo lang ang...</span>');
+                } else { 
+                    $box.html(html); setTimeout(function() { $box.scrollTop($box[0].scrollHeight); }, 10); 
+                }
             }
 
             function endGameWithMessage(msg, resultOverride = null) {
                 manuallyEnded = true;
                 if (timerInterval) clearInterval(timerInterval);
                 finalStatusMsg = msg; 
-                gameEndSnd.play().catch(e=>{}); // Play End Sound
+                gameEndSnd.play().catch(e=>{}); 
                 $status.html(msg); showRandomVerse();
                 savedGameHistory = game.history(); 
                 
@@ -1407,19 +1660,21 @@
                     }
                 }
 
-                $('#actionButtons').hide(); $('#drawOfferBox').hide(); $('#moveHistoryBox').hide(); 
+                $('#actionButtons, #drawOfferBox, #moveHistoryBox, #gameSettingsPanel, #quitGameBtn').hide();
                 
                 if (!isOnlineMode) {
-                    $('#playAgainBtn').fadeIn(); 
+                    $('#gameEndControls').css('display', 'flex'); // Play Again + Home
                 } else {
                     var rematchHtml = '';
-                    if (myUsername) rematchHtml = `<div id="rematchArea" style="margin-bottom:8px;"><button id="rematchBtn" class="btn-green" style="width:100%; padding:8px; font-size:13px; margin-bottom:4px;">🔄 Khel leh ila (Rematch)</button></div>`;
-                    $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:8px;'><i class='fa-solid fa-circle-check'></i> Game a tawp ta!</div>" + rematchHtml + "<button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px; font-size:14px;'>Online Game atanga chhuahna</button>").show();
+                    if (myUsername) rematchHtml = `<div id="rematchArea" style="margin-bottom:8px;"><button id="rematchBtn" class="btn-green btn-full">🔄 Khel leh ila (Rematch)</button></div>`;
+                    $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:8px;'><i class='fa-solid fa-circle-check'></i> Game a tawp ta!</div>" + rematchHtml + "<button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
                 }
 
                 $('#showPgnBtn').fadeIn();
                 if (savedGameHistory.length > 4) $('#learnMistakesBtn').fadeIn(); 
-                $('#toggleSupportBtn').fadeIn(); 
+                
+                // Show Support/Contact buttons at the end of the game
+                $('#toggleSupportBtn, #toggleContactBtn').fadeIn();
             }
 
             function updateStatus () {
@@ -1447,25 +1702,23 @@
                 game.reset(); for (var i = 0; i < savedGameHistory.length; i++) game.move(savedGameHistory[i]);
                 board.position(game.fen()); board.orientation((playerColor === 'w') ? 'white' : 'black');
                 
-                $('#srsControls').hide(); $('#gameControls').show(); $('#timerContainer').show();
-                $('#moveHistoryBox').hide(); $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide();
-                $('#togglePgnBoxBtn').hide(); $('#actionButtons').hide(); $('#drawOfferBox').hide();
+                $('#srsControls, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameSettingsPanel, #quitGameBtn').hide(); 
+                $('#timerContainer, #status').show();
                 
-                if (!isOnlineMode) $('#playAgainBtn').fadeIn();
-                else $('#onlineRoomBox').show();
+                if (!isOnlineMode) {
+                    $('#gameEndControls').css('display', 'flex'); // Shows back home
+                } else {
+                    $('#onlineRoomBox').show();
+                }
                 
-                $('#showPgnBtn').fadeIn(); $('#learnMistakesBtn').hide(); $('#toggleSupportBtn').fadeIn();
+                $('#showPgnBtn').fadeIn(); $('#learnMistakesBtn').hide();
                 showRandomVerse(); $status.html(finalStatusMsg);
+                
+                // Show Support/Contact buttons after returning from mistake learning
+                $('#toggleSupportBtn, #toggleContactBtn').fadeIn();
             }
 
-            var config = {
-                draggable: true, position: 'start', onDragStart: onDragStart, onDrop: onDrop, onSnapEnd: onSnapEnd,
-                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
-            };
-            board = Chessboard('board', config);
-            $(window).resize(function() { if(board) board.resize(); });
-
-            function initGame() {
+            function initGame(mode) {
                 isPracticeMode = false; hideVerse(); 
                 lessonCompleted = false; hasMadeMistakeInCurrent = false;
                 if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
@@ -1473,127 +1726,106 @@
                 manuallyEnded = false; drawOfferPending = false; practiceEngineState = 'none'; isMatchmakingState = false; gameResultSaved = false;
                 lowTimePlayedW = false; lowTimePlayedB = false;
                 
-                $('#toggleSupportBtn').hide(); $('#supportBox').hide(); $('#matchmakingPanel').hide(); $('#chatBoxContainer').hide();
+                // Hide a bunch of stuff initially
+                $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox, #matchmakingPanel, #chatBoxContainer, #srsControls, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #actionButtons, #drawOfferBox, #onlineRoomBox, #pgnExportContainer').hide();
+                $('#mainBoardWrapper, #timerContainer, #moveHistoryBox, #status, #openingDisplay').hide();
 
-                var diff = $('#difficultySelect').val();
-                
-                if (diff === 'matchmaking') {
+                if (mode === 'matchmaking') {
                     isMatchmakingState = true;
-                    $('#gameControls').show(); $('#srsControls').hide(); $('#pgnContainer').hide();
-                    $('#playAgainBtn').hide(); $('#learnMistakesBtn').hide(); $('#showPgnBtn').hide();
-                    $('#actionButtons').hide(); $('#onlineRoomBox').hide(); $('#drawOfferBox').hide();
-                    $('#timerContainer').hide(); $('#guideBtn').hide(); $('#colorSelect').hide(); $('#togglePgnBoxBtn').hide();
-                    $('#difficultySelect').show(); $('#timeSelect').show();
-
+                    $('#gameSettingsPanel').hide();
                     $('#matchmakingPanel').show();
                     if(auth.currentUser) { myUsername = auth.currentUser.email.split('@')[0]; showLobby(); } 
                     else { $('#authBox').show(); $('#lobbyBox').hide(); }
 
-                    game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
+                    game.reset(); initBoardIfNeeded(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
                     $status.html("<i class='fa-solid fa-gamepad'></i> Online Lobby-ah i awm mek...");
                     return; 
                 }
 
-                isTwoPlayer = (diff === 'human'); isOnlineMode = (diff === 'online');
+                isTwoPlayer = (mode === 'human'); 
+                isOnlineMode = (mode === 'online' || mode === 'online_join');
+                
                 mistakePositions = []; savedGameHistory = []; plyEvaluations = {};
-                
-                $('#gameControls').show(); $('#srsControls').hide(); $('#pgnContainer').hide();
-                $('#playAgainBtn').hide(); $('#learnMistakesBtn').hide(); $('#showPgnBtn').hide();
-                $('#actionButtons').hide(); $('#drawOfferBox').hide(); $('#onlineRoomBox').hide(); $('#guideBtn').show();
-                
-                $('#colorSelect').show(); $('#difficultySelect').show(); $('#timeSelect').show(); $('#togglePgnBoxBtn').show();
                 
                 var timeVal = parseInt($('#timeSelect').val()) * 60;
                 whiteTime = timeVal; blackTime = timeVal;
-                $('#timerContainer').show(); updateTimerDisplay(); startTimer();
 
-                $('#moveHistoryBox').show(); $('#openingDisplay').hide(); 
                 playerColor = $('#colorSelect').val();
+
+                // Settings visibility control
+                if (mode === 'human' || mode === 'engine') {
+                    $('#gameSettingsPanel').css('display', 'flex');
+                    if (mode === 'human') $('#engineLevelSelect').hide();
+                    else $('#engineLevelSelect').show();
+                } else {
+                    $('#gameSettingsPanel').hide();
+                }
                 
-                if (urlParams.has('room')) {
+                if (mode === 'online_join') {
                     isOnlineMode = true; isTwoPlayer = false;
                     onlineRoomId = urlParams.get('room'); playerColor = urlParams.get('color') || 'b';
-                    board.orientation((playerColor === 'w') ? 'white' : 'black');
                     
-                    $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide(); $('#guideBtn').hide();
-                    $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'>Online Game (Link hmangin)</div><button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:8px;'>Chhuahna</button>").show();
+                    // SHOW WRAPPER FIRST FOR CORRECT RESIZING
+                    $('#timerContainer, #mainBoardWrapper, #status, #moveHistoryBox').show();
+                    initBoardIfNeeded(); board.orientation((playerColor === 'w') ? 'white' : 'black');
+                    if(board) board.resize();
+                    
+                    $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'>Online Game (Link hmangin)</div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
                     $('#chatBoxContainer').show(); $('#chatMessages').empty();
                     
+                    updateTimerDisplay(); startTimer();
                     listenToRoom();
                 } 
-                else if (isOnlineMode) {
+                else if (mode === 'online') {
                     onlineRoomId = Math.random().toString(36).substring(2, 8);
-                    board.orientation((playerColor === 'w') ? 'white' : 'black');
+                    
+                    // SHOW WRAPPER FIRST
+                    $('#timerContainer, #mainBoardWrapper, #status, #moveHistoryBox').show();
+                    initBoardIfNeeded(); board.orientation((playerColor === 'w') ? 'white' : 'black');
+                    if(board) board.resize();
+                    
                     var oppColor = (playerColor === 'w') ? 'b' : 'w';
                     var joinLink = window.location.href.split('?')[0] + '?room=' + onlineRoomId + '&color=' + oppColor;
                     
                     $('#onlineRoomBox').html(`
                         <div style="font-size: 12px; font-weight: bold; color: #16a085; margin-bottom: 4px;">I thian thawn tur Link:</div>
-                        <input type="text" id="roomLinkInput" value="${joinLink}" readonly style="width: 100%; padding: 6px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 4px; font-size: 11px; text-align:center;">
-                        <div style="display: flex; gap: 4px; margin-bottom: 4px;">
-                            <button id="copyLinkBtn" class="btn-gray" style="flex: 1; padding: 6px; font-size: 12px;">🔗 Copy</button>
-                            <button id="whatsappShareBtn" class="btn-whatsapp" style="flex: 2; padding: 6px; font-size: 12px;"><i class="fab fa-whatsapp" style="font-size: 14px;"></i> WhatsApp</button>
+                        <input type="text" id="roomLinkInput" value="${joinLink}" readonly style="width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; margin-bottom: 8px; font-size: 12px; text-align:center;">
+                        <div style="display: flex; gap: 6px; margin-bottom: 8px; width: 100%;">
+                            <button id="copyLinkBtn" class="btn-gray btn-half">🔗 Copy</button>
+                            <button id="whatsappShareBtn" class="btn-whatsapp btn-half"><i class="fab fa-whatsapp"></i> WhatsApp</button>
                         </div>
-                        <button id='exitOnlineBtn' class='btn-red' style='width:100%; padding:6px;'>Cancel</button>
+                        <button class='backToHomeBtn btn-red btn-full'>Cancel (Sutna)</button>
                     `).show();
 
-                    $('#colorSelect').hide(); $('#difficultySelect').hide(); $('#timeSelect').hide(); $('#togglePgnBoxBtn').hide(); $('#guideBtn').hide();
                     $('#chatBoxContainer').show(); $('#chatMessages').empty();
 
                     var roomRefDb = database.ref('rooms/' + onlineRoomId);
                     roomRefDb.set({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, drawOffer: null });
                     roomRefDb.onDisconnect().remove();
+                    
+                    updateTimerDisplay(); startTimer();
                     listenToRoom();
                 } else {
                     if (roomRef) { roomRef.off(); roomRef = null; }
-                    board.orientation((playerColor === 'w') ? 'white' : 'black');
+                    
+                    // SHOW WRAPPER FIRST
+                    $('#timerContainer, #mainBoardWrapper, #status, #moveHistoryBox').show();
+                    initBoardIfNeeded(); board.orientation((playerColor === 'w') ? 'white' : 'black');
+                    if(board) board.resize();
+                    
+                    updateTimerDisplay(); startTimer();
                 }
                 
                 game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
                 setEngineLevel(); updateStatus(); updateMoveHistory(); 
+                
+                // Offline mode-ah chuan an khelh hma in 'Let lehna' a la lang theih ang a, an khelh tak tak veleh a inthup ang
+                if (!isOnlineMode && !isMatchmakingState) { $('#quitGameBtn').show(); }
+                
                 if (!isTwoPlayer && !isOnlineMode && playerColor === 'b') window.setTimeout(makeEngineMove, 250);
             }
 
-            $(document).on('click', '#copyLinkBtn', function() {
-                var copyText = document.getElementById("roomLinkInput"); copyText.select(); copyText.setSelectionRange(0, 99999); 
-                document.execCommand("copy");
-                $(this).html("✅ Copy tawh!"); setTimeout(() => $(this).html("🔗 Copy"), 2000);
-            });
-
-            $(document).on('click', '#whatsappShareBtn', function() {
-                var link = document.getElementById("roomLinkInput").value;
-                var text = encodeURIComponent("Chess i khel ang hmiang! Helai link-ah hian lo lut rawh: " + link);
-                window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
-            });
-
-            $(document).on('click', '#copyUpiBtn', function() {
-                var dummy = document.createElement("textarea"); document.body.appendChild(dummy);
-                dummy.value = "chhanajuly@oksbi"; dummy.select(); document.execCommand("copy"); document.body.removeChild(dummy);
-                $(this).html("✅ UPI ID Copy tawh!"); setTimeout(() => $(this).html("📋 UPI ID Copy rawh"), 2000);
-            });
-
-            $('#toggleSupportBtn').on('click', function() {
-                $('#supportBox').slideToggle(300, function() {
-                    if (!qrCodeGenerated && $('#supportBox').is(':visible')) {
-                        new QRCode(document.getElementById("qrcode"), { text: "upi://pay?pa=chhanajuly@oksbi&pn=Alan%20Lalchhandama&tn=MizoChessSupport&cu=INR", width: 120, height: 120, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
-                        qrCodeGenerated = true;
-                    }
-                });
-            });
-
-            $('#closeSupportBtn').on('click', function() { $('#supportBox').slideUp(); });
-            $(document).on('click', '#exitOnlineBtn', function() {
-                if (onlineRoomId) database.ref('rooms/' + onlineRoomId).remove();
-                window.location.href = window.location.href.split('?')[0];
-            });
-
-            $('#togglePgnBoxBtn').on('click', function() { $('#pgnContainer').slideToggle(); });
-            $('#importPgnFileBtn').on('click', function() { $('#pgnFileInput').click(); });
-            $('#pgnFileInput').on('change', function(e) {
-                var file = e.target.files[0]; if (!file) return;
-                var reader = new FileReader(); reader.onload = function(evt) { $('#pgnText').val(evt.target.result); }; reader.readAsText(file);
-            });
-
+            // PGN ZIRNA (Load & Learn)
             $('#loadAndLearnPgnBtn').on('click', function() {
                 var pgnString = $('#pgnText').val().trim();
                 if (!pgnString) { alert("PGN a ruak a nia, paste luh hmasak phawt tur a ni."); return; }
@@ -1633,39 +1865,26 @@
                 if (mistakePositions.length > 0) {
                     isPracticeMode = true; hideVerse(); manuallyEnded = false; sessionScore = 0; maxSessionScore = mistakePositions.length * 10;
                     if (timerInterval) clearInterval(timerInterval);
-                    $('#timerContainer').hide(); $('#pgnContainer').hide(); $('#gameControls').hide(); $('#srsControls').css('display', 'flex');
-                    $('#moveHistoryBox').hide(); currentMistakeIndex = 0; loadMistake();
+                    
+                    // Hide support stuff during learning
+                    $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox').hide();
+                    
+                    // Transition to game section explicitly for SRS
+                    showGameScreen();
+
+                    setTimeout(function() {
+                        $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #onlineRoomBox, #matchmakingPanel, #showPgnBtn, #gameEndControls, #gameSettingsPanel, #quitGameBtn, #learnMistakesBtn').hide();
+                        $('#srsControls').css('display', 'flex');
+                        currentMistakeIndex = 0; loadMistake();
+                    }, 50);
+
                 } else { alert("Zir tur mistake a awm chiah lo."); }
             });
 
-            $('#showPgnBtn').on('click', function() {
-                var pgnData = game.pgn(); if(pgnData) $('#pgnText').val(pgnData);
-                $('#pgnContainer').slideToggle();
-            });
-
-            $('#resignBtn').on('click', function() {
-                if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) return;
-                if (isOnlineMode) {
-                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Resign}"}); endGameWithMessage('Ka tlawm ta!', 'lose');
-                } else endGameWithMessage('I tlawm ta!');
-            });
-
-            $('#drawBtn').on('click', function() {
-                if (game.game_over() || manuallyEnded || isPracticeMode || drawOfferPending || isMatchmakingState) return;
-                if (isOnlineMode) { 
-                    var offerSender = myUsername ? myUsername : playerColor;
-                    database.ref('rooms/' + onlineRoomId + '/drawOffer').set({ offerBy: offerSender, status: 'pending' });
-                    return; 
-                } else if (isTwoPlayer) {
-                    endGameWithMessage('Inhneh tawk (Draw) in pawm dun e!'); return;
-                }
-                if (game.turn() !== playerColor) { alert("Khawl chet hun a ni a, a lo chet hunah i sawm chauh dawn nia."); return; }
-                
-                drawOfferPending = true; $status.html("Khawl in i draw sawmna a ngaihtuah mek...");
-                stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 10'); 
-            });
-
             $('#learnMistakesBtn').on('click', function() {
+                // Hide support stuff during learning
+                $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox').hide();
+                
                 var tempGame = new Chess(); var history = savedGameHistory; mistakePositions = []; var lastWhiteScore = 0; 
                 for (var i = 0; i < history.length; i++) {
                     var plyColor = tempGame.turn(); var moveNum = Math.floor(i / 2) + 1;
@@ -1713,9 +1932,14 @@
                     isPracticeMode = true; hideVerse(); manuallyEnded = false;
                     sessionScore = 0; maxSessionScore = mistakePositions.length * 10;
                     if (timerInterval) clearInterval(timerInterval);
-                    $('#timerContainer').hide(); $('#pgnContainer').hide(); $('#gameControls').hide(); $('#srsControls').css('display', 'flex');
-                    $('#moveHistoryBox').hide(); currentMistakeIndex = 0; loadMistake();
-                } else alert("Game tha tak a ni! Tactic hlah emaw tihsual lian tham i nei lo."); 
+                    $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn').hide(); 
+                    $('#srsControls').css('display', 'flex');
+                    currentMistakeIndex = 0; loadMistake();
+                } else {
+                    alert("Game tha tak a ni! Tactic hlah emaw tihsual lian tham i nei lo.");
+                    $('#toggleSupportBtn, #toggleContactBtn').fadeIn();
+                    setTimeout(function(){ window.scrollTo(0, document.body.scrollHeight); }, 100);
+                } 
             });
 
             function loadMistake() {
@@ -1737,6 +1961,9 @@
                     if (percentage < 0) percentage = 0;
                     alert("Zir tur i zo ta! \nI score hmuh zat: " + percentage + "% \n\nKhelh zawhnaah i kir leh ang a, i duh chuan PGN i en chhunzawm thei ang."); 
                     restorePostGameState();
+                    
+                    $('#toggleSupportBtn, #toggleContactBtn').fadeIn();
+                    setTimeout(function(){ window.scrollTo(0, document.body.scrollHeight); }, 100);
                 }
             }
 
@@ -1744,10 +1971,32 @@
                 if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
                 currentMistakeIndex++; loadMistake(); 
             });
-            $('#exitPracticeBtn').on('click', function() { restorePostGameState(); });
-            $('#playAgainBtn').on('click', function() { initGame(); });
 
-            initGame();
+            // DRAW LEH RESIGN ACTIONS
+            $('#resignBtn').on('click', function() {
+                if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) return;
+                if (isOnlineMode) {
+                    database.ref('rooms/' + onlineRoomId).update({ pgn: game.pgn() + " {Resign}"}); endGameWithMessage('Ka tlawm ta!', 'lose');
+                } else {
+                    endGameWithMessage('I tlawm ta!', 'lose');
+                }
+            });
+
+            $('#drawBtn').on('click', function() {
+                if (game.game_over() || manuallyEnded || isPracticeMode || drawOfferPending || isMatchmakingState) return;
+                if (isOnlineMode) { 
+                    var offerSender = myUsername ? myUsername : playerColor;
+                    database.ref('rooms/' + onlineRoomId + '/drawOffer').set({ offerBy: offerSender, status: 'pending' });
+                    return; 
+                } else if (isTwoPlayer) {
+                    endGameWithMessage('Inhneh tawk (Draw) in pawm dun e!', 'draw'); return;
+                }
+                if (game.turn() !== playerColor) { alert("Khawl chet hun a ni a, a lo chet hunah i sawm chauh dawn nia."); return; }
+                
+                drawOfferPending = true; $status.html("Khawl in i draw sawmna a ngaihtuah mek...");
+                stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 10'); 
+            });
+
         });
     </script>
 </body>
