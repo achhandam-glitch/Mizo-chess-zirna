@@ -237,11 +237,11 @@
         <button id="playOnlineBtn" class="menu-btn btn-purple"><i class="fa-solid fa-globe"></i> Online (username) hmanga khelhna</button>
         <button id="playEngineBtn" class="menu-btn btn-green"><i class="fa-solid fa-robot"></i> Khawlthluak nei cho la,khel rawh</button>
         <button id="togglePgnBoxBtn" class="menu-btn btn-teal"><i class="fa-solid fa-file-import"></i> Hmundanga khelhna 'PGN' dahluhna</button>
-        <!-- I code-a buttons dang hnuai chiahah hian belh rawh -->
-<a href="chanchin.html" class="menu-btn btn-teal" style="text-decoration: none;">
-    <i class="fa-solid fa-newspaper"></i> Chanchin Thar
-</a>
- <div id="pgnContainer">
+        
+        <a href="chanchin.html" class="menu-btn btn-teal" style="text-decoration: none;">
+            <i class="fa-solid fa-newspaper"></i> Chanchin Thar
+        </a>
+        <div id="pgnContainer">
             <div style="font-size: 13px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">Hmun danga i khelhna PGN Paste/Import rawh:</div>
             <textarea id="pgnText" placeholder="Chess.com / Lichess PGN paste rawh..."></textarea>
             <input type="file" id="pgnFileInput" accept=".pgn,.txt" style="display: none;">
@@ -519,7 +519,14 @@
             myPeerId = channelName + '_' + playerColor;
             oppPeerId = channelName + '_' + (playerColor === 'w' ? 'b' : 'w');
 
-            peer = new Peer(myPeerId); 
+            peer = new Peer(myPeerId, {
+                config: {
+                    'iceServers': [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ]
+                }
+            });
 
             peer.on('call', function(call) {
                 // Incoming call kan dawnin, kan local stream kan thawn let ve nghal ang
@@ -577,6 +584,7 @@
                 audioEl.id = 'remoteAudio';
                 audioEl.autoplay = true;
                 audioEl.playsInline = true; /* HEI HI PHONE ATANA PAWIMAWH CHU A NI */
+                audioEl.style.display = 'none';
                 document.body.appendChild(audioEl);
             }
             if (audioEl.srcObject !== stream) {
@@ -587,11 +595,15 @@
             let playPromise = audioEl.play();
             if (playPromise !== undefined) {
                 playPromise.then(_ => {
-                    // A play thei e
+                    $('#manualAudioPlayBtn').hide();
                 }).catch(error => {
                     console.log("Audio a play theih loh: ", error);
                     // A rik theih loh chuan screen-ah a hmeh rikna kan tarlang ang
-                    $('#status').html("<button onclick='document.getElementById(\"remoteAudio\").play()' class='btn-green' style='padding:5px; font-size:11px;'>🔊 Audio tihrikna hmet rawh</button>");
+                    if ($('#manualAudioPlayBtn').length === 0) {
+                        $('#voiceChatContainer').append("<button id='manualAudioPlayBtn' onclick='document.getElementById(\"remoteAudio\").play(); this.style.display=\"none\";' class='btn-green btn-full' style='margin-top:8px;'>🔊 Audio tihrik nan hmet rawh</button>");
+                    } else {
+                        $('#manualAudioPlayBtn').show();
+                    }
                 });
             }
         }
