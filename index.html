@@ -11,9 +11,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    
-    <!-- PEERJS VOICE CHAT SDK -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 
     <style>
         * { box-sizing: border-box; }
@@ -186,12 +183,6 @@
         .chat-input-area { display: flex; border-top: 1px solid #bdc3c7; }
         .chat-input-area input { flex: 1; border: none; padding: 10px; outline: none; font-size: 13px; }
         .chat-input-area button { background: #2ecc71; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 0; min-width: unset; flex: none;}
-
-        /* VOICE CHAT SECTION CSS */
-        #voiceChatContainer {
-            display: none; width: 100%; background: #2c3e50; color: #fff; border-radius: 6px;
-            padding: 10px; margin-bottom: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
     </style>
 </head>
 <body>
@@ -225,7 +216,7 @@
             <h4 style="margin-top: 0; color: #2980b9; text-align: center; border-bottom: 1px dashed #bdc3c7; padding-bottom: 8px; font-size: 14px;">A Hman Dan Tlangpui</h4>
             <ul style="padding-left: 20px; margin-bottom: 10px; margin-top: 8px;">
                 <li style="margin-bottom: 6px;"><b>Online (Username):</b> Account siam la, i thianpa/thiannu Username zawng chhuakin sawm (challenge) rawh. Chat (message) pahin a khelh theih e<i style="color:#d35400;">(Chak: +10 pts, Draw: +5 pts, Tlawm: -5 pts)</i></li>
-                <li style="margin-bottom: 6px;"><b>WhatsApp Link:</b> Register kher lovin he button hmang hian Link inpe sa kha Whatsapp-ah i thianpa/thiannu thawn la, in khel dun thei nghal.Inkhelh paha titi (voice chat) pawh hman theih tura siam a ni</li>
+                <li style="margin-bottom: 6px;"><b>WhatsApp Link:</b> Register kher lovin he button hmang hian Link inpe sa kha Whatsapp-ah i thianpa/thiannu thawn la, in khel dun thei nghal.</li>
                 <li style="margin-bottom: 6px;"><b>Khawl & Mahnia Khelh:</b> Button atang khian i khelh duh dan thlang la, Settings atangin sa rawng, thiamna level leh khelh duh hun chhung thlang la,khel rawh le.</li>
                 <li style="margin-bottom: 6px;"><b>Tihsual Atanga Zirna:</b> Game i khelh zawhah <i>'I tihsual atangin zir rawh'</i> tih kha a lo lang ang a, khawlin i chetsual dan a hrilhfiah ang che.</li>
             </ul>
@@ -383,17 +374,7 @@
             </select>
         </div>
 
-        <!-- VOICE CHAT BOX (WHATSAPP/FRIENDS MODE CHAUHA LANG TUR) -->
-        <div id="voiceChatContainer">
-            <div style="font-size: 13px; font-weight: bold; margin-bottom: 8px;">
-                <i class="fa-solid fa-microphone"></i> Live Voice Chat (Friends Only)
-            </div>
-            <button id="toggleMicBtn" class="btn-whatsapp btn-full" onclick="toggleMicrophone()">
-                🎙️ Microphone: OFF
-            </button>
-        </div>
-
-        <!-- CHAT BOX (USERNAME/PUBLIC MODE CHAUHA LANG TUR) -->
+        <!-- CHAT BOX (ONLINE MODE CHAUHA LANG TUR) -->
         <div id="chatBoxContainer">
             <div style="background: #2980b9; color: #fff; padding: 6px 10px; font-size: 13px; font-weight: bold;">
                 <i class="fa-solid fa-comments"></i> Inbiakna (Live Chat)
@@ -504,129 +485,6 @@
         } catch (e) {
             console.error("Firebase a fail:", e);
         }
-
-        // --- PEERJS VOICE CHAT SETUP (AGORA THLAKNA) ---
-        let peer = null;
-        let localStream = null;
-        let existingCall = null;
-        let isMicMuted = true;
-        let myPeerId = null;
-        let oppPeerId = null;
-
-        async function initVoiceChat(channelName) {
-            if (peer) return; 
-            
-            myPeerId = channelName + '_' + playerColor;
-            oppPeerId = channelName + '_' + (playerColor === 'w' ? 'b' : 'w');
-
-            peer = new Peer(myPeerId, {
-                config: {
-                    'iceServers': [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' }
-                    ]
-                }
-            });
-
-            peer.on('call', function(call) {
-                // Incoming call kan dawnin, kan local stream kan thawn let ve nghal ang
-                call.answer(localStream || undefined); 
-                existingCall = call;
-                call.on('stream', function(remoteStream) {
-                    playRemoteStream(remoteStream);
-                });
-            });
-        }
-
-        async function toggleMicrophone() {
-            try {
-                if (!localStream) {
-                    $('#toggleMicBtn').html("⏳ Nghak lawk...").removeClass('btn-whatsapp btn-red').css('background-color', '#f39c12');
-                    
-                    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                    isMicMuted = false;
-                    
-                    // Mic a neih rual rualin khingpui a call nghal ang
-                    if (peer && oppPeerId) {
-                        let call = peer.call(oppPeerId, localStream);
-                        if (call) {
-                            existingCall = call;
-                            call.on('stream', function(remoteStream) {
-                                playRemoteStream(remoteStream);
-                            });
-                        }
-                    }
-                    
-                    $('#toggleMicBtn').html("🎙️ Microphone: ON").css('background-color', '').removeClass('btn-whatsapp').addClass('btn-red');
-                    return;
-                }
-
-                if (isMicMuted) {
-                    localStream.getAudioTracks()[0].enabled = true;
-                    isMicMuted = false;
-                    $('#toggleMicBtn').html("🎙️ Microphone: ON").removeClass('btn-whatsapp').addClass('btn-red');
-                } else {
-                    localStream.getAudioTracks()[0].enabled = false;
-                    isMicMuted = true;
-                    $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
-                }
-            } catch(e) {
-                console.error("Mic error:", e);
-                alert("Microphone tihnun theih a ni lo! Browser-in phalna a pe lo che emaw a ni thei.");
-                $('#toggleMicBtn').html("🎙️ Microphone: OFF").css('background-color', '').removeClass('btn-red').addClass('btn-whatsapp');
-            }
-        }
-
-        function playRemoteStream(stream) {
-            let audioEl = document.getElementById('remoteAudio');
-            if (!audioEl) {
-                audioEl = document.createElement('audio');
-                audioEl.id = 'remoteAudio';
-                audioEl.autoplay = true;
-                audioEl.playsInline = true; /* HEI HI PHONE ATANA PAWIMAWH CHU A NI */
-                audioEl.style.display = 'none';
-                document.body.appendChild(audioEl);
-            }
-            if (audioEl.srcObject !== stream) {
-                audioEl.srcObject = stream;
-            }
-            
-            /* User in a hmeh (click) hmaa a lo rik theih nan a hnuaia mi hi kan belh bawk ang */
-            let playPromise = audioEl.play();
-            if (playPromise !== undefined) {
-                playPromise.then(_ => {
-                    $('#manualAudioPlayBtn').hide();
-                }).catch(error => {
-                    console.log("Audio a play theih loh: ", error);
-                    // A rik theih loh chuan screen-ah a hmeh rikna kan tarlang ang
-                    if ($('#manualAudioPlayBtn').length === 0) {
-                        $('#voiceChatContainer').append("<button id='manualAudioPlayBtn' onclick='document.getElementById(\"remoteAudio\").play(); this.style.display=\"none\";' class='btn-green btn-full' style='margin-top:8px;'>🔊 Audio tihrik nan hmet rawh</button>");
-                    } else {
-                        $('#manualAudioPlayBtn').show();
-                    }
-                });
-            }
-        }
-
-        function leaveVoiceChat() {
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
-            }
-            if (existingCall) {
-                existingCall.close();
-                existingCall = null;
-            }
-            if (peer) {
-                peer.destroy();
-                peer = null;
-            }
-            isMicMuted = true;
-            let audioEl = document.getElementById('remoteAudio');
-            if (audioEl) audioEl.remove();
-            $('#toggleMicBtn').html("🎙️ Microphone: OFF").removeClass('btn-red').addClass('btn-whatsapp');
-        }
-        // --- PEERJS VOICE CHAT SETUP A TAWP ---
 
         // --- AUDIO SOUND EFFECTS ---
         const moveSnd = new Audio('https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3');
@@ -838,7 +696,6 @@
             // RETURN TO HOME ACTION
             $(document).on('click', '.backToHomeBtn', function() {
                 if (timerInterval) clearInterval(timerInterval);
-                leaveVoiceChat();
                 if (onlineRoomId && database) { database.ref('rooms/' + onlineRoomId).remove(); onlineRoomId = null; }
                 if(hasRoom) { window.history.replaceState(null, null, window.location.pathname); hasRoom = false; }
                 $('#gameSection').hide();
@@ -1052,14 +909,7 @@
                         if (data.whiteUser) whiteUsername = data.whiteUser;
                         if (data.blackUser) blackUsername = data.blackUser;
                         
-                        var isFriendsMode = (data.mode === 'friends') || (roomMode === 'friends');
-                        if (isFriendsMode) {
-                            $('#voiceChatContainer').show();
-                            $('#chatBoxContainer').hide();
-                        } else {
-                            $('#chatBoxContainer').show();
-                            $('#voiceChatContainer').hide();
-                        }
+                        $('#chatBoxContainer').show();
 
                         if (!manuallyEnded) updateTimerDisplay();
 
@@ -1491,7 +1341,6 @@
                 $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
                 
                 $('#chatBoxContainer').show(); $('#chatMessages').empty();
-                $('#voiceChatContainer').hide();
                 
                 var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
                 whiteTime = timeVal; blackTime = timeVal;
@@ -1869,7 +1718,6 @@
             function endGameWithMessage(msg, resultOverride = null) {
                 manuallyEnded = true;
                 if (timerInterval) clearInterval(timerInterval);
-                leaveVoiceChat();
                 finalStatusMsg = msg; 
                 gameEndSnd.play().catch(e=>{}); 
                 $status.html(msg); showRandomVerse();
@@ -1915,7 +1763,7 @@
                     }
                 }
 
-                $('#actionButtons, #drawOfferBox, #moveHistoryBox, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer, #voiceChatContainer').hide();
+                $('#actionButtons, #drawOfferBox, #moveHistoryBox, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer').hide();
                 
                 if (!isOnlineMode) {
                     $('#gameEndControls').css('display', 'flex');
@@ -1956,7 +1804,7 @@
                 for (var i = 0; i < savedGameHistory.length; i++) game.move(savedGameHistory[i]);
                 board.position(game.fen()); board.orientation((playerColor === 'w') ? 'white' : 'black');
                 
-                $('#srsControls, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer, #voiceChatContainer').hide(); 
+                $('#srsControls, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer').hide(); 
                 $('#timerContainer, #status').show();
                 
                 if (!isOnlineMode) {
@@ -1979,7 +1827,7 @@
                 manuallyEnded = false; drawOfferPending = false; practiceEngineState = 'none'; isMatchmakingState = false; gameResultSaved = false;
                 lowTimePlayedW = false; lowTimePlayedB = false;
                 
-                $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox, #matchmakingPanel, #chatBoxContainer, #voiceChatContainer, #srsControls, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #actionButtons, #drawOfferBox, #onlineRoomBox, #pgnExportContainer, #quitGameBtn').hide();
+                $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox, #matchmakingPanel, #chatBoxContainer, #srsControls, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #actionButtons, #drawOfferBox, #onlineRoomBox, #pgnExportContainer, #quitGameBtn').hide();
                 $('#mainBoardWrapper, #timerContainer, #moveHistoryBox, #status, #openingDisplay').hide();
 
                 if (mode === 'matchmaking') {
@@ -2022,14 +1870,8 @@
                     
                     $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'>Online Game (Link hmangin)</div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
                     
-                    if (roomMode === 'friends') {
-                        $('#voiceChatContainer').show();
-                        $('#chatBoxContainer').hide();
-                        initVoiceChat(onlineRoomId);
-                    } else {
-                        $('#chatBoxContainer').show(); $('#chatMessages').empty();
-                        $('#voiceChatContainer').hide();
-                    }
+                    $('#chatBoxContainer').show(); 
+                    $('#chatMessages').empty();
                     
                     updateTimerDisplay(); startTimer();
                     listenToRoom();
@@ -2054,14 +1896,12 @@
                         <button class='backToHomeBtn btn-red btn-full'>Cancel (Sutna)</button>
                     `).show();
 
-                    $('#voiceChatContainer').show();
-                    $('#chatBoxContainer').hide();
-                    initVoiceChat(onlineRoomId);
+                    $('#chatBoxContainer').show(); 
+                    $('#chatMessages').empty();
 
                     if(database) {
                         var roomRefDb = database.ref('rooms/' + onlineRoomId);
                         roomRefDb.set({ pgn: "", whiteTime: whiteTime, blackTime: blackTime, mode: "friends", drawOffer: null, lastUpdated: firebase.database.ServerValue.TIMESTAMP });
-                        // roomRefDb.onDisconnect().remove(); // Removed to prevent accidental room deletion on mobile app switch
                     }
                     
                     updateTimerDisplay(); startTimer();
@@ -2130,7 +1970,7 @@
                     showGameScreen();
 
                     setTimeout(function() {
-                        $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #onlineRoomBox, #matchmakingPanel, #showPgnBtn, #gameEndControls, #gameSettingsPanel, #quitGameBtn, #learnMistakesBtn, #chatBoxContainer, #voiceChatContainer').hide();
+                        $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #onlineRoomBox, #matchmakingPanel, #showPgnBtn, #gameEndControls, #gameSettingsPanel, #quitGameBtn, #learnMistakesBtn, #chatBoxContainer').hide();
                         $('#srsControls').css('display', 'flex');
                         $('#status').hide(); 
                         currentMistakeIndex = 0; loadMistake();
@@ -2189,7 +2029,7 @@
                     isPracticeMode = true; hideVerse(); manuallyEnded = false;
                     sessionScore = 0; maxSessionScore = mistakePositions.length * 10;
                     if (timerInterval) clearInterval(timerInterval);
-                    $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer, #voiceChatContainer').hide(); 
+                    $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer').hide(); 
                     $('#srsControls').css('display', 'flex');
                     $('#status').hide(); 
                     currentMistakeIndex = 0; loadMistake();
