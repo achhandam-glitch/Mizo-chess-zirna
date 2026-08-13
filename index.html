@@ -281,6 +281,16 @@
                     I Username: <span id="lblMyUsername" style="color:#e67e22; font-size: 16px;"></span>
                 </div>
 
+                <!-- LIVE GAMES LIST (THAR) -->
+                <div style="background:#fdfefe; padding:10px; border-radius:6px; margin-bottom:15px; border: 1px solid #d5dbdb;">
+                    <div style="font-size:13px; font-weight:bold; margin-bottom:8px; color:#2c3e50;">
+                        <i class="fa-solid fa-eye"></i> Inkhel mek te (Live Games)
+                    </div>
+                    <div id="mmLiveGamesList" style="max-height:150px; overflow-y:auto; font-size:12px; background:#fff; border:1px solid #bdc3c7; border-radius:4px;">
+                        <div style="padding:10px; text-align:center;"><i>A zawng mek...</i></div>
+                    </div>
+                </div>
+
                 <div style="background:#fdfefe; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #f1c40f;">
                     <div style="font-size:13px; font-weight:bold; margin-bottom:8px; color:#d35400; display:flex; justify-content:space-between; align-items:center;">
                         <span><i class="fa-solid fa-trophy"></i> Point Hmu Sangte</span>
@@ -349,6 +359,8 @@
             </div>
         </div>
         
+        <button id="flipBoardBtn" class="btn-gray btn-full" style="display: none; margin-bottom: 8px;"><i class="fa-solid fa-retweet"></i> Board Lehthalna (Flip)</button>
+
         <!-- Game Settings (Board hnuaia dah) -->
         <div id="gameSettingsPanel" style="display: flex; gap: 5px; width: 100%; margin-bottom: 8px;">
             <select id="colorSelect" class="color-dropdown">
@@ -515,13 +527,14 @@
             var isMatchmakingState = false;
             var gameResultSaved = false;
 
-            var currentMode = 'engine';
+            var currentMode = 'engine'; // 'engine', 'human', 'online', 'matchmaking', 'spectator'
             
             var onlineRoomId = null;
             var roomRef = null;
             var chatRef = null;
             var myUsername = null;
             var incomingChallengeRef = null;
+            var liveGamesRef = null;
 
             var whiteUsername = "A Var";
             var blackUsername = "A Dum";
@@ -696,15 +709,26 @@
             // RETURN TO HOME ACTION
             $(document).on('click', '.backToHomeBtn', function() {
                 if (timerInterval) clearInterval(timerInterval);
-                if (onlineRoomId && database) { database.ref('rooms/' + onlineRoomId).remove(); onlineRoomId = null; }
+                if (liveGamesRef) liveGamesRef.off();
+                if (onlineRoomId && database && currentMode !== 'spectator') { 
+                    database.ref('rooms/' + onlineRoomId).remove(); 
+                }
+                onlineRoomId = null;
                 if(hasRoom) { window.history.replaceState(null, null, window.location.pathname); hasRoom = false; }
                 $('#gameSection').hide();
+                $('#flipBoardBtn').hide();
                 $('#homeScreen').fadeIn();
                 $status.html("Board a in-load mek...");
             });
 
             $('#playAgainBtn').on('click', function() {
                 initGame(currentMode);
+            });
+
+            // FLIP BOARD BUTTON FOR SPECTATORS
+            $('#flipBoardBtn').click(function() {
+                playerColor = (playerColor === 'w') ? 'b' : 'w';
+                board.orientation(playerColor === 'w' ? 'white' : 'black');
             });
 
             // DEVELOPER SUPPORT & CONTACT ME LOGIC 
@@ -861,11 +885,19 @@
                     if (game.turn() === 'w') {
                         whiteTime--;
                         if (whiteTime === 10 && !lowTimePlayedW) { lowTimeSnd.play().catch(e=>{}); lowTimePlayedW = true; }
-                        if (whiteTime <= 0) { whiteTime = 0; timeOut('w'); }
+                        if (whiteTime <= 0) { 
+                            whiteTime = 0; 
+                            if (currentMode !== 'spectator') timeOut('w'); 
+                            else { clearInterval(timerInterval); }
+                        }
                     } else {
                         blackTime--;
                         if (blackTime === 10 && !lowTimePlayedB) { lowTimeSnd.play().catch(e=>{}); lowTimePlayedB = true; }
-                        if (blackTime <= 0) { blackTime = 0; timeOut('b'); }
+                        if (blackTime <= 0) { 
+                            blackTime = 0; 
+                            if (currentMode !== 'spectator') timeOut('b'); 
+                            else { clearInterval(timerInterval); }
+                        }
                     }
                     updateTimerDisplay();
                 }, 1000);
@@ -890,12 +922,24 @@
                 $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-circle-check'></i> Online Game: <b>" + whiteUsername + "</b> (Var) vs <b>" + blackUsername + "</b> (Dum)</div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
                 
                 $('#moveHistoryBox').show(); $('#actionButtons').hide(); $('#drawOfferBox').hide();
-                $('#drawBtn, #resignBtn').prop('disabled', false); $('#gameEndControls').hide(); $('#showPgnBtn').hide();
+                if (currentMode !== 'spectator') $('#drawBtn, #resignBtn').prop('disabled', false); 
+                $('#gameEndControls').hide(); $('#showPgnBtn').hide();
                 $('#learnMistakesBtn').hide(); $('#pgnExportContainer').hide();
                 
                 var timeVal = parseInt($('#timeSelect').val() || 10) * 60;
                 whiteTime = timeVal; blackTime = timeVal;
                 
+                $('#timerContainer').show(); updateTimerDisplay(); startTimer(); updateStatus(); updateMoveHistory();
+            }
+
+            function spectatorRestart() {
+                manuallyEnded = false; drawOfferPending = false; gameResultSaved = false;
+                lowTimePlayedW = false; lowTimePlayedB = false;
+                hideVerse(); 
+                game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
+                $('#moveHistoryBox').show(); $('#actionButtons').hide(); $('#drawOfferBox').hide();
+                $('#gameEndControls').hide(); $('#showPgnBtn').hide(); $('#learnMistakesBtn').hide();
+                $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-eye'></i> Spectator Mode: <b>" + whiteUsername + "</b> vs <b>" + blackUsername + "</b></div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
                 $('#timerContainer').show(); updateTimerDisplay(); startTimer(); updateStatus(); updateMoveHistory();
             }
 
@@ -914,39 +958,45 @@
                         if (!manuallyEnded) updateTimerDisplay();
 
                         if (data.rematch && manuallyEnded) {
-                            if (data.rematch.status === 'pending') {
-                                var offerSender = data.rematch.offerBy;
-                                var amISender = myUsername ? (offerSender === myUsername) : (offerSender === playerColor);
-                                
-                                if (!amISender) {
-                                    $('#rematchArea').html(`
-                                        <div style="font-size:13px; font-weight:bold; color:#16a085; margin-bottom:5px;">I khingpuiin khelh nawn a duh!</div>
-                                        <div style="display:flex; gap:5px; margin-bottom:5px; width:100%;">
-                                            <button id="acceptRematchBtn" class="btn-green btn-half">Pawmna</button>
-                                            <button id="rejectRematchBtn" class="btn-red btn-half">Hnial</button>
-                                        </div>
-                                    `);
-                                } else {
-                                    $('#rematchArea').html(`<div style="font-size:13px; color:#d35400; font-weight:bold; margin-bottom:10px;">Sawmna thawn mek a ni...</div>`);
+                            if (currentMode !== 'spectator') {
+                                if (data.rematch.status === 'pending') {
+                                    var offerSender = data.rematch.offerBy;
+                                    var amISender = myUsername ? (offerSender === myUsername) : (offerSender === playerColor);
+                                    
+                                    if (!amISender) {
+                                        $('#rematchArea').html(`
+                                            <div style="font-size:13px; font-weight:bold; color:#16a085; margin-bottom:5px;">I khingpuiin khelh nawn a duh!</div>
+                                            <div style="display:flex; gap:5px; margin-bottom:5px; width:100%;">
+                                                <button id="acceptRematchBtn" class="btn-green btn-half">Pawmna</button>
+                                                <button id="rejectRematchBtn" class="btn-red btn-half">Hnial</button>
+                                            </div>
+                                        `);
+                                    } else {
+                                        $('#rematchArea').html(`<div style="font-size:13px; color:#d35400; font-weight:bold; margin-bottom:10px;">Sawmna thawn mek a ni...</div>`);
+                                    }
+                                } else if (data.rematch.status === 'rejected') {
+                                    var offerSender = data.rematch.offerBy;
+                                    var amISender = myUsername ? (offerSender === myUsername) : (offerSender === playerColor);
+                                    
+                                    if (amISender) $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">A hnawl ta! (Rejected)</div>`);
+                                    else $('#rematchArea').html(`<div style="font-size:13px; color:#7f8c8d; font-weight:bold; margin-bottom:10px;">I hnawl ta.</div>`);
                                 }
-                            } else if (data.rematch.status === 'rejected') {
-                                var offerSender = data.rematch.offerBy;
-                                var amISender = myUsername ? (offerSender === myUsername) : (offerSender === playerColor);
-                                
-                                if (amISender) $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">A hnawl ta! (Rejected)</div>`);
-                                else $('#rematchArea').html(`<div style="font-size:13px; color:#7f8c8d; font-weight:bold; margin-bottom:10px;">I hnawl ta.</div>`);
                             }
                         }
 
                         if (data.pgn === "" && manuallyEnded && !isPracticeMode) {
-                            if (myUsername) {
-                                if (data.whiteUser === myUsername) playerColor = 'w';
-                                else if (data.blackUser === myUsername) playerColor = 'b';
+                            if (currentMode === 'spectator') {
+                                spectatorRestart(); return;
                             } else {
-                                playerColor = (playerColor === 'w') ? 'b' : 'w';
+                                if (myUsername) {
+                                    if (data.whiteUser === myUsername) playerColor = 'w';
+                                    else if (data.blackUser === myUsername) playerColor = 'b';
+                                } else {
+                                    playerColor = (playerColor === 'w') ? 'b' : 'w';
+                                }
+                                board.orientation(playerColor === 'w' ? 'white' : 'black');
+                                restartOnlineGame(); return;
                             }
-                            board.orientation(playerColor === 'w' ? 'white' : 'black');
-                            restartOnlineGame(); return;
                         }
 
                         var incomingPgn = data.pgn || "";
@@ -955,7 +1005,10 @@
                             if (incomingPgn !== game.pgn()) {
                                 game.load_pgn(incomingPgn); board.position(game.fen()); updateMoveHistory();
                             }
-                            if (!manuallyEnded) endGameWithMessage('I khingpui a tlawm ta! I chak e.', 'win');
+                            if (!manuallyEnded) {
+                                if (currentMode === 'spectator') endGameWithMessage('Game a tawp ta! Zawk zawk emaw an tlawm e.', 'win');
+                                else endGameWithMessage('I khingpui a tlawm ta! I chak e.', 'win');
+                            }
                             return; 
                         }
 
@@ -980,47 +1033,53 @@
                         }
                         
                         if (data.drawOffer && !manuallyEnded) {
-                            if (data.drawOffer.status === 'pending') {
-                                var amISender = (myUsername) ? (data.drawOffer.offerBy === myUsername) : (data.drawOffer.offerBy === playerColor);
-                                if (!amISender) {
-                                    $('#actionButtons').hide();
-                                    $('#drawOfferBox').html(`
-                                        <div style="background:#f39c12; color:#fff; padding:10px; border-radius:6px; margin-bottom:10px; text-align:center; width:100%;">
-                                            <b style="font-size: 14px;">I khingpuiin Inhneh tawk (Draw) a rawt!</b>
-                                            <div style="display:flex; gap:5px; margin-top:8px; width:100%;">
-                                                <button id="acceptDrawBtn" class="btn-green btn-half">Pawmna</button>
-                                                <button id="rejectDrawBtn" class="btn-red btn-half">Hnawl</button>
+                            if (currentMode === 'spectator') {
+                                $('#drawOfferBox').html(`<div style="background:#f39c12; color:#fff; padding:6px; border-radius:4px; text-align:center; margin-bottom:6px;">Draw (Inhneh tawk) an in rawt mek...</div>`).show();
+                            } else {
+                                if (data.drawOffer.status === 'pending') {
+                                    var amISender = (myUsername) ? (data.drawOffer.offerBy === myUsername) : (data.drawOffer.offerBy === playerColor);
+                                    if (!amISender) {
+                                        $('#actionButtons').hide();
+                                        $('#drawOfferBox').html(`
+                                            <div style="background:#f39c12; color:#fff; padding:10px; border-radius:6px; margin-bottom:10px; text-align:center; width:100%;">
+                                                <b style="font-size: 14px;">I khingpuiin Inhneh tawk (Draw) a rawt!</b>
+                                                <div style="display:flex; gap:5px; margin-top:8px; width:100%;">
+                                                    <button id="acceptDrawBtn" class="btn-green btn-half">Pawmna</button>
+                                                    <button id="rejectDrawBtn" class="btn-red btn-half">Hnawl</button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    `).show();
-                                } else {
-                                    $status.html("<span style='color:#d35400;'>Draw sawmna thawn a ni, chhanna nghak rawh...</span>");
-                                    $('#drawBtn').prop('disabled', true);
+                                        `).show();
+                                    } else {
+                                        $status.html("<span style='color:#d35400;'>Draw sawmna thawn a ni, chhanna nghak rawh...</span>");
+                                        $('#drawBtn').prop('disabled', true);
+                                    }
+                                } else if (data.drawOffer.status === 'rejected') {
+                                    var amISender = (myUsername) ? (data.drawOffer.offerBy === myUsername) : (data.drawOffer.offerBy === playerColor);
+                                    if (amISender) {
+                                        $status.html("<span style='color:#c0392b;'>I khingpuiin Draw sawmna a hnawl!</span>");
+                                        setTimeout(function() { 
+                                            if(!manuallyEnded) updateStatus(); 
+                                            $('#drawBtn').prop('disabled', false);
+                                        }, 3000); 
+                                    }
+                                    $('#drawOfferBox').hide();
+                                    if (game.history().length > 0 && !manuallyEnded) $('#actionButtons').css('display', 'flex');
                                 }
-                            } else if (data.drawOffer.status === 'rejected') {
-                                var amISender = (myUsername) ? (data.drawOffer.offerBy === myUsername) : (data.drawOffer.offerBy === playerColor);
-                                if (amISender) {
-                                    $status.html("<span style='color:#c0392b;'>I khingpuiin Draw sawmna a hnawl!</span>");
-                                    setTimeout(function() { 
-                                        if(!manuallyEnded) updateStatus(); 
-                                        $('#drawBtn').prop('disabled', false);
-                                    }, 3000); 
-                                }
-                                $('#drawOfferBox').hide();
-                                if (game.history().length > 0 && !manuallyEnded) $('#actionButtons').css('display', 'flex');
                             }
                         } else {
                             $('#drawOfferBox').hide();
-                            $('#drawBtn').prop('disabled', false);
-                            if (game.history().length > 0 && !manuallyEnded && !isPracticeMode && !isMatchmakingState) {
-                                $('#actionButtons').css('display', 'flex');
+                            if (currentMode !== 'spectator') {
+                                $('#drawBtn').prop('disabled', false);
+                                if (game.history().length > 0 && !manuallyEnded && !isPracticeMode && !isMatchmakingState) {
+                                    $('#actionButtons').css('display', 'flex');
+                                }
                             }
                         }
 
                     } else {
                         if (isOnlineMode) {
-                            if (!manuallyEnded) endGameWithMessage("I khingpuiin app a chhuahsan! (Disconnected)", 'win');
-                            else $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">I khingpuiin a chhuahsan tawh.</div>`);
+                            if (!manuallyEnded) endGameWithMessage("App an chhuahsan! (Disconnected)", 'win');
+                            else if (currentMode !== 'spectator') $('#rematchArea').html(`<div style="font-size:13px; color:#c0392b; font-weight:bold; margin-bottom:10px;">I khingpuiin a chhuahsan tawh.</div>`);
                         }
                     }
                 });
@@ -1030,9 +1089,15 @@
                 chatRef.on('child_added', function(snapshot) {
                     var c = snapshot.val();
                     var myName = myUsername || (playerColor==='w'?'A Var':'A Dum');
-                    var align = (c.sender === myName) ? 'right' : 'left';
-                    var bg = align === 'right' ? '#d6eaf8' : '#e8eaed';
-                    $('#chatMessages').append(`<div style="text-align:${align}; margin-bottom:6px;"><span style="background:${bg}; padding:6px 10px; border-radius:12px; display:inline-block; max-width:85%; word-wrap:break-word; font-size:12px;"><b>${c.sender}:</b> ${c.text}</span></div>`);
+                    var isPlayer = (c.sender === whiteUsername || c.sender === blackUsername);
+                    var isMe = (c.sender === myName);
+                    
+                    var align = isMe ? 'right' : 'left';
+                    var bg = isMe ? '#d6eaf8' : (isPlayer ? '#e8eaed' : '#fcf3cf');
+                    var displayName = isPlayer ? c.sender : (c.sender + " (Entu)");
+                    if (isMe) displayName = c.sender;
+
+                    $('#chatMessages').append(`<div style="text-align:${align}; margin-bottom:6px;"><span style="background:${bg}; padding:6px 10px; border-radius:12px; display:inline-block; max-width:85%; word-wrap:break-word; font-size:12px;"><b>${displayName}:</b> ${c.text}</span></div>`);
                     $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
                 });
             }
@@ -1127,6 +1192,61 @@
                 $('#authBox').hide(); $('#lobbyBox').show();
                 $('#lblMyUsername').text(myUsername);
                 listenToChallenges();
+                
+                if(liveGamesRef) liveGamesRef.off();
+                liveGamesRef = database.ref('rooms/');
+                liveGamesRef.on('value', function(snapshot) {
+                    if(!$('#lobbyBox').is(':visible')) return;
+                    var html = '';
+                    var currentTime = Date.now();
+                    snapshot.forEach(function(child) {
+                        var room = child.val();
+                        if (room && room.whiteUser && room.blackUser && room.mode === 'public') {
+                            var lastActive = room.lastUpdated || currentTime;
+                            var minutesIdle = (currentTime - lastActive) / (1000 * 60); 
+                            if (minutesIdle < 10) { 
+                                html += `<div style="padding:6px; border-bottom:1px solid #ecf0f1; display:flex; justify-content:space-between; align-items:center;">
+                                    <div><b style="color:#2c3e50;">${room.whiteUser}</b> <span style="font-size:10px;">vs</span> <b style="color:#2c3e50;">${room.blackUser}</b></div>
+                                    <button class="btn-teal btn-spectate" data-room="${child.key}" data-w="${room.whiteUser}" data-b="${room.blackUser}" style="padding:4px 8px; font-size:11px;">Enna</button>
+                                </div>`;
+                            }
+                        }
+                    });
+                    if(html === '') html = '<div style="padding:10px; text-align:center;"><i>Inkhel mek an awm lo.</i></div>';
+                    $('#mmLiveGamesList').html(html);
+                });
+            }
+
+            $(document).on('click', '.btn-spectate', function() {
+                var roomId = $(this).data('room');
+                var wUser = $(this).data('w');
+                var bUser = $(this).data('b');
+                spectateMatch(roomId, wUser, bUser);
+            });
+
+            function spectateMatch(roomId, wUser, bUser) {
+                isMatchmakingState = false; isOnlineMode = true; isTwoPlayer = false;
+                currentMode = 'spectator';
+                onlineRoomId = roomId; 
+                whiteUsername = wUser; blackUsername = bUser;
+                playerColor = 'w'; 
+
+                $('#matchmakingPanel').hide();
+                $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:5px;'><i class='fa-solid fa-eye'></i> Spectator Mode: <b>" + whiteUsername + "</b> vs <b>" + blackUsername + "</b></div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
+                
+                $('#chatBoxContainer').show(); $('#chatMessages').empty();
+                $('#flipBoardBtn').show(); 
+
+                $('#timerContainer, #mainBoardWrapper, #status, #moveHistoryBox').show(); 
+                
+                board.orientation('white');
+                if(board) board.resize();
+                
+                gameResultSaved = false; lowTimePlayedW = false; lowTimePlayedB = false;
+                game.reset(); board.start(); selectedSquare = null; removeHighlights(); removeDots();
+                updateStatus(); updateMoveHistory(); 
+                
+                listenToRoom();
             }
 
             function loadLeaderboard() {
@@ -1333,6 +1453,9 @@
 
             function startMatch(roomId, color, wUser, bUser) {
                 isMatchmakingState = false; isOnlineMode = true; isTwoPlayer = false;
+                currentMode = 'online';
+                if (liveGamesRef) liveGamesRef.off();
+                
                 onlineRoomId = roomId; playerColor = color;
                 whiteUsername = wUser; blackUsername = bUser;
 
@@ -1453,7 +1576,7 @@
                         return;
                     }
 
-                    if (manuallyEnded || isMatchmakingState) return;
+                    if (manuallyEnded || isMatchmakingState || currentMode === 'spectator') return;
 
                     if (!isTwoPlayer && !isOnlineMode && match) {
                         var move = game.move({ from: match[1], to: match[2], promotion: match[3] || 'q' });
@@ -1578,6 +1701,7 @@
             });
 
             function onDragStart (source, piece) {
+                if (currentMode === 'spectator') return false; 
                 if (game.game_over() || manuallyEnded || drawOfferPending || isPracticeMode || isMatchmakingState) return false;
                 if (isOnlineMode) {
                     if (game.turn() !== playerColor) return false;
@@ -1609,6 +1733,7 @@
 
             $('#board').on('click touchstart', '.square-55d63', function(e) {
                 if(e.type === 'touchstart') e.preventDefault(); 
+                if (currentMode === 'spectator') return; 
                 if (game.game_over() || manuallyEnded || drawOfferPending || isPracticeMode || isMatchmakingState) return;
                 if (isOnlineMode && game.turn() !== playerColor) return;
                 if (!isTwoPlayer && !isOnlineMode && game.turn() !== playerColor) return; 
@@ -1691,11 +1816,13 @@
                     if (game.game_over() || manuallyEnded || isPracticeMode || isMatchmakingState) {
                         $('#actionButtons').hide(); 
                     } else {
-                        $('#actionButtons').css('display', 'flex'); 
-                        $('#drawBtn, #resignBtn').prop('disabled', false);
+                        if (currentMode !== 'spectator') {
+                            $('#actionButtons').css('display', 'flex'); 
+                            $('#drawBtn, #resignBtn').prop('disabled', false);
+                        }
                     }
                 } else {
-                    if (!isOnlineMode && !isMatchmakingState && !isPracticeMode) {
+                    if (!isOnlineMode && !isMatchmakingState && !isPracticeMode && currentMode !== 'spectator') {
                         $('#gameSettingsPanel').css('display', 'flex');
                     }
                     $('#actionButtons').hide(); 
@@ -1723,14 +1850,14 @@
                 $status.html(msg); showRandomVerse();
                 savedGameHistory = game.history(); 
                 
-                if (isOnlineMode && myUsername && savedGameHistory.length > 2 && database) {
+                if (isOnlineMode && myUsername && savedGameHistory.length > 2 && database && currentMode !== 'spectator') {
                     var oppName = playerColor === 'w' ? blackUsername : whiteUsername;
                     database.ref('users/' + myUsername + '/games').push({
                         date: firebase.database.ServerValue.TIMESTAMP, pgn: game.pgn(), opponent: oppName, result: msg
                     });
                 }
 
-                if (isOnlineMode && myUsername && !gameResultSaved && database) {
+                if (isOnlineMode && myUsername && !gameResultSaved && database && currentMode !== 'spectator') {
                     var myResult = resultOverride;
                     if (!myResult) {
                         if (game.in_checkmate()) myResult = (game.turn() === playerColor) ? 'lose' : 'win';
@@ -1768,12 +1895,16 @@
                 if (!isOnlineMode) {
                     $('#gameEndControls').css('display', 'flex');
                 } else {
-                    var rematchHtml = `<div id="rematchArea" style="margin-bottom:8px;"><button id="rematchBtn" class="btn-green btn-full">🔄 Khel leh ila (Rematch)</button></div>`;
-                    $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:8px;'><i class='fa-solid fa-circle-check'></i> Game a tawp ta!</div>" + rematchHtml + "<button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
+                    if (currentMode === 'spectator') {
+                        $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:8px;'><i class='fa-solid fa-circle-check'></i> Game a tawp ta!</div><button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
+                    } else {
+                        var rematchHtml = `<div id="rematchArea" style="margin-bottom:8px;"><button id="rematchBtn" class="btn-green btn-full">🔄 Khel leh ila (Rematch)</button></div>`;
+                        $('#onlineRoomBox').html("<div style='color:#16a085; font-weight:bold; margin-bottom:8px;'><i class='fa-solid fa-circle-check'></i> Game a tawp ta!</div>" + rematchHtml + "<button class='backToHomeBtn btn-red btn-full'><i class='fa-solid fa-house'></i> Home screen-ah letna</button>").show();
+                    }
                 }
 
                 $('#showPgnBtn').fadeIn();
-                if (savedGameHistory.length > 4) $('#learnMistakesBtn').fadeIn(); 
+                if (savedGameHistory.length > 4 && currentMode !== 'spectator') $('#learnMistakesBtn').fadeIn(); 
                 
                 $('#toggleSupportBtn, #toggleContactBtn').fadeIn();
             }
@@ -1827,7 +1958,7 @@
                 manuallyEnded = false; drawOfferPending = false; practiceEngineState = 'none'; isMatchmakingState = false; gameResultSaved = false;
                 lowTimePlayedW = false; lowTimePlayedB = false;
                 
-                $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox, #matchmakingPanel, #chatBoxContainer, #srsControls, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #actionButtons, #drawOfferBox, #onlineRoomBox, #pgnExportContainer, #quitGameBtn').hide();
+                $('#toggleSupportBtn, #supportBox, #toggleContactBtn, #contactBox, #matchmakingPanel, #chatBoxContainer, #srsControls, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #actionButtons, #drawOfferBox, #onlineRoomBox, #pgnExportContainer, #quitGameBtn, #flipBoardBtn').hide();
                 $('#mainBoardWrapper, #timerContainer, #moveHistoryBox, #status, #openingDisplay').hide();
 
                 if (mode === 'matchmaking') {
@@ -1844,7 +1975,8 @@
 
                 isTwoPlayer = (mode === 'human'); 
                 isOnlineMode = (mode === 'online' || mode === 'online_join');
-                
+                if (liveGamesRef) liveGamesRef.off();
+
                 mistakePositions = []; savedGameHistory = []; plyEvaluations = {};
                 
                 var timeVal = parseInt($('#timeSelect').val()) * 60;
