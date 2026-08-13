@@ -5,41 +5,248 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chanchin Thar - Mizo Chess</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; margin: 0; padding: 20px; color: #2c3e50; }
         .container { max-width: 400px; margin: 0 auto; }
         h2 { text-align: center; color: #2980b9; margin-bottom: 20px; }
         .news-card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 5px solid #2980b9; }
         .news-card h3 { margin: 0 0 10px 0; font-size: 16px; color: #16a085; }
-        .news-card p { font-size: 13px; line-height: 1.5; color: #34495e; }
+        .news-card p { font-size: 13px; line-height: 1.5; color: #34495e; white-space: pre-wrap; }
+        .author-date { font-size: 11px; color: #7f8c8d; margin-top: 10px; text-align: right; font-style: italic; border-bottom: 1px dashed #ecf0f1; padding-bottom: 8px; margin-bottom: 8px;}
         .back-btn { display: block; width: 100%; padding: 12px; background: #34495e; color: #fff; text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px; }
+        
+        /* Post Form Style */
+        .login-btn { background: #27ae60; margin-top: 10px; }
+        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; font-family: inherit;}
+        input:focus, textarea:focus { border-color: #2980b9; outline: none; }
+        button.post-btn { background: #2980b9; color: white; padding: 10px; width: 100%; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        /* Comment Section Style Thar */
+        .toggle-comments-btn { background: none; border: none; color: #2980b9; cursor: pointer; font-size: 12px; font-weight: bold; padding: 0; margin-top: 5px;}
+        .comment-section { margin-top: 10px; display: none; background: #fdfefe; padding: 10px; border-radius: 6px; border: 1px solid #ecf0f1;}
+        .comment-box { background: #f0f3f4; padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; border-left: 3px solid #3498db;}
+        .comment-author { font-weight: bold; color: #2c3e50; }
+        .comment-date { font-size: 9px; color: #95a5a6; margin-top: 3px; text-align: right;}
+        .comment-input-area { display: flex; gap: 5px; margin-top: 10px; }
+        .comment-input-area input { flex: 1; padding: 8px; margin: 0; font-size: 12px;}
+        .comment-input-area button { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2><i class="fa-solid fa-newspaper"></i> Chanchin Thar</h2>
+    <h2><i class="fa-solid fa-newspaper"></i> Forum / Chanchin</h2>
 
-    <!-- App Update Section -->
-    <div class="news-card">
-        <h3>🚀 App thuthar</h3>
-        <p>App hi enchhinna(experiment) neih mek a nih avangin nasa takin a hmelhmang thlak danglam a ni a. Tunah chuan a zualpui chu zawh a ni tawh a. A hman theih reng tawh a ni. Tin,Whatsapp link hmanga inkhelhna leh username hmanga inkhelhnaah hian chat message hman theihna dah a ni bawk e. Tin, midang inkhel mek(live games) entheihna leh lo sawi ho theihna in register te tan spectator room dah a ni tel bawk e</p>
+    <!-- Login Alert -->
+    <div id="loginAlert" class="news-card" style="text-align: center; border-left-color: #f39c12; display: none;">
+        <h3 style="color: #d35400;"><i class="fa-solid fa-lock"></i> Thuziak leh Comment thehlut turin</h3>
+        <p>Account i neih a, i log-in a ngai e. Home-ah let la, va Log-in phawt rawh le.</p>
+        <a href="index.html" class="back-btn login-btn"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login-na ah kal rawh</a>
     </div>
 
-    <!-- Chess News -->
-    <div class="news-card">
-        <h3>♟️ Chess chungchang thuziak</h3>
-        <p>Chhiar tur awm rih lo.</p>
+    <!-- Upload Form -->
+    <div id="uploadFormContainer" class="news-card" style="border-left-color: #27ae60; display: none;">
+        <h3 style="color: #27ae60;"><i class="fa-solid fa-pen-to-square"></i> Thuziak thar siamna</h3>
+        <div style="font-size: 12px; margin-bottom: 10px; color: #7f8c8d;">
+            Ziaktu: <b id="loggedInUser" style="color: #2980b9;"></b>
+        </div>
+        <input type="text" id="newsTitle" placeholder="Thuziak thupui (Title)..." required>
+        <textarea id="newsContent" rows="4" placeholder="I thil sawi duh rawn chhu lut rawh..." required></textarea>
+        <button id="submitNewsBtn" class="post-btn"><i class="fa-solid fa-paper-plane"></i> Post-na</button>
+        <div id="postStatus" style="font-size: 12px; text-align: center; margin-top: 10px; font-weight: bold;"></div>
     </div>
 
-    <!-- Local & Global -->
-    <div class="news-card">
-        <h3>🌐 Khawvel leh Mizoram chess thu thar</h3>
-        <p><b>Mizoram : August 13th,2026</b><br>46th Robula Trophy chu vawiin aṭanga khelh ṭan a ni dawn e. He tournament hi FIDE Rating a nih angin state pâwn aṭanga lo tel te pawh an awm a ni.</p>
+    <!-- Dynamic News & Comments -->
+    <div id="dynamicNewsList">
+        <div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Thuziak a zawng mek...</div>
     </div>
 
     <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Home Screen-a letna</a>
 </div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyByN8ttbJhtPNcac_ciaQ1d_fMXE2gul20",
+        authDomain: "mizo-chess-khelhna.firebaseapp.com",
+        databaseURL: "https://mizo-chess-khelhna-default-rtdb.firebaseio.com",
+        projectId: "mizo-chess-khelhna",
+        storageBucket: "mizo-chess-khelhna.firebasestorage.app",
+        messagingSenderId: "867114638540",
+        appId: "1:867114638540:web:e0b989985f6619e91b3669"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    let myUsername = null;
+
+    // Comment hawnna leh kharna Function (Global)
+    window.toggleComments = function(postId) {
+        $('#comments-' + postId).slideToggle(200);
+    };
+
+    $(document).ready(function() {
+        
+        // 1. Auth Check
+        auth.onAuthStateChanged(function(user) {
+            if(user) {
+                myUsername = user.email.split('@')[0]; 
+                $('#loggedInUser').text(myUsername);
+                $('#loginAlert').hide();
+                $('#uploadFormContainer').fadeIn();
+            } else {
+                myUsername = null;
+                $('#uploadFormContainer').hide();
+                $('#loginAlert').fadeIn();
+            }
+        });
+
+        // 2. Post Thuziak
+        $('#submitNewsBtn').click(function() {
+            if(!myUsername) return;
+            var title = $('#newsTitle').val().trim();
+            var content = $('#newsContent').val().trim();
+            
+            if(title === "" || content === "") {
+                $('#postStatus').css('color', '#c0392b').text("Thupui leh a thu ziah ngei ngei tur.");
+                return;
+            }
+
+            $('#submitNewsBtn').prop('disabled', true).text('A thawn mek...');
+
+            database.ref('user_news').push({
+                title: title,
+                content: content,
+                author: myUsername,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                $('#newsTitle').val('');
+                $('#newsContent').val('');
+                $('#postStatus').css('color', '#27ae60').text("I thuziak thehluh a ni ta!").fadeOut(4000, function() { $(this).text('').show(); });
+                $('#submitNewsBtn').prop('disabled', false).html('<i class="fa-solid fa-paper-plane"></i> Post-na');
+            }).catch((error) => {
+                $('#postStatus').css('color', '#c0392b').text("Tihsual a awm: " + error.message);
+                $('#submitNewsBtn').prop('disabled', false).html('<i class="fa-solid fa-paper-plane"></i> Post-na');
+            });
+        });
+
+        // 3. Post leh Comment la chhuak (Fetch Realtime)
+        database.ref('user_news').orderByChild('timestamp').on('value', function(snapshot) {
+            var newsHtml = '';
+            var newsArray = [];
+            
+            snapshot.forEach(function(child) {
+                var data = child.val();
+                data.id = child.key; // Post ID hi comment theih nan kan la chhuak
+                newsArray.push(data);
+            });
+            
+            newsArray.reverse(); // A thar ber a chungah
+
+            if(newsArray.length === 0) {
+                newsHtml = '<div style="text-align:center; padding: 10px; color:#7f8c8d;"><i>Thuziak a la awm rih lo.</i></div>';
+            } else {
+                newsArray.forEach(function(news) {
+                    var dateObj = new Date(news.timestamp);
+                    var dateStr = dateObj.toLocaleDateString('en-GB') + " " + dateObj.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+                    
+                    // Comment lakchhuahna hna (Logic)
+                    var commentsHtml = '';
+                    var commentCount = 0;
+                    
+                    if (news.comments) {
+                        var commentKeys = Object.keys(news.comments);
+                        commentCount = commentKeys.length;
+                        
+                        commentKeys.forEach(function(cKey) {
+                            var c = news.comments[cKey];
+                            var cDate = new Date(c.timestamp).toLocaleDateString('en-GB') + " " + new Date(c.timestamp).toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+                            
+                            commentsHtml += `
+                            <div class="comment-box">
+                                <span class="comment-author">${c.author}</span>: <span>${c.text}</span>
+                                <div class="comment-date">${cDate}</div>
+                            </div>`;
+                        });
+                    } else {
+                        commentsHtml = '<div style="font-size: 11px; color: #7f8c8d; margin-bottom: 10px; font-style:italic;">Hmahruaitu ni la, rawn sawi ve rawh le...</div>';
+                    }
+
+                    // Comment chhut luhna form (Log in lova te tan kan thup ang)
+                    var commentInputHtml = '';
+                    if (myUsername) {
+                        commentInputHtml = `
+                            <div class="comment-input-area">
+                                <input type="text" id="comment-input-${news.id}" placeholder="I ngaihdan han sawi ve teh...">
+                                <button class="submit-comment-btn" data-postid="${news.id}"><i class="fa-solid fa-paper-plane"></i></button>
+                            </div>
+                        `;
+                    } else {
+                        commentInputHtml = '<div style="font-size: 11px; color: #c0392b; font-style: italic; text-align:center; margin-top:10px;">Comment turin Log-in a ngai.</div>';
+                    }
+
+                    // Post Card (HTML) siamna
+                    newsHtml += `
+                    <div class="news-card">
+                        <h3><i class="fa-regular fa-comment-dots"></i> ${news.title}</h3>
+                        <p>${news.content}</p>
+                        <div class="author-date">
+                            ✍️ <b>${news.author}</b> | 🕒 ${dateStr}
+                        </div>
+                        
+                        <button class="toggle-comments-btn" onclick="toggleComments('${news.id}')">
+                            <i class="fa-regular fa-comments"></i> Sawi hona (${commentCount}) <i class="fa-solid fa-angle-down"></i>
+                        </button>
+                        
+                        <div class="comment-section" id="comments-${news.id}">
+                            ${commentsHtml}
+                            ${commentInputHtml}
+                        </div>
+                    </div>`;
+                });
+            }
+            
+            $('#dynamicNewsList').html(newsHtml);
+        });
+
+        // 4. Comment Thehluhna (Dynamic Button Click)
+        $(document).on('click', '.submit-comment-btn', function() {
+            if(!myUsername) return;
+            
+            var postId = $(this).data('postid');
+            var commentText = $('#comment-input-' + postId).val().trim();
+            
+            if(commentText === "") return;
+
+            var $btn = $(this);
+            $btn.prop('disabled', true); // Kan thehluh chhungin a hmet nawn thei lo ang
+
+            // Post ID hnuaia 'comments' ah zung kan kaih ang
+            database.ref('user_news/' + postId + '/comments').push({
+                author: myUsername,
+                text: commentText,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                $('#comment-input-' + postId).val('');
+                $btn.prop('disabled', false);
+                // Realtime a nih vangin automatic-in a rawn lang thar nghal ang.
+            }).catch((e) => {
+                alert("Tihsual a awm: " + e.message);
+                $btn.prop('disabled', false);
+            });
+        });
+
+    });
+</script>
 
 </body>
 </html>
