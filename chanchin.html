@@ -17,8 +17,8 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; margin: 0; padding: 20px; color: #2c3e50; }
         .container { max-width: 400px; margin: 0 auto; }
         h2 { text-align: center; color: #2980b9; margin-bottom: 20px; }
-        .news-card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 5px solid #2980b9; }
-        .news-card h3 { margin: 0 0 10px 0; font-size: 16px; color: #16a085; }
+        .news-card { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 5px solid #2980b9; position: relative; }
+        .news-card h3 { margin: 0 0 10px 0; font-size: 16px; color: #16a085; padding-right: 50px; }
         .news-card p { font-size: 13px; line-height: 1.5; color: #34495e; white-space: pre-wrap; }
         .author-date { font-size: 11px; color: #7f8c8d; margin-top: 10px; text-align: right; font-style: italic; border-bottom: 1px dashed #ecf0f1; padding-bottom: 8px; margin-bottom: 8px;}
         .back-btn { display: block; width: 100%; padding: 12px; background: #34495e; color: #fff; text-align: center; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px; }
@@ -28,16 +28,23 @@
         input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; font-family: inherit;}
         input:focus, textarea:focus { border-color: #2980b9; outline: none; }
         button.post-btn { background: #2980b9; color: white; padding: 10px; width: 100%; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button.cancel-btn { background: #7f8c8d; color: white; padding: 10px; width: 100%; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 5px; display: none; }
 
-        /* Comment Section Style Thar */
+        /* Comment Section Style */
         .toggle-comments-btn { background: none; border: none; color: #2980b9; cursor: pointer; font-size: 12px; font-weight: bold; padding: 0; margin-top: 5px;}
         .comment-section { margin-top: 10px; display: none; background: #fdfefe; padding: 10px; border-radius: 6px; border: 1px solid #ecf0f1;}
-        .comment-box { background: #f0f3f4; padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; border-left: 3px solid #3498db;}
+        .comment-box { background: #f0f3f4; padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; border-left: 3px solid #3498db; position: relative;}
         .comment-author { font-weight: bold; color: #2c3e50; }
-        .comment-date { font-size: 9px; color: #95a5a6; margin-top: 3px; text-align: right;}
+        .comment-date { font-size: 9px; color: #95a5a6; margin-top: 3px;}
         .comment-input-area { display: flex; gap: 5px; margin-top: 10px; }
         .comment-input-area input { flex: 1; padding: 8px; margin: 0; font-size: 12px;}
         .comment-input-area button { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        
+        /* Action Buttons (Edit/Delete) */
+        .action-btns { text-align: right; margin-top: 5px; }
+        .action-btns button { background: none; border: none; cursor: pointer; font-size: 11px; font-weight: bold; padding: 0 5px; }
+        .edit-btn { color: #f39c12; }
+        .delete-btn { color: #c0392b; }
     </style>
 </head>
 <body>
@@ -48,19 +55,22 @@
     <!-- Login Alert -->
     <div id="loginAlert" class="news-card" style="text-align: center; border-left-color: #f39c12; display: none;">
         <h3 style="color: #d35400;"><i class="fa-solid fa-lock"></i> Thuziak leh Comment thehlut turin</h3>
-        <p>Account i neih a ngai a,in register turin home-a Online (Username) hmanga inkhelhna kha hmeh tur. I log in tawh chuan home-ah let la, thu i post-in i comment thei tawh ang </p>
+        <p>Account i neih a, i log-in a ngai e. Home-ah let la, va Log-in phawt rawh le.</p>
         <a href="index.html" class="back-btn login-btn"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login-na ah kal rawh</a>
     </div>
 
-    <!-- Upload Form -->
+    <!-- Upload/Edit Form -->
     <div id="uploadFormContainer" class="news-card" style="border-left-color: #27ae60; display: none;">
-        <h3 style="color: #27ae60;"><i class="fa-solid fa-pen-to-square"></i> Thuziak thar siamna</h3>
+        <h3 id="formTitle" style="color: #27ae60;"><i class="fa-solid fa-pen-to-square"></i> Thuziak thar siamna</h3>
         <div style="font-size: 12px; margin-bottom: 10px; color: #7f8c8d;">
             Ziaktu: <b id="loggedInUser" style="color: #2980b9;"></b>
         </div>
         <input type="text" id="newsTitle" placeholder="Thuziak thupui (Title)..." required>
         <textarea id="newsContent" rows="4" placeholder="I thil sawi duh rawn chhu lut rawh..." required></textarea>
+        
         <button id="submitNewsBtn" class="post-btn"><i class="fa-solid fa-paper-plane"></i> Post-na</button>
+        <button id="cancelEditBtn" class="cancel-btn"><i class="fa-solid fa-xmark"></i> Cancel Edit</button>
+        
         <div id="postStatus" style="font-size: 12px; text-align: center; margin-top: 10px; font-weight: bold;"></div>
     </div>
 
@@ -88,15 +98,69 @@
     const database = firebase.database();
 
     let myUsername = null;
+    let windowPosts = {}; // Data zawng zawng vawn thatna tur
 
-    // Comment hawnna leh kharna Function (Global)
+    // -----------------------------------------
+    // GLOBAL FUNCTIONS (Edit/Delete thununna)
+    // -----------------------------------------
+    
+    // Comment Hawnna
     window.toggleComments = function(postId) {
         $('#comments-' + postId).slideToggle(200);
     };
 
+    // Post Paihna (Delete)
+    window.deletePost = function(postId) {
+        if(confirm("He thuziak hi i delete duh takzet em? A chhunga comment awm te pawh a bo vek ang.")) {
+            database.ref('user_news/' + postId).remove();
+        }
+    };
+
+    // Post Siamthatna (Edit)
+    window.editPost = function(postId) {
+        var post = windowPosts[postId];
+        if(post && post.author === myUsername) {
+            $('#newsTitle').val(post.title);
+            $('#newsContent').val(post.content);
+            
+            $('#formTitle').html('<i class="fa-solid fa-pen"></i> Thuziak Siamthatna (Edit)');
+            $('#submitNewsBtn').html('<i class="fa-solid fa-check"></i> Update-na').data('edit-id', postId).css('background', '#f39c12');
+            $('#cancelEditBtn').show();
+            
+            // Tlang lamah a in scroll chho ang
+            $('html, body').animate({ scrollTop: $('#uploadFormContainer').offset().top - 20 }, 'fast');
+        }
+    };
+
+    // Comment Paihna (Delete)
+    window.deleteComment = function(postId, commentId) {
+        if(confirm("He comment hi i delete duh chiang em?")) {
+            database.ref('user_news/' + postId + '/comments/' + commentId).remove();
+        }
+    };
+
+    // Comment Siamthatna (Edit)
+    window.editComment = function(postId, commentId) {
+        var post = windowPosts[postId];
+        if(post && post.comments && post.comments[commentId]) {
+            var oldText = post.comments[commentId].text;
+            var newText = prompt("Comment siamtha rawh:", oldText);
+            
+            if(newText !== null && newText.trim() !== "" && newText !== oldText) {
+                database.ref('user_news/' + postId + '/comments/' + commentId).update({
+                    text: newText.trim(),
+                    editedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+        }
+    };
+
+    // -----------------------------------------
+    // MAIN DOCUMENT READY
+    // -----------------------------------------
     $(document).ready(function() {
         
-        // 1. Auth Check
+        // Auth Check
         auth.onAuthStateChanged(function(user) {
             if(user) {
                 myUsername = user.email.split('@')[0]; 
@@ -110,47 +174,78 @@
             }
         });
 
-        // 2. Post Thuziak
+        // Cancel Edit Form
+        $('#cancelEditBtn').click(function() {
+            $('#newsTitle').val('');
+            $('#newsContent').val('');
+            $('#formTitle').html('<i class="fa-solid fa-pen-to-square"></i> Thuziak thar siamna');
+            $('#submitNewsBtn').html('<i class="fa-solid fa-paper-plane"></i> Post-na').removeData('edit-id').css('background', '#2980b9');
+            $(this).hide();
+        });
+
+        // Post / Update Button Click
         $('#submitNewsBtn').click(function() {
             if(!myUsername) return;
             var title = $('#newsTitle').val().trim();
             var content = $('#newsContent').val().trim();
+            var editId = $(this).data('edit-id'); // Edit mode a nih chuan id a awm ang
             
             if(title === "" || content === "") {
                 $('#postStatus').css('color', '#c0392b').text("Thupui leh a thu ziah ngei ngei tur.");
                 return;
             }
 
-            $('#submitNewsBtn').prop('disabled', true).text('A thawn mek...');
+            var $btn = $(this);
+            var originalBtnText = $btn.html();
+            $btn.prop('disabled', true).text('A thawn mek...');
 
-            database.ref('user_news').push({
-                title: title,
-                content: content,
-                author: myUsername,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                $('#newsTitle').val('');
-                $('#newsContent').val('');
-                $('#postStatus').css('color', '#27ae60').text("I thuziak thehluh a ni ta!").fadeOut(4000, function() { $(this).text('').show(); });
-                $('#submitNewsBtn').prop('disabled', false).html('<i class="fa-solid fa-paper-plane"></i> Post-na');
-            }).catch((error) => {
-                $('#postStatus').css('color', '#c0392b').text("Tihsual a awm: " + error.message);
-                $('#submitNewsBtn').prop('disabled', false).html('<i class="fa-solid fa-paper-plane"></i> Post-na');
-            });
+            if (editId) {
+                // Edit / Update hna
+                database.ref('user_news/' + editId).update({
+                    title: title,
+                    content: content,
+                    editedAt: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    $('#cancelEditBtn').click(); // Form a ti fai nghal ang
+                    $('#postStatus').css('color', '#27ae60').text("I thuziak siamthat a ni ta!").fadeOut(4000, function() { $(this).text('').show(); });
+                    $btn.prop('disabled', false);
+                }).catch((e) => {
+                    $('#postStatus').css('color', '#c0392b').text("Tihsual a awm: " + e.message);
+                    $btn.prop('disabled', false).html(originalBtnText);
+                });
+            } else {
+                // Post Thar Siamna
+                database.ref('user_news').push({
+                    title: title,
+                    content: content,
+                    author: myUsername,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    $('#newsTitle').val('');
+                    $('#newsContent').val('');
+                    $('#postStatus').css('color', '#27ae60').text("I thuziak thehluh a ni ta!").fadeOut(4000, function() { $(this).text('').show(); });
+                    $btn.prop('disabled', false).html(originalBtnText);
+                }).catch((e) => {
+                    $('#postStatus').css('color', '#c0392b').text("Tihsual a awm: " + e.message);
+                    $btn.prop('disabled', false).html(originalBtnText);
+                });
+            }
         });
 
-        // 3. Post leh Comment la chhuak (Fetch Realtime)
+        // Post leh Comment lakchhuahna hna (Realtime)
         database.ref('user_news').orderByChild('timestamp').on('value', function(snapshot) {
             var newsHtml = '';
             var newsArray = [];
+            windowPosts = {}; // Clear kan ti hmasa phawt
             
             snapshot.forEach(function(child) {
                 var data = child.val();
-                data.id = child.key; // Post ID hi comment theih nan kan la chhuak
+                data.id = child.key;
+                windowPosts[child.key] = data; // Global data-ah kan save
                 newsArray.push(data);
             });
             
-            newsArray.reverse(); // A thar ber a chungah
+            newsArray.reverse(); 
 
             if(newsArray.length === 0) {
                 newsHtml = '<div style="text-align:center; padding: 10px; color:#7f8c8d;"><i>Thuziak a la awm rih lo.</i></div>';
@@ -158,8 +253,19 @@
                 newsArray.forEach(function(news) {
                     var dateObj = new Date(news.timestamp);
                     var dateStr = dateObj.toLocaleDateString('en-GB') + " " + dateObj.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+                    var editedTag = news.editedAt ? " <i>(Edited)</i>" : "";
                     
-                    // Comment lakchhuahna hna (Logic)
+                    // Post Edit/Delete Button siamna (A neitu chiahin a hmu ang)
+                    var postActionHtml = '';
+                    if (myUsername === news.author) {
+                        postActionHtml = `
+                        <div class="action-btns">
+                            <button class="edit-btn" onclick="editPost('${news.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="delete-btn" onclick="deletePost('${news.id}')"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>`;
+                    }
+                    
+                    // Comments lakchhuahna
                     var commentsHtml = '';
                     var commentCount = 0;
                     
@@ -170,18 +276,32 @@
                         commentKeys.forEach(function(cKey) {
                             var c = news.comments[cKey];
                             var cDate = new Date(c.timestamp).toLocaleDateString('en-GB') + " " + new Date(c.timestamp).toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+                            var cEditedTag = c.editedAt ? " <i>(Edited)</i>" : "";
                             
+                            // Comment Edit/Delete Button
+                            var commentActionHtml = '';
+                            if (myUsername === c.author) {
+                                commentActionHtml = `
+                                <div class="action-btns" style="margin-top:2px;">
+                                    <button class="edit-btn" onclick="editComment('${news.id}', '${cKey}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                                    <button class="delete-btn" onclick="deleteComment('${news.id}', '${cKey}')"><i class="fa-solid fa-trash"></i> Delete</button>
+                                </div>`;
+                            }
+
                             commentsHtml += `
                             <div class="comment-box">
-                                <span class="comment-author">${c.author}</span>: <span>${c.text}</span>
-                                <div class="comment-date">${cDate}</div>
+                                <div><span class="comment-author">${c.author}</span>: <span>${c.text}</span></div>
+                                <div style="display:flex; justify-content: space-between; align-items:center;">
+                                    <div class="comment-date">${cDate} ${cEditedTag}</div>
+                                    ${commentActionHtml}
+                                </div>
                             </div>`;
                         });
                     } else {
                         commentsHtml = '<div style="font-size: 11px; color: #7f8c8d; margin-bottom: 10px; font-style:italic;">Hmahruaitu ni la, rawn sawi ve rawh le...</div>';
                     }
 
-                    // Comment chhut luhna form (Log in lova te tan kan thup ang)
+                    // Comment chhut luhna form
                     var commentInputHtml = '';
                     if (myUsername) {
                         commentInputHtml = `
@@ -194,14 +314,16 @@
                         commentInputHtml = '<div style="font-size: 11px; color: #c0392b; font-style: italic; text-align:center; margin-top:10px;">Comment turin Log-in a ngai.</div>';
                     }
 
-                    // Post Card (HTML) siamna
+                    // Post Card (Main)
                     newsHtml += `
                     <div class="news-card">
                         <h3><i class="fa-regular fa-comment-dots"></i> ${news.title}</h3>
                         <p>${news.content}</p>
                         <div class="author-date">
-                            ✍️ <b>${news.author}</b> | 🕒 ${dateStr}
+                            ✍️ <b>${news.author}</b> | 🕒 ${dateStr} <span style="color:#f39c12">${editedTag}</span>
                         </div>
+                        
+                        ${postActionHtml}
                         
                         <button class="toggle-comments-btn" onclick="toggleComments('${news.id}')">
                             <i class="fa-regular fa-comments"></i> Sawi hona (${commentCount}) <i class="fa-solid fa-angle-down"></i>
@@ -218,7 +340,7 @@
             $('#dynamicNewsList').html(newsHtml);
         });
 
-        // 4. Comment Thehluhna (Dynamic Button Click)
+        // Comment Thehluhna Action
         $(document).on('click', '.submit-comment-btn', function() {
             if(!myUsername) return;
             
@@ -228,9 +350,8 @@
             if(commentText === "") return;
 
             var $btn = $(this);
-            $btn.prop('disabled', true); // Kan thehluh chhungin a hmet nawn thei lo ang
+            $btn.prop('disabled', true); 
 
-            // Post ID hnuaia 'comments' ah zung kan kaih ang
             database.ref('user_news/' + postId + '/comments').push({
                 author: myUsername,
                 text: commentText,
@@ -238,7 +359,6 @@
             }).then(() => {
                 $('#comment-input-' + postId).val('');
                 $btn.prop('disabled', false);
-                // Realtime a nih vangin automatic-in a rawn lang thar nghal ang.
             }).catch((e) => {
                 alert("Tihsual a awm: " + e.message);
                 $btn.prop('disabled', false);
