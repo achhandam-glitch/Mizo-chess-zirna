@@ -2,10 +2,12 @@
   "background_color": "#ffffff",
   "dir": "ltr",
   "display": "standalone",
-  "name": "achhandam-glitch.github",
+  "name": "Chess App",
   "orientation": "any",
   "scope": "/",
-  "short_name": "achhandam-glitch.github",
+  "short_name": "Chess",
   "start_url": "/",
-  "theme_color": "#ffffff"
+  "theme_color": "#ffffff",
+  "description": "A fun chess game for students to play and learn.",
+  "icons": []
 }
