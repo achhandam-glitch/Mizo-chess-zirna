@@ -182,6 +182,15 @@
         .chat-input-area { display: flex; border-top: 1px solid #bdc3c7; }
         .chat-input-area input { flex: 1; border: none; padding: 10px; outline: none; font-size: 13px; }
         .chat-input-area button { background: #2ecc71; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 0; min-width: unset; flex: none;}
+        
+        /* CHESS CLOCK STYLES */
+        .clock-area {
+            flex: 1; display: flex; justify-content: center; align-items: center; 
+            font-size: 6rem; font-weight: bold; font-family: monospace;
+            cursor: pointer; transition: background 0.2s, color 0.2s;
+            -webkit-tap-highlight-color: transparent; user-select: none;
+        }
+        .clock-area:active { filter: brightness(0.9); }
     </style>
 </head>
 <body>
@@ -233,6 +242,10 @@
         <a href="chanchin.html" class="menu-btn btn-teal" style="text-decoration: none;">
             <i class="fa-solid fa-newspaper"></i> Chanchin(Forum)
         </a>
+
+        <!-- CHESS CLOCK BUTTON (NEW) -->
+        <button id="openChessClockBtn" class="menu-btn" style="background-color: #34495e;"><i class="fa-solid fa-stopwatch"></i> Chess Clock hmang rawh</button>
+
         <div id="pgnContainer">
             <div style="font-size: 13px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">Hmun danga i khelhna PGN Paste/Import rawh:</div>
             <textarea id="pgnText" placeholder="Chess.com / Lichess PGN paste rawh..."></textarea>
@@ -244,6 +257,37 @@
         </div>
     </div>
     <!-- A TIRA LANG TURTE A TAWP -->
+
+
+    <!-- ========================================== -->
+    <!-- CHESS CLOCK SCREEN (NEW) -->
+    <!-- ========================================== -->
+    <div id="chessClockScreen" style="display: none; width: 100%; height: 100vh; position: fixed; top: 0; left: 0; background: #111; z-index: 9999; flex-direction: column;">
+        
+        <div id="clockSettings" style="background: white; padding: 20px; text-align: center; z-index: 10000; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 8px; width: 90%; max-width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+            <h3 style="margin-top:0; color:#2c3e50;">Chess Clock Settings</h3>
+            <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #34495e;">Hun (Minutes):</div>
+            <input type="number" id="clockMins" value="5" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 16px;">
+            <div style="text-align: left; margin-bottom: 10px; font-weight: bold; color: #34495e;">Belh tur (Increment sec):</div>
+            <input type="number" id="clockInc" value="0" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 16px;">
+            <button id="startClockBtn" class="btn-green btn-full" style="padding: 12px; font-size: 15px;"><i class="fa-solid fa-play"></i> Start Clock</button>
+            <button id="closeClockBtn" class="btn-gray btn-full" style="margin-top: 10px; padding: 12px; font-size: 15px;">Close (Chhuahna)</button>
+        </div>
+        
+        <div id="clockControls" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; gap: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 40px;">
+            <button id="pauseClockBtn" class="btn-yellow" style="padding: 15px; border-radius: 50%; width: 55px; height: 55px;"><i class="fa-solid fa-pause"></i></button>
+            <button id="resetClockBtn" class="btn-blue" style="padding: 15px; border-radius: 50%; width: 55px; height: 55px;"><i class="fa-solid fa-gear"></i></button>
+            <button id="exitClockBtn" class="btn-red" style="padding: 15px; border-radius: 50%; width: 55px; height: 55px;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div id="player2Area" class="clock-area" style="background: #34495e; color: white; transform: rotate(180deg);">
+            5:00
+        </div>
+        <div style="height: 6px; background: #111; width: 100%;"></div>
+        <div id="player1Area" class="clock-area" style="background: #ecf0f1; color: #2c3e50;">
+            5:00
+        </div>
+    </div>
 
 
     <!-- ========================================== -->
@@ -672,6 +716,91 @@
                     $('#activeGamesCount').text(activeRooms);
                 });
             }
+
+            // --- CHESS CLOCK LOGIC ---
+            var cTimer = null;
+            var cP1Time = 300, cP2Time = 300;
+            var cP1Inc = 0, cP2Inc = 0;
+            var clockActive = 0; 
+            
+            function formatClockTime(seconds) {
+                var m = Math.floor(seconds / 60);
+                var s = seconds % 60;
+                return (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+            }
+
+            function updateClockUI() {
+                $('#player1Area').text(formatClockTime(cP1Time));
+                $('#player2Area').text(formatClockTime(cP2Time));
+                if(clockActive === 1) {
+                    $('#player1Area').css({'background':'#2ecc71', 'color':'#fff'});
+                    $('#player2Area').css({'background':'#34495e', 'color':'#fff'});
+                } else if(clockActive === 2) {
+                    $('#player1Area').css({'background':'#ecf0f1', 'color':'#2c3e50'});
+                    $('#player2Area').css({'background':'#2ecc71', 'color':'#fff'});
+                } else {
+                    $('#player1Area').css({'background':'#ecf0f1', 'color':'#2c3e50'});
+                    $('#player2Area').css({'background':'#34495e', 'color':'#fff'});
+                }
+            }
+
+            $('#openChessClockBtn').click(function() {
+                $('#chessClockScreen').css('display', 'flex');
+                $('#clockSettings').show();
+                $('#clockControls').hide();
+                clockActive = 0;
+                if(cTimer) clearInterval(cTimer);
+            });
+
+            $('#closeClockBtn').click(function() {
+                $('#chessClockScreen').hide();
+            });
+
+            $('#startClockBtn').click(function() {
+                var m = parseInt($('#clockMins').val()) || 5;
+                var inc = parseInt($('#clockInc').val()) || 0;
+                cP1Time = cP2Time = m * 60;
+                cP1Inc = cP2Inc = inc;
+                clockActive = 0;
+                updateClockUI();
+                $('#clockSettings').hide();
+                $('#clockControls').css('display', 'flex');
+                
+                if(cTimer) clearInterval(cTimer);
+                cTimer = setInterval(function() {
+                    if (clockActive === 1 && cP1Time > 0) {
+                        cP1Time--;
+                        if (cP1Time <= 0) { clockActive = 0; cP1Time = 0; gameEndSnd.play().catch(e=>{}); }
+                        updateClockUI();
+                    } else if (clockActive === 2 && cP2Time > 0) {
+                        cP2Time--;
+                        if (cP2Time <= 0) { clockActive = 0; cP2Time = 0; gameEndSnd.play().catch(e=>{}); }
+                        updateClockUI();
+                    }
+                }, 1000);
+            });
+
+            $('#player1Area').click(function() {
+                if(cP1Time <= 0 || cP2Time <= 0) return;
+                if (clockActive === 0) clockActive = 2;
+                else if (clockActive === 1) {
+                    clockActive = 2; cP1Time += cP1Inc; moveSnd.play().catch(e=>{});
+                }
+                updateClockUI();
+            });
+
+            $('#player2Area').click(function() {
+                if(cP1Time <= 0 || cP2Time <= 0) return;
+                if (clockActive === 0) clockActive = 1; 
+                else if (clockActive === 2) {
+                    clockActive = 1; cP2Time += cP2Inc; moveSnd.play().catch(e=>{});
+                }
+                updateClockUI();
+            });
+
+            $('#pauseClockBtn').click(function() { clockActive = 0; updateClockUI(); });
+            $('#resetClockBtn').click(function() { $('#startClockBtn').click(); });
+            $('#exitClockBtn').click(function() { clockActive = 0; clearInterval(cTimer); $('#chessClockScreen').hide(); });
 
             // CHESSBOARD INITIALIZATION FUNCTION
             var config = {
