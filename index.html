@@ -223,7 +223,7 @@
         <div id="guideBox" style="display: none; width: 100%; background: #fdfefe; padding: 12px; border-radius: 6px; border: 1px solid #3498db; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 13px; color: #2c3e50; line-height: 1.5; text-align: left;">
             <h4 style="margin-top: 0; color: #2980b9; text-align: center; border-bottom: 1px dashed #bdc3c7; padding-bottom: 8px; font-size: 14px;">A Hman Dan Tlangpui</h4>
             <ul style="padding-left: 20px; margin-bottom: 10px; margin-top: 8px;">
-                <li style="margin-bottom: 6px;"><b>Online (Username):</b> Account siam la, i thianpa/thiannu Username zawng chhuakin sawm (challenge) rawh. Chat (message) pahin a khelh theih e<i style="color:#d35400;">(Chak: +10 pts, Draw: +5 pts, Tlawm: -5 pts)</i></li>
+                <li style="margin-bottom: 6px;"><b>Online (Username):</b> Account siam la, i thianpa/thiannu Username zawng chhuakin sawm (challenge) rawh. Chat (message) pahin a khelh theih e<i style="color:#d35400;">(Elo Rating system hmangin i thiam dan a pung/hniam zel ang)</i></li>
                 <li style="margin-bottom: 6px;"><b>WhatsApp Link:</b> Register kher lovin he button hmang hian Link inpe sa kha Whatsapp-ah i thianpa/thiannu thawn la, in khel dun thei nghal.</li>
                 <li style="margin-bottom: 6px;"><b>Khawl & Mahnia Khelh:</b> Button atang khian i khelh duh dan thlang la, Settings atangin sa rawng, thiamna level leh khelh duh hun chhung thlang la,khel rawh le.</li>
                 <li style="margin-bottom: 6px;"><b>Tihsual Atanga Zirna:</b> Game i khelh zawhah <i>'I tihsual atangin zir rawh'</i> tih kha a lo lang ang a, khawlin i chetsual dan a hrilhfiah ang che.</li>
@@ -338,7 +338,7 @@
 
                 <div style="background:#fdfefe; padding:10px; border-radius:6px; margin-bottom:10px; border: 1px solid #f1c40f;">
                     <div style="font-size:13px; font-weight:bold; margin-bottom:8px; color:#d35400; display:flex; justify-content:space-between; align-items:center;">
-                        <span><i class="fa-solid fa-trophy"></i> Point Hmu Sangte</span>
+                        <span><i class="fa-solid fa-trophy"></i> Rating Sang Ber</span>
                         <select id="leaderboardCategoryFilter" style="padding:4px; font-size:11px; border-radius:4px; border:1px solid #bdc3c7; background:#fff; font-weight:bold; color:#2c3e50;">
                             <option value="Rang lutuk">Rang lutuk (1m)</option>
                             <option value="Rang vak lo">Rang vak lo (3m, 5m)</option>
@@ -642,7 +642,7 @@
             }
             function hideVerse() { $('#verseDisplay').hide(); }
             
-            // --- STOCKFISH WEB WORKER SETUP (TRY...CATCH IN KA VEN HIM) ---
+            // --- STOCKFISH WEB WORKER SETUP ---
             var stockfish = { postMessage: function(){} };
             try {
                 var blob = new Blob(["importScripts('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');"], {type: 'application/javascript'});
@@ -824,7 +824,7 @@
                 }
             }
 
-            // MENU BUTTON CLICKS (DYNAMIC EVENT DELEGATION FOR ABSOLUTE RESPONSIVENESS)
+            // MENU BUTTON CLICKS
             $(document).on('click', '#playEngineBtn', function() { currentMode = 'engine'; initGame('engine'); showGameScreen(); });
             $(document).on('click', '#playLinkBtn', function() { currentMode = 'online'; initGame('online'); showGameScreen(); });
             $(document).on('click', '#playOnlineBtn', function() { currentMode = 'matchmaking'; initGame('matchmaking'); showGameScreen(); });
@@ -1302,7 +1302,7 @@
                     auth.createUserWithEmailAndPassword(getEmail(u), p).then(() => {
                         database.ref('users/' + u.toLowerCase().trim()).set({ 
                             joined: Date.now(), 
-                            points: { 'Rang lutuk': 0, 'Rang vak lo': 0, 'Rang pangngai': 0, 'A muang chi': 0 }
+                            ratings: { 'Rang lutuk': 1200, 'Rang vak lo': 1200, 'Rang pangngai': 1200, 'A muang chi': 1200 }
                         });
                         $('#authError').text("");
                     }).catch(e => $('#authError').text(e.message));
@@ -1384,26 +1384,26 @@
                 database.ref('users').once('value').then(function(snapshot) {
                     var leaders = [];
                     snapshot.forEach(function(child) {
-                        var data = child.val(); var pts = 0;
-                        if (data.points && typeof data.points === 'object') pts = data.points[category] || 0;
-                        else if (typeof data.points === 'number' && category === 'Rang pangngai') pts = data.points;
-                        if (pts > 0) leaders.push({ username: child.key, points: pts });
+                        var data = child.val(); var rating = 1200;
+                        if (data.ratings && typeof data.ratings === 'object') rating = data.ratings[category] || 1200;
+                        else if (typeof data.rating === 'number' && category === 'Rang pangngai') rating = data.rating;
+                        leaders.push({ username: child.key, rating: rating });
                     });
 
-                    leaders.sort((a, b) => b.points - a.points);
+                    leaders.sort((a, b) => b.rating - a.rating);
                     leaders = leaders.slice(0, 10);
 
                     if(leaders.length === 0) {
                         $list.html('<div style="padding:10px; text-align:center;"><i>Tumah an la awm lo.</i></div>');
                     } else {
                         var html = '<table style="width:100%; text-align:left; border-collapse:collapse;">';
-                        html += '<tr style="background:#f39c12; color:#fff;"><th style="padding:4px 6px;">Rank</th><th style="padding:4px 6px;">Hming</th><th style="padding:4px 6px;">Points</th></tr>';
+                        html += '<tr style="background:#f39c12; color:#fff;"><th style="padding:4px 6px;">Rank</th><th style="padding:4px 6px;">Hming</th><th style="padding:4px 6px;">Rating</th></tr>';
                         leaders.forEach(function(l, index) {
                             var medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : ('#' + (index + 1));
                             html += `<tr style="border-bottom:1px solid #ecf0f1;">
                                 <td style="padding:6px; font-weight:bold;">${medal}</td>
                                 <td style="padding:6px; font-weight:bold; color:#2c3e50;">${l.username}</td>
-                                <td style="padding:6px; font-weight:bold; color:#d35400;">${l.points}</td>
+                                <td style="padding:6px; font-weight:bold; color:#d35400;">${l.rating}</td>
                             </tr>`;
                         });
                         html += '</table>'; $list.html(html);
@@ -1460,7 +1460,6 @@
                 }, 50);
             });
 
-            // GAME HISTORY DELETE LOGIC THAR
             $(document).on('click', '.btn-delete-past-game', function() {
                 var gameId = $(this).data('id');
                 var $row = $(this).closest('.hist-item-row');
@@ -1968,6 +1967,15 @@
                 }
             }
 
+            // ELO RATING CALCULATION FUNCTION
+            function updateEloRatings(myRating, opponentRating, myResult) {
+                // myResult: 1 (Win), 0.5 (Draw), 0 (Lose)
+                var K = 32;
+                var expectedScore = 1 / (1 + Math.pow(10, (opponentRating - myRating) / 400));
+                var newRating = Math.round(myRating + K * (myResult - expectedScore));
+                return Math.max(100, newRating);
+            }
+
             function endGameWithMessage(msg, resultOverride = null) {
                 manuallyEnded = true;
                 if (timerInterval) clearInterval(timerInterval);
@@ -1984,34 +1992,40 @@
                 }
 
                 if (isOnlineMode && myUsername && !gameResultSaved && database && currentMode !== 'spectator') {
-                    var myResult = resultOverride;
-                    if (!myResult) {
-                        if (game.in_checkmate()) myResult = (game.turn() === playerColor) ? 'lose' : 'win';
-                        else if (game.in_draw() || game.in_stalemate() || game.in_threefold_repetition()) myResult = 'draw';
+                    var myResultStr = resultOverride;
+                    if (!myResultStr) {
+                        if (game.in_checkmate()) myResultStr = (game.turn() === playerColor) ? 'lose' : 'win';
+                        else if (game.in_draw() || game.in_stalemate() || game.in_threefold_repetition()) myResultStr = 'draw';
                     }
 
-                    if (myResult) {
-                        var pointsToAdd = 0;
-                        if (myResult === 'win') pointsToAdd = 10;
-                        else if (myResult === 'draw') pointsToAdd = 5;
-                        else if (myResult === 'lose') pointsToAdd = -5;
+                    if (myResultStr) {
+                        var scoreVal = 0.5;
+                        if (myResultStr === 'win') scoreVal = 1;
+                        else if (myResultStr === 'lose') scoreVal = 0;
 
-                        if (pointsToAdd !== 0) {
-                            var initialMinutes = parseInt($('#timeSelect').val() || 10);
-                            var category = getTimeControlCategory(initialMinutes);
-                            var userRef = database.ref('users/' + myUsername + '/points');
-                            
-                            userRef.transaction(function(currentPoints) {
-                                var newPointsObj = {};
-                                if (typeof currentPoints === 'number') newPointsObj = { 'Rang lutuk': 0, 'Rang vak lo': 0, 'Rang pangngai': currentPoints, 'A muang chi': 0 };
-                                else if (currentPoints && typeof currentPoints === 'object') newPointsObj = currentPoints;
-                                else newPointsObj = { 'Rang lutuk': 0, 'Rang vak lo': 0, 'Rang pangngai': 0, 'A muang chi': 0 };
+                        var initialMinutes = parseInt($('#timeSelect').val() || 10);
+                        var category = getTimeControlCategory(initialMinutes);
+                        var myUserRef = database.ref('users/' + myUsername);
+                        var oppUsername = (playerColor === 'w') ? blackUsername : whiteUsername;
+                        var oppUserRef = database.ref('users/' + oppUsername);
+
+                        myUserRef.once('value').then(mySnap => {
+                            var myData = mySnap.val() || {};
+                            var myRatings = myData.ratings || { 'Rang lutuk': 1200, 'Rang vak lo': 1200, 'Rang pangngai': 1200, 'A muang chi': 1200 };
+                            var currentMyRating = myRatings[category] || 1200;
+
+                            oppUserRef.once('value').then(oppSnap => {
+                                var oppData = oppSnap.val() || {};
+                                var oppRatings = oppData.ratings || { 'Rang lutuk': 1200, 'Rang vak lo': 1200, 'Rang pangngai': 1200, 'A muang chi': 1200 };
+                                var currentOppRating = oppRatings[category] || 1200;
+
+                                var newMyRating = updateEloRatings(currentMyRating, currentOppRating, scoreVal);
                                 
-                                var newVal = (newPointsObj[category] || 0) + pointsToAdd;
-                                newPointsObj[category] = newVal < 0 ? 0 : newVal;
-                                return newPointsObj;
+                                myRatings[category] = newMyRating;
+                                myUserRef.child('ratings').set(myRatings);
                             });
-                        }
+                        });
+
                         gameResultSaved = true; 
                     }
                 }
