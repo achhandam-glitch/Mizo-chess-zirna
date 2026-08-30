@@ -207,7 +207,7 @@
                 <i class="fa-solid fa-chart-line"></i> Tun Dinhmun
             </div>
             <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; font-size: 12px; color: #34495e; border-bottom: 1px dashed #ecf0f1; padding-bottom: 6px; margin-bottom: 6px;">
-                <div style="flex: 1 1 45%; text-align: left;">👁️ Hmang mek: <strong id="totalVisitorsCount" style="color:#8e44ad; font-size:13px;">0</strong></div>
+                <div style="flex: 1 1 45%; text-align: left;">👁️ Vawiin hmangtu: <strong id="totalVisitorsCount" style="color:#8e44ad; font-size:13px;">0</strong></div>
                 <div style="flex: 1 1 45%; text-align: right;">📈 Tlawh tawhtu: <strong id="allTimeVisitorsCount" style="color:#e67e22; font-size:13px;">0</strong></div>
                 <div style="flex: 1 1 45%; text-align: left;">🟢 Log-in: <strong id="onlineCount" style="color:#27ae60; font-size:13px;">0</strong></div>
                 <div style="flex: 1 1 45%; text-align: right;">🎮 Inkhel mek: <strong id="activeGamesCount" style="color:#d35400; font-size:13px;">0</strong></div>
@@ -663,17 +663,16 @@
                 }
                 allTimeRef.on('value', snap => $('#allTimeVisitorsCount').text(snap.val() || 0));
 
-                // --- TOTAL VISITORS PRESENCE SYSTEM ---
-                var currentVisitorsCount = 0; // Visitors zat chhinchhiahna
-                var visitorsRef = database.ref('/online_visitors');
-                var myVisitorRef = visitorsRef.push(); 
+                // --- TOTAL VISITORS (TODAY) SYSTEM ---
+                var todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+                var dailyVisitorsRef = database.ref('/daily_visitors/' + todayStr);
+                var myVisitorRef = dailyVisitorsRef.push(); 
                 database.ref('.info/connected').on('value', snap => {
                     if (snap.val() == false) return;
                     myVisitorRef.onDisconnect().remove().then(() => myVisitorRef.set(true));
                 });
-                visitorsRef.on('value', snap => {
-                    currentVisitorsCount = snap.numChildren();
-                    $('#totalVisitorsCount').text(currentVisitorsCount);
+                dailyVisitorsRef.on('value', snap => {
+                    $('#totalVisitorsCount').text(snap.numChildren());
                 });
 
                 // --- PRESENCE SYSTEM ---
@@ -694,23 +693,20 @@
                         var room = child.val();
                         if (room) { 
                             var lastActive = room.lastUpdated || currentTime;
-                            // Minute engzatnge an chet tawh loh (idle) tih chhutna
                             var minutesIdle = (currentTime - lastActive) / (1000 * 60); 
                             
-                            // Minute 10 chhunga la active (la in-move) te chauh Game nung anga chhiar tur
                             if (minutesIdle < 10) { 
                                 activeRooms++; 
                             } 
-                            // Darkar 12 a liam tawh erawh chuan database atanga tihfai (delete) tur (12 hr * 60 min = 720 mins)
                             if (minutesIdle > 720) {
                                 database.ref('rooms/' + child.key).remove();
                             }
                         } 
                     });
                     
-                    // LOGIC: Hmang mek (Visitors) aiin Inkhel mek (Rooms) a tam thei lo hrim hrim
-                    if (activeRooms > currentVisitorsCount) {
-                        activeRooms = currentVisitorsCount;
+                    var currentDailyCount = parseInt($('#totalVisitorsCount').text()) || 0;
+                    if (activeRooms > currentDailyCount) {
+                        activeRooms = currentDailyCount;
                     }
                     
                     $('#activeGamesCount').text(activeRooms);
