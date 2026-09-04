@@ -494,7 +494,6 @@
             <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
                 <a href="https://wa.me/918837469949" target="_blank" style="text-decoration: none; background: #25D366; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 14px;"><i class="fa-brands fa-whatsapp"></i> WhatsApp: 8837469949</a>
                 <a href="mailto:achhandam@gmail.com" style="text-decoration: none; background: #c0392b; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 14px;"><i class="fa-solid fa-envelope"></i> Email: achhandam@gmail.com</a>
-                <a href="mailto:achhandam@gmail.com" style="text-decoration: none; background: #c0392b; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 14px;"><i class="fa-solid fa-envelope"></i> Email: achhandam@gmail.com</a>
             </div>
             <button id="closeContactBtn" class="btn-gray btn-full" style="margin-top: 10px;">Khar rawh</button>
         </div>
@@ -880,7 +879,7 @@
             });
 
             $('#showPgnBtn').on('click', function() {
-                var pgnData = game.pgn(); if(pgnData) $('#pgnExportText').val(pgnData);
+                var pgnData = game.pgn(); if(pogData = game.pgn()) $('#pgnExportText').val(pgnData);
                 $('#pgnExportContainer').slideToggle();
             });
 
@@ -1585,8 +1584,13 @@
                             mcqSanOptions.sort(() => Math.random() - 0.5);
 
                             var currentPos = mistakePositions[currentMistakeIndex]; var qText = "";
-                            if (currentPos && currentPos.mistakeType === "Tihsual pawi (Blunder)") qText = "He position-ah hian tihsual pawi i nei, a aia chet tha ber (best move) engnge?";
-                            else qText = "Chet tha ber (best move) engnge?";
+                            if (currentPos) {
+                                if (currentPos.type === "blunder") qText = "He position-ah hian tihsual pawi (blunder) a awm, a aia chet tha ber (best move) engnge?";
+                                else if (currentPos.type === "critical") qText = "He critical position-ah hian hmasawnna pawimawh ber (best move) engnge?";
+                                else if (currentPos.type === "quiet") qText = "He hmunah hian chetsual miah lo (quiet move / prophylactic move) tha ber thlang rawh:";
+                            } else {
+                                qText = "Chet tha ber (best move) engnge?";
+                            }
                             
                             var mcqHtml = '';
                             mcqSanOptions.forEach(function(opt) {
@@ -1999,29 +2003,47 @@
             function startMistakeAnalysisSession() {
                 $('#toggleSupportBtn, #toggleContactBtn').hide();
                 var tempGame = new Chess(); var history = savedGameHistory; mistakePositions = []; var lastWhiteScore = 0; 
+                
                 for (var i = 0; i < history.length; i++) {
-                    var plyColor = tempGame.turn(); var moveNum = Math.floor(i / 2) + 1;
-                    var fenBeforeHumanMove = tempGame.fen(); tempGame.move(history[i]); var currentPly = i + 1;
+                    var plyColor = tempGame.turn(); 
+                    var moveNum = Math.floor(i / 2) + 1;
+                    var fenBeforeMove = tempGame.fen(); 
+                    var moveObj = tempGame.move(history[i]); 
+                    var currentPly = i + 1;
+
                     if (plyEvaluations[currentPly] !== undefined) {
                         var currWhiteScore = plyEvaluations[currentPly];
                         if (lastWhiteScore !== null) {
                             var scoreDrop = (plyColor === 'w') ? (currWhiteScore - lastWhiteScore) : (lastWhiteScore - currWhiteScore); 
-                            var analyzeThisPly = isTwoPlayer ? true : (plyColor === playerColor);
+                            var scoreDiff = Math.abs(currWhiteScore - lastWhiteScore);
 
-                            if (analyzeThisPly && scoreDrop < -50) { 
-                                var mistakeType = scoreDrop <= -300 ? "Tihsual pawi (Blunder)" : (scoreDrop <= -150 ? "Tihsual (Mistake)" : "Dik lo hlek");
-                                mistakePositions.push({ fen: fenBeforeHumanMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', mistakeType: mistakeType, srsLevel: 1, nextReviewTime: 0 });
+                            // 1. Tihsual (Blunder / Mistake)
+                            if (scoreDrop < -50) { 
+                                var mistakeType = scoreDrop <= -300 ? "blunder" : "mistake";
+                                mistakePositions.push({ fen: fenBeforeMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', type: mistakeType, srsLevel: 1, nextReviewTime: 0 });
+                            } 
+                            // 2. Critical Position / Sharp Tactical Pivot (Score swing lian tham awmna)
+                            else if (scoreDiff > 120 && scoreDrop >= -50) {
+                                mistakePositions.push({ fen: fenBeforeMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', type: "critical", srsLevel: 1, nextReviewTime: 0 });
+                            }
+                            // 3. Quiet Move / Prophylactic Move (Non-capture, non-check, stable evaluation positioning)
+                            else if (moveObj && !moveObj.captured && (!moveObj.san.includes('+') && !moveObj.san.includes('#')) && scoreDiff < 30 && history.length > 6) {
+                                // A changin game chhung atangin quiet/prophylactic move thlang chhuak ve ila
+                                if (i % 3 === 0) {
+                                    mistakePositions.push({ fen: fenBeforeMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', type: "quiet", srsLevel: 1, nextReviewTime: 0 });
+                                }
                             }
                         }
                         lastWhiteScore = currWhiteScore;
                     }
                 }
 
+                // Fallback if evaluations or dynamic filters don't catch enough positions
                 if (mistakePositions.length === 0 && savedGameHistory.length > 0) {
                     tempGame.reset();
                     for (var i = 0; i < history.length; i++) {
                         var fenBefore = tempGame.fen(); tempGame.move(history[i]);
-                        if (i >= 2) mistakePositions.push({ fen: fenBefore, moveNumber: Math.floor(i / 2) + 1, orientation: (tempGame.turn() === 'w') ? 'white' : 'black', srsLevel: 1, nextReviewTime: 0 });
+                        if (i >= 2) mistakePositions.push({ fen: fenBefore, moveNumber: Math.floor(i / 2) + 1, orientation: (tempGame.turn() === 'w') ? 'white' : 'black', type: "critical", srsLevel: 1, nextReviewTime: 0 });
                     }
                 }
 
@@ -2036,7 +2058,6 @@
                     $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer').hide(); 
                     
                     $('#mainBoardWrapper').show();
-                    // Zirna-ah board flip button lang ve rawh se tiin kan hawng tel bawk
                     $('#flipBoardBtn').show();
                     $('#srsControls').css('display', 'flex');
                     $('#status').hide(); 
@@ -2073,7 +2094,6 @@
                     initBoardIfNeeded();
                     board.position(game.fen()); 
                     
-                    // A dim (black) chet hun a nih chuan board kha automatically a dum lamah kan thawn/flip ang (black orientation)
                     if (game.turn() === 'b') {
                         board.orientation('black');
                     } else {
@@ -2082,7 +2102,13 @@
 
                     setEngineLevel(); practiceEngineState = 'analyzing_base'; mcqRawMoves = [];
                     $('#status').hide(); 
-                    $('#srsQuestionText').html("ZIRNA (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ") <br>Zawn mek a ni...").show();
+                    
+                    var labelTitle = "ZIRNA";
+                    if (currentPos.type === "blunder") labelTitle = "Tihsual Pawi (Blunder)";
+                    else if (currentPos.type === "critical") labelTitle = "Critical Position";
+                    else if (currentPos.type === "quiet") labelTitle = "Quiet / Prophylactic Move";
+
+                    $('#srsQuestionText').html(labelTitle + " (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ") <br>Zawn mek a ni...").show();
                     if(stockfish.postMessage) { stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 14'); }
                 } else {
                     alert("Zir tur i zo ta!"); 
