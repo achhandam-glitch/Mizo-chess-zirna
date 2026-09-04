@@ -260,7 +260,7 @@
             <input type="file" id="pgnFileInput" accept=".pgn,.txt" style="display: none;">
             <div style="display: flex; gap: 6px; margin-top: 6px; width: 100%;">
                 <button id="importPgnFileBtn" class="btn-purple btn-half">📁 File Import</button>
-                <button id="loadAndLearnPgnBtn" class="btn-green btn-half">🧠 Board-ah Enna</button>
+                <button id="loadAndLearnPgnBtn" class="btn-green btn-half">🧠 Zirna-ah lut rawh</button>
             </div>
         </div>
     </div>
@@ -1969,7 +1969,7 @@
                 if (!isTwoPlayer && !isOnlineMode && playerColor === 'b') window.setTimeout(makeEngineMove, 250);
             }
 
-            // PGN IMPORT & LOAD (BOARD-A LOAD NGHALNA)
+            // PGN IMPORT & LOAD (ZIRNA-AH LUT NGHALNA)
             $('#loadAndLearnPgnBtn').on('click', function() {
                 var pgnString = $('#pgnText').val().trim();
                 if (!pgnString) { alert("PGN a ruak a nia, paste luh hmasak phawt tur a ni."); return; }
@@ -1990,20 +1990,16 @@
 
                 savedGameHistory = game.history();
                 currentMode = 'practice';
-                showGameScreen();
-
+                
+                // PGN container khar a, game screen / SRS controls hawng lovin,
+                // i ngen ang angin direct-in game history atang khan mistake analysis (SRS) a rawn run nghal ang.
                 $('#pgnContainer').slideUp();
-                $('#mainBoardWrapper, #timerContainer, #status, #moveHistoryBox').show();
-                $('#quitGameBtn').fadeIn();
                 
-                board.position(game.fen());
-                updateMoveHistory();
-                updateStatus();
-                
-                alert("PGN a in-load fel ta! Board-ah i en kual thei e.");
+                // Run mistake analysis / SRS session directly from imported PGN
+                startMistakeAnalysisSession();
             });
 
-            $('#learnMistakesBtn').on('click', function() {
+            function startMistakeAnalysisSession() {
                 $('#toggleSupportBtn, #toggleContactBtn').hide();
                 var tempGame = new Chess(); var history = savedGameHistory; mistakePositions = []; var lastWhiteScore = 0; 
                 for (var i = 0; i < history.length; i++) {
@@ -2036,14 +2032,38 @@
                     isPracticeMode = true; hideVerse(); manuallyEnded = false;
                     sessionScore = 0; maxSessionScore = mistakePositions.length * 10;
                     if (timerInterval) clearInterval(timerInterval);
+                    
+                    // HomeScreen thukru a, gameSection leh srsControls kan hawng ang (chessboard diagram a lang ngei tawh ang)
+                    $('#homeScreen').hide();
+                    $('#gameSection').css('display', 'flex');
+                    
                     $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer').hide(); 
+                    
+                    // BOARD & SRS CONTROLS LAWNG/LANG TIR TUR
+                    $('#mainBoardWrapper').show();
                     $('#srsControls').css('display', 'flex');
                     $('#status').hide(); 
-                    currentMistakeIndex = 0; loadMistake();
+                    
+                    currentMistakeIndex = 0; 
+                    initBoardIfNeeded();
+                    loadMistake();
                 } else {
-                    alert("Game tha tak a ni!");
-                    $('#toggleSupportBtn, #toggleContactBtn').fadeIn();
-                } 
+                    // Fallback to normal practice mode board display if no specific mistakes detected
+                    isPracticeMode = true;
+                    $('#homeScreen').hide();
+                    $('#gameSection').css('display', 'flex');
+                    $('#mainBoardWrapper').show();
+                    $('#quitGameBtn').fadeIn();
+                    initBoardIfNeeded();
+                    board.position(game.fen());
+                    updateMoveHistory();
+                    updateStatus();
+                    alert("PGN a in-load fel ta! Board-ah i en kual thei e.");
+                }
+            }
+
+            $('#learnMistakesBtn').on('click', function() {
+                startMistakeAnalysisSession();
             });
 
             function loadMistake() {
@@ -2052,7 +2072,10 @@
 
                 if(currentMistakeIndex < mistakePositions.length) {
                     var currentPos = mistakePositions[currentMistakeIndex];
-                    game.load(currentPos.fen); board.position(game.fen()); board.orientation(currentPos.orientation);
+                    game.load(currentPos.fen); 
+                    initBoardIfNeeded();
+                    board.position(game.fen()); 
+                    board.orientation(currentPos.orientation);
                     setEngineLevel(); practiceEngineState = 'analyzing_base'; mcqRawMoves = [];
                     $('#status').hide(); 
                     $('#srsQuestionText').html("ZIRNA (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ") <br>Zawn mek a ni...").show();
