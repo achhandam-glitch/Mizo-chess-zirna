@@ -314,7 +314,7 @@
                     <a href="#" id="authToggleLink" style="color: #2980b9; font-weight: bold; text-decoration: underline;">In-Register-na</a>
                 </div>
 
-                <button class="backToHomeBtn btn-gray btn-full" style="margin-top:15px; padding:12px; font-size:13px;"><i class="fa-solid fa-house"></i> Home screen-a letna</button>
+                <button class="backToHomeBtn btn-gray btn-full" style="margin-top:15px; padding:12px; font-size:13px;"><i class="fa-solid fa-house"></i> Home screen-ah letna</button>
             </div>
 
             <div id="lobbyBox" style="display: none; text-align: left;">
@@ -493,6 +493,7 @@
             <div style="font-size: 13px; color: #555; margin-bottom: 10px;">Thurawn pe duh emaw, harsatna nei tan a hnuaiah hian biak theih ka ni e:</div>
             <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
                 <a href="https://wa.me/918837469949" target="_blank" style="text-decoration: none; background: #25D366; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 14px;"><i class="fa-brands fa-whatsapp"></i> WhatsApp: 8837469949</a>
+                <a href="mailto:achhandam@gmail.com" style="text-decoration: none; background: #c0392b; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 14px;"><i class="fa-solid fa-envelope"></i> Email: achhandam@gmail.com</a>
                 <a href="mailto:achhandam@gmail.com" style="text-decoration: none; background: #c0392b; color: white; padding: 10px 15px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 14px;"><i class="fa-solid fa-envelope"></i> Email: achhandam@gmail.com</a>
             </div>
             <button id="closeContactBtn" class="btn-gray btn-full" style="margin-top: 10px;">Khar rawh</button>
@@ -1991,11 +1992,7 @@
                 savedGameHistory = game.history();
                 currentMode = 'practice';
                 
-                // PGN container khar a, game screen / SRS controls hawng lovin,
-                // i ngen ang angin direct-in game history atang khan mistake analysis (SRS) a rawn run nghal ang.
                 $('#pgnContainer').slideUp();
-                
-                // Run mistake analysis / SRS session directly from imported PGN
                 startMistakeAnalysisSession();
             });
 
@@ -2033,14 +2030,14 @@
                     sessionScore = 0; maxSessionScore = mistakePositions.length * 10;
                     if (timerInterval) clearInterval(timerInterval);
                     
-                    // HomeScreen thukru a, gameSection leh srsControls kan hawng ang (chessboard diagram a lang ngei tawh ang)
                     $('#homeScreen').hide();
                     $('#gameSection').css('display', 'flex');
                     
                     $('#timerContainer, #pgnExportContainer, #moveHistoryBox, #actionButtons, #drawOfferBox, #gameEndControls, #learnMistakesBtn, #showPgnBtn, #gameSettingsPanel, #quitGameBtn, #chatBoxContainer').hide(); 
                     
-                    // BOARD & SRS CONTROLS LAWNG/LANG TIR TUR
                     $('#mainBoardWrapper').show();
+                    // Zirna-ah board flip button lang ve rawh se tiin kan hawng tel bawk
+                    $('#flipBoardBtn').show();
                     $('#srsControls').css('display', 'flex');
                     $('#status').hide(); 
                     
@@ -2048,12 +2045,12 @@
                     initBoardIfNeeded();
                     loadMistake();
                 } else {
-                    // Fallback to normal practice mode board display if no specific mistakes detected
                     isPracticeMode = true;
                     $('#homeScreen').hide();
                     $('#gameSection').css('display', 'flex');
                     $('#mainBoardWrapper').show();
                     $('#quitGameBtn').fadeIn();
+                    $('#flipBoardBtn').fadeIn();
                     initBoardIfNeeded();
                     board.position(game.fen());
                     updateMoveHistory();
@@ -2075,7 +2072,14 @@
                     game.load(currentPos.fen); 
                     initBoardIfNeeded();
                     board.position(game.fen()); 
-                    board.orientation(currentPos.orientation);
+                    
+                    // A dim (black) chet hun a nih chuan board kha automatically a dum lamah kan thawn/flip ang (black orientation)
+                    if (game.turn() === 'b') {
+                        board.orientation('black');
+                    } else {
+                        board.orientation('white');
+                    }
+
                     setEngineLevel(); practiceEngineState = 'analyzing_base'; mcqRawMoves = [];
                     $('#status').hide(); 
                     $('#srsQuestionText').html("ZIRNA (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ") <br>Zawn mek a ni...").show();
