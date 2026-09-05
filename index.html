@@ -102,7 +102,7 @@
         .btn-full { width: 100%; }
         .btn-half { flex: 1; min-width: 0; }
 
-        .mcq-btn { flex: 1 1 calc(50% - 10px); min-width: 120px; font-size: 15px; padding: 12px; margin: 0; text-align: center; }
+        .mcq-btn { flex: 1 1 calc(50% - 8px); min-width: 120px; font-size: 15px; padding: 12px; margin: 0; text-align: center; font-weight: bold; }
 
         .color-dropdown {
             padding: 8px; font-size: 12px; border-radius: 6px; border: 1px solid #bdc3c7;
@@ -605,6 +605,7 @@
             var lessonCompleted = false;
             var hasMadeMistakeInCurrent = false;
             var autoAdvanceTimer = null;
+            var practiceTimeoutHandle = null;
             var sessionScore = 0;
             var maxSessionScore = 0;
             var attemptsInCurrentMistake = 0;
@@ -810,6 +811,8 @@
 
             $(document).on('click', '.backToHomeBtn', function() {
                 if (timerInterval) clearInterval(timerInterval);
+                if (practiceTimeoutHandle) clearTimeout(practiceTimeoutHandle);
+                if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
                 if (liveGamesRef) liveGamesRef.off();
                 if (onlineRoomId && database && currentMode !== 'spectator') { database.ref('rooms/' + onlineRoomId).remove(); }
                 onlineRoomId = null;
@@ -879,7 +882,7 @@
             });
 
             $('#showPgnBtn').on('click', function() {
-                var pgnData = game.pgn(); if(pogData = game.pgn()) $('#pgnExportText').val(pgnData);
+                var pgnData = game.pgn(); if(pgnData) $('#pgnExportText').val(pgnData);
                 $('#pgnExportContainer').slideToggle();
             });
 
@@ -1527,6 +1530,86 @@
                 listenToRoom();
             }
 
+            function renderPracticeMCQ(bestUci) {
+                if (practiceTimeoutHandle) { clearTimeout(practiceTimeoutHandle); practiceTimeoutHandle = null; }
+                practiceEngineState = 'finished';
+
+                var legalMoves = game.moves({ verbose: true });
+                if (legalMoves.length === 0) {
+                    $('#srsQuestionText').html("Game a tawp tawh a ni.");
+                    $('#mcqContainer').empty();
+                    return;
+                }
+
+                var bestMoveObj = null;
+                if (bestUci) {
+                    var uciFrom = bestUci.substring(0, 2);
+                    var uciTo = bestUci.substring(2, 4);
+                    var uciProm = bestUci.length >= 5 ? bestUci.substring(4, 5) : null;
+                    bestMoveObj = legalMoves.find(function(m) {
+                        return m.from === uciFrom && m.to === uciTo && (!uciProm || m.promotion === uciProm);
+                    });
+                }
+
+                if (!bestMoveObj) {
+                    bestMoveObj = legalMoves[0];
+                }
+
+                practiceBestMove = bestMoveObj.from + bestMoveObj.to + (bestMoveObj.promotion || '');
+
+                var selectedOptions = [bestMoveObj];
+                var usedKeys = {};
+                usedKeys[bestMoveObj.from + bestMoveObj.to + (bestMoveObj.promotion || '')] = true;
+
+                for (var i = 0; i < mcqRawMoves.length; i++) {
+                    var raw = mcqRawMoves[i];
+                    if (!raw) continue;
+                    var rFrom = raw.substring(0, 2);
+                    var rTo = raw.substring(2, 4);
+                    var rProm = raw.length >= 5 ? raw.substring(4, 5) : null;
+                    var found = legalMoves.find(function(m) {
+                        return m.from === rFrom && m.to === rTo && (!rProm || m.promotion === rProm);
+                    });
+                    if (found) {
+                        var k = found.from + found.to + (found.promotion || '');
+                        if (!usedKeys[k] && selectedOptions.length < 4) {
+                            usedKeys[k] = true;
+                            selectedOptions.push(found);
+                        }
+                    }
+                }
+
+                var shuffledLegals = legalMoves.slice().sort(function() { return 0.5 - Math.random(); });
+                for (var j = 0; j < shuffledLegals.length; j++) {
+                    if (selectedOptions.length >= 4) break;
+                    var candidate = shuffledLegals[j];
+                    var candKey = candidate.from + candidate.to + (candidate.promotion || '');
+                    if (!usedKeys[candKey]) {
+                        usedKeys[candKey] = true;
+                        selectedOptions.push(candidate);
+                    }
+                }
+
+                selectedOptions.sort(function() { return 0.5 - Math.random(); });
+
+                var currentPos = mistakePositions[currentMistakeIndex];
+                var qText = "Position pawimawh a ni e. Chet tha ber (best move) engnge ni ang?";
+                if (currentPos) {
+                    if (currentPos.type === "blunder") qText = "He position-ah hian chetsual pawi (blunder) a awm, a aia tha ber thlang rawh:";
+                    else if (currentPos.type === "critical") qText = "Critical position a ni e, hmasawnna move tha ber thlang rawh:";
+                    else if (currentPos.type === "quiet") qText = "Position chetsual lohna (quiet/solid move) tha ber thlang rawh:";
+                }
+
+                var mcqHtml = '';
+                selectedOptions.forEach(function(opt) {
+                    var rawVal = opt.from + opt.to + (opt.promotion || '');
+                    mcqHtml += '<button class="mcq-btn btn-gray" data-raw="' + rawVal + '">' + opt.san + '</button>';
+                });
+
+                $('#mcqContainer').html(mcqHtml);
+                $('#srsQuestionText').html("<span style='color:#8e44ad; font-weight: bold;'>🧠 ZIRNA (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + "):</span><br>" + qText).show();
+            }
+
             stockfish.onmessage = function(event) {
                 var line = event.data; var currentScore = 0; var hasScore = false;
 
@@ -1559,45 +1642,8 @@
                     
                     if (isPracticeMode) {
                         if (practiceEngineState === 'analyzing_base') {
-                            practiceBestMove = match ? (match[1] + match[2] + (match[3]||'')) : null;
-                            practiceEngineState = 'finished';
-                            
-                            var legalMoves = game.moves({verbose:true}).map(m => m.from + m.to + (m.promotion||''));
-                            var options = [];
-                            if (practiceBestMove) options.push(practiceBestMove);
-                            
-                            for (var i=0; i<mcqRawMoves.length; i++) {
-                                if (mcqRawMoves[i] && !options.includes(mcqRawMoves[i])) options.push(mcqRawMoves[i]);
-                            }
-                            
-                            while (options.length < 4 && options.length < legalMoves.length) {
-                                var rand = legalMoves[Math.floor(Math.random() * legalMoves.length)];
-                                if (!options.includes(rand)) options.push(rand);
-                            }
-
-                            var mcqSanOptions = options.map(function(moveStr) {
-                                var temp = new Chess(game.fen());
-                                var from = moveStr.substring(0, 2); var to = moveStr.substring(2, 4); var prom = moveStr.length === 5 ? moveStr.substring(4, 5) : 'q';
-                                var m = temp.move({from: from, to: to, promotion: prom});
-                                return { raw: moveStr, san: m ? m.san : moveStr };
-                            });
-                            mcqSanOptions.sort(() => Math.random() - 0.5);
-
-                            var currentPos = mistakePositions[currentMistakeIndex]; var qText = "";
-                            if (currentPos) {
-                                if (currentPos.type === "blunder") qText = "He position-ah hian tihsual pawi (blunder) a awm, a aia chet tha ber (best move) engnge?";
-                                else if (currentPos.type === "critical") qText = "He critical position-ah hian hmasawnna pawimawh ber (best move) engnge?";
-                                else if (currentPos.type === "quiet") qText = "He hmunah hian chetsual miah lo (quiet move / prophylactic move) tha ber thlang rawh:";
-                            } else {
-                                qText = "Chet tha ber (best move) engnge?";
-                            }
-                            
-                            var mcqHtml = '';
-                            mcqSanOptions.forEach(function(opt) {
-                                mcqHtml += '<button class="mcq-btn btn-gray" data-raw="'+opt.raw+'">'+opt.san+'</button>';
-                            });
-                            $('#mcqContainer').html(mcqHtml);
-                            $('#srsQuestionText').html("<span style='color:#8e44ad; font-weight: bold;'>🧠 ZIRNA: " + qText + "</span>").show();
+                            var bestUci = match ? (match[1] + match[2] + (match[3] || '')) : null;
+                            renderPracticeMCQ(bestUci);
                         } 
                         return; 
                     }
@@ -1637,12 +1683,22 @@
                     lessonCompleted = true; $('.mcq-btn').prop('disabled', true);
                     $(this).removeClass('btn-gray').removeClass('btn-red').addClass('btn-green');
                     sessionScore += (attemptsInCurrentMistake === 1 ? 10 : 5);
-                    var correctMsg = "<span style='color:#27ae60;'><b>Dik lutuk!</b></span>";
+                    
+                    var from = chosenRaw.substring(0, 2);
+                    var to = chosenRaw.substring(2, 4);
+                    var prom = chosenRaw.length === 5 ? chosenRaw.substring(4, 5) : 'q';
+                    var executedMove = game.move({from: from, to: to, promotion: prom});
+                    if (executedMove) {
+                        playMoveSound(executedMove);
+                        board.position(game.fen());
+                    }
+
+                    var correctMsg = "<span style='color:#27ae60;'><b>Dik lutuk! Move tha ber a ni e.</b></span>";
                     $('#srsQuestionText').html(correctMsg);
-                    autoAdvanceTimer = setTimeout(function() { $('#nextMistakeBtn').click(); }, 1500);
+                    autoAdvanceTimer = setTimeout(function() { $('#nextMistakeBtn').click(); }, 1600);
                 } else {
                     $(this).removeClass('btn-gray').addClass('btn-red'); $(this).prop('disabled', true);
-                    var wrongMsg = "<span style='color:#c0392b;'><b>A dik lo, ti leh rawh.</b></span>";
+                    var wrongMsg = "<span style='color:#c0392b;'><b>A dik lo, han ngaihtuah nawn leh teh le...</b></span>";
                     $('#srsQuestionText').html(wrongMsg);
                 }
             });
@@ -1652,8 +1708,13 @@
                     lessonCompleted = true; sessionScore -= 5;
                     $('.mcq-btn').each(function() { if($(this).data('raw') === practiceBestMove) $(this).removeClass('btn-gray').removeClass('btn-red').addClass('btn-green'); });
                     var from = practiceBestMove.substring(0, 2); var to = practiceBestMove.substring(2, 4); var prom = practiceBestMove.length === 5 ? practiceBestMove.substring(4, 5) : 'q';
-                    game.move({from: from, to: to, promotion: prom}); board.position(game.fen());
+                    var executedMove = game.move({from: from, to: to, promotion: prom});
+                    if (executedMove) {
+                        playMoveSound(executedMove);
+                        board.position(game.fen());
+                    }
                     $('.mcq-btn').prop('disabled', true);
+                    $('#srsQuestionText').html("<span style='color:#d35400;'><b>Chhanna dik hi a ni e. Move en la, 'A dawt leh' hmet rawh.</b></span>");
                 }
             });
 
@@ -1877,7 +1938,7 @@
                     }
                 }
                 $('#showPgnBtn').fadeIn();
-                if (savedGameHistory.length > 4 && currentMode !== 'spectator') $('#learnMistakesBtn').fadeIn(); 
+                if (savedGameHistory.length >= 2 && currentMode !== 'spectator') $('#learnMistakesBtn').fadeIn(); 
                 $('#toggleSupportBtn, #toggleContactBtn').fadeIn();
             }
 
@@ -1974,7 +2035,7 @@
                 if (!isTwoPlayer && !isOnlineMode && playerColor === 'b') window.setTimeout(makeEngineMove, 250);
             }
 
-            // PGN IMPORT & LOAD (ZIRNA-AH LUT NGHALNA)
+            // PGN IMPORT & LOAD
             $('#loadAndLearnPgnBtn').on('click', function() {
                 var pgnString = $('#pgnText').val().trim();
                 if (!pgnString) { alert("PGN a ruak a nia, paste luh hmasak phawt tur a ni."); return; }
@@ -2017,20 +2078,16 @@
                             var scoreDrop = (plyColor === 'w') ? (currWhiteScore - lastWhiteScore) : (lastWhiteScore - currWhiteScore); 
                             var scoreDiff = Math.abs(currWhiteScore - lastWhiteScore);
 
-                            // 1. Tihsual (Blunder / Mistake)
                             if (scoreDrop < -50) { 
                                 var mistakeType = scoreDrop <= -300 ? "blunder" : "mistake";
-                                mistakePositions.push({ fen: fenBeforeMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', type: mistakeType, srsLevel: 1, nextReviewTime: 0 });
+                                mistakePositions.push({ fen: fenBeforeMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', type: mistakeType });
                             } 
-                            // 2. Critical Position / Sharp Tactical Pivot (Score swing lian tham awmna)
                             else if (scoreDiff > 120 && scoreDrop >= -50) {
-                                mistakePositions.push({ fen: fenBeforeMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', type: "critical", srsLevel: 1, nextReviewTime: 0 });
+                                mistakePositions.push({ fen: fenBeforeMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', type: "critical" });
                             }
-                            // 3. Quiet Move / Prophylactic Move (Non-capture, non-check, stable evaluation positioning)
                             else if (moveObj && !moveObj.captured && (!moveObj.san.includes('+') && !moveObj.san.includes('#')) && scoreDiff < 30 && history.length > 6) {
-                                // A changin game chhung atangin quiet/prophylactic move thlang chhuak ve ila
                                 if (i % 3 === 0) {
-                                    mistakePositions.push({ fen: fenBeforeMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', type: "quiet", srsLevel: 1, nextReviewTime: 0 });
+                                    mistakePositions.push({ fen: fenBeforeMove, moveNumber: moveNum, orientation: (plyColor === 'w') ? 'white' : 'black', type: "quiet" });
                                 }
                             }
                         }
@@ -2038,12 +2095,21 @@
                     }
                 }
 
-                // Fallback if evaluations or dynamic filters don't catch enough positions
                 if (mistakePositions.length === 0 && savedGameHistory.length > 0) {
                     tempGame.reset();
-                    for (var i = 0; i < history.length; i++) {
-                        var fenBefore = tempGame.fen(); tempGame.move(history[i]);
-                        if (i >= 2) mistakePositions.push({ fen: fenBefore, moveNumber: Math.floor(i / 2) + 1, orientation: (tempGame.turn() === 'w') ? 'white' : 'black', type: "critical", srsLevel: 1, nextReviewTime: 0 });
+                    var step = Math.max(1, Math.floor(savedGameHistory.length / 5));
+                    for (var k = 0; k < savedGameHistory.length; k++) {
+                        var fenPos = tempGame.fen();
+                        var sideTurn = tempGame.turn();
+                        tempGame.move(savedGameHistory[k]);
+                        if (k >= 2 && (k % step === 0 || k === savedGameHistory.length - 1)) {
+                            mistakePositions.push({
+                                fen: fenPos,
+                                moveNumber: Math.floor(k / 2) + 1,
+                                orientation: (sideTurn === 'w') ? 'white' : 'black',
+                                type: "critical"
+                            });
+                        }
                     }
                 }
 
@@ -2087,31 +2153,46 @@
             function loadMistake() {
                 lessonCompleted = false; hasMadeMistakeInCurrent = false; attemptsInCurrentMistake = 0;
                 if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
+                if (practiceTimeoutHandle) { clearTimeout(practiceTimeoutHandle); practiceTimeoutHandle = null; }
 
                 if(currentMistakeIndex < mistakePositions.length) {
                     var currentPos = mistakePositions[currentMistakeIndex];
                     game.load(currentPos.fen); 
                     initBoardIfNeeded();
                     board.position(game.fen()); 
-                    
-                    if (game.turn() === 'b') {
-                        board.orientation('black');
-                    } else {
-                        board.orientation('white');
-                    }
+                    board.orientation(currentPos.orientation);
 
-                    setEngineLevel(); practiceEngineState = 'analyzing_base'; mcqRawMoves = [];
+                    setEngineLevel(); 
+                    practiceEngineState = 'analyzing_base'; 
+                    mcqRawMoves = [];
+                    $('#mcqContainer').empty();
                     $('#status').hide(); 
                     
                     var labelTitle = "ZIRNA";
                     if (currentPos.type === "blunder") labelTitle = "Tihsual Pawi (Blunder)";
                     else if (currentPos.type === "critical") labelTitle = "Critical Position";
-                    else if (currentPos.type === "quiet") labelTitle = "Quiet / Prophylactic Move";
+                    else if (currentPos.type === "quiet") labelTitle = "Quiet / Solid Move";
 
-                    $('#srsQuestionText').html(labelTitle + " (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ") <br>Zawn mek a ni...").show();
-                    if(stockfish.postMessage) { stockfish.postMessage('position fen ' + game.fen()); stockfish.postMessage('go depth 14'); }
+                    $('#srsQuestionText').html("<span style='color:#8e44ad; font-weight:bold;'>" + labelTitle + " (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ")</span><br><i class='fa-solid fa-spinner fa-spin'></i> Zawhna a in buatsaih mek e...").show();
+                    
+                    if(stockfish && stockfish.postMessage) { 
+                        stockfish.postMessage('position fen ' + game.fen()); 
+                        stockfish.postMessage('go depth 12'); 
+                    }
+
+                    practiceTimeoutHandle = setTimeout(function() {
+                        if (practiceEngineState === 'analyzing_base') {
+                            var legalMoves = game.moves({verbose: true});
+                            if (legalMoves.length > 0) {
+                                var fallbackBest = legalMoves[0].from + legalMoves[0].to + (legalMoves[0].promotion || '');
+                                renderPracticeMCQ(fallbackBest);
+                            }
+                        }
+                    }, 1800);
+
                 } else {
-                    alert("Zir tur i zo ta!"); 
+                    $('#mcqContainer').empty();
+                    $('#srsQuestionText').html("<div style='color:#27ae60; font-size:15px;'><i class='fa-solid fa-circle-check'></i> <b>Zir tur zawng zawng i zo fel ta!</b></div><div style='margin-top:6px; color:#2c3e50;'>I mark hmuh zat: <b>" + sessionScore + " pts</b></div>");
                     $('#toggleSupportBtn, #toggleContactBtn').fadeIn();
                 }
             }
