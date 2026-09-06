@@ -922,7 +922,7 @@
             function setEngineLevel() {
                 if (isPracticeMode) {
                     stockfish.postMessage('setoption name Skill Level value 20');
-                    stockfish.postMessage('setoption name MultiPV value 4'); 
+                    stockfish.postMessage('setoption name MultiPV value 3'); 
                 } else if (!isTwoPlayer && !isOnlineMode && !isMatchmakingState) {
                     stockfish.postMessage('setoption name MultiPV value 1'); 
                     var level = parseInt($('#engineLevelSelect').val() || "20");
@@ -1369,7 +1369,7 @@
                                 <div style="flex:1; overflow:hidden; padding-right:5px;"><b style="color:#2980b9;">vs ${g.data.opponent}</b> <br><span style="font-size:10px; color:#7f8c8d; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${d} | ${g.data.result.substring(0, 20)}</span></div>
                                 <div style="display:flex; gap:4px; flex-shrink:0;">
                                     <button class="btn-teal btn-load-past-game" data-pgn="${encodeURIComponent(g.data.pgn)}" style="padding:4px 8px; font-size:11px; min-width:45px;">Enna</button>
-                                    <button class="btn-red btn-delete-past-game" data-id="${g.id}" style="padding:4px 8px; font-size:11px; min-width:35px;"><i class="fa-solid fa-trash"></i></button>
+                                    <button class="btn-red btn-delete-past-game" data-id="${game.id}" style="padding:4px 8px; font-size:11px; min-width:35px;"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                             </div>`;
                         });
@@ -2165,6 +2165,7 @@
                     setEngineLevel(); 
                     practiceEngineState = 'analyzing_base'; 
                     mcqRawMoves = [];
+                    practiceBestMove = null;
                     $('#mcqContainer').empty();
                     $('#status').hide(); 
                     
@@ -2173,22 +2174,22 @@
                     else if (currentPos.type === "critical") labelTitle = "Critical Position";
                     else if (currentPos.type === "quiet") labelTitle = "Quiet / Solid Move";
 
-                    $('#srsQuestionText').html("<span style='color:#8e44ad; font-weight:bold;'>" + labelTitle + " (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ")</span><br><i class='fa-solid fa-spinner fa-spin'></i> Zawhna a in buatsaih mek e...").show();
+                    $('#srsQuestionText').html("<span style='color:#8e44ad; font-weight:bold;'>" + labelTitle + " (" + (currentMistakeIndex + 1) + "/" + mistakePositions.length + ")</span><br><i class='fa-solid fa-spinner fa-spin'></i> Khawlin a chawh mek e, lo nghak lawk rawh...").show();
                     
                     if(stockfish && stockfish.postMessage) { 
+                        stockfish.postMessage('stop');
                         stockfish.postMessage('position fen ' + game.fen()); 
-                        stockfish.postMessage('go depth 12'); 
+                        stockfish.postMessage('go depth 8'); 
                     }
 
+                    // Stockfish a lo khawtlai palh pawhin a tur thut nan timeout hman a ni
                     practiceTimeoutHandle = setTimeout(function() {
                         if (practiceEngineState === 'analyzing_base') {
-                            var legalMoves = game.moves({verbose: true});
-                            if (legalMoves.length > 0) {
-                                var fallbackBest = legalMoves[0].from + legalMoves[0].to + (legalMoves[0].promotion || '');
-                                renderPracticeMCQ(fallbackBest);
+                            if(stockfish && stockfish.postMessage) {
+                                stockfish.postMessage('stop');
                             }
                         }
-                    }, 1800);
+                    }, 4000);
 
                 } else {
                     $('#mcqContainer').empty();
